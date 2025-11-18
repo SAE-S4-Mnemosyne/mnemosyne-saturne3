@@ -1,0 +1,17 @@
+# Dépendances PHP
+
+/vendor/
+
+# Fichiers système Mac/Windows 
+
+.DS_Store
+Thumbs.db
+
+# Fichiers de configuration locaux
+
+config.php
+.env
+
+# Logs d'erreurs
+
+*.log
