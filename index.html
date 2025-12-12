@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNEMOSYNE</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo-section">
+                    <div class="logo-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <div class="logo-text">
+                        <h1 class="logo-title">MNEMOSYNE</h1>
+                        <p class="logo-subtitle">Université Sorbonne Paris Nord</p>
+                    </div>
+                </div>
+                <nav class="nav-buttons">
+                    <a href="#" class="btn-nav">Accueil</a>
+                    <a href="#" class="btn-nav btn-primary">Connexion</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-section">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-icon">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h2 class="hero-title">Suivi des Cohortes</h2>
+                <p class="hero-subtitle">IUT de Villetaneuse</p>
+                <p class="hero-quote">"Garder la mémoire, éclairer les parcours"</p>
+            </div>
+
+            <div class="form-container">
+                <h3 class="form-title">Accès aux parcours des étudiants</h3>
+                <form class="search-form">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="formation">Sélectionner une formation</label>
+                            <select id="formation" class="form-select">
+                                <option value="">-- Choisir --</option>
+                                <option value="Carrières Juridiques">Carrières Juridiques</option>
+                                <option value="GEA">GEA</option>
+                                <option value="GEII">GEII</option>
+                                <option value="nformatique">Informatique</option>
+                                <option value="Réseaux et Télécoms">Réseaux et Télécoms</option>
+                                <option value="Science des Données">Science des Données</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="annee">Sélectionner une année</label>
+                            <select id="annee" class="form-select">
+                                <option value="">-- Choisir --</option>
+                                <option value="2024">2024</option>
+                                <option value="2023">2023</option>
+                                <option value="2022">2022</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-submit">
+                        Voir les parcours
+                        <span class="arrow">→</span>
+                    </button>
+                </form>
+            </div>
+
+            <div class="features">
+                <div class="feature-card">
+                    <h4 class="feature-title">Suivi en temps réel</h4>
+                    <p class="feature-text">Visualisation dynamique des parcours étudiants avec mise à jour automatique des données académiques.</p>
+                </div>
+                <div class="feature-card">
+                    <h4 class="feature-title">Données actualisées</h4>
+                    <p class="feature-text">Synchronisation continue avec le système académique pour des informations toujours à jour.</p>
+                </div>
+                <div class="feature-card">
+                    <h4 class="feature-title">Statistiques avancées</h4>
+                    <p class="feature-text">Analyses détaillées sur les résultats et l'évolution des cohortes tout au long du cursus.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p class="footer-quote">"Garder la mémoire, éclairer les parcours"</p>
+            <p class="footer-copyright">© 2025 Mnémosyne - Université Sorbonne Paris Nord</p>
+            <div class="footer-links">
+                <a href="#">Mentions légales</a>
+                <span>•</span>
+                <a href="#">Contact</a>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
