@@ -1,0 +1,17 @@
+# System files
+.DS_Store
+Thumbs.db
+
+# Dependencies
+node_modules/
+vendor/
+
+# Editors
+.vscode/
+.idea/
+
+# Environment / Secrets
+Backend/code_Mnémosyne/config.php
+
+# Logs
+*.log

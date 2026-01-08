@@ -1,0 +1,561 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    /* Pour centrage absolu si besoin */
+}
+
+.logo-section {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* ... logo styles ... */
+
+.nav-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-self: end;
+    /* Pousse à droite */
+}
+
+/* ... buttons ... */
+
+/* --- Boutons Spécifiques (Admin) --- */
+.btn-sync {
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+    font-family: inherit;
+    /* Garde la police serif */
+}
+
+.btn-sync:hover {
+    background: #0056b3;
+}
+
+/* Helper pour centrage absolu bouton admin */
+.header-center-absolute {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.btn-logout {
+    background: #dc3545;
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+    text-decoration: none !important;
+    /* Pas de soulignement */
+    font-family: inherit;
+}
+
+.btn-logout:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+/* Uniformisation taille boutons header */
+.header .btn-nav,
+.header .btn-sync,
+.header .btn-logout,
+.header .btn-theme-toggle {
+    padding: 0.5rem 1rem;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.logo-icon {
+    width: 48px;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.logo-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.logo-subtitle {
+    font-size: 0.875rem;
+    opacity: 0.9;
+}
+
+.nav-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-nav {
+    padding: 0.5rem 1.5rem;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-nav:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.btn-primary {
+    background: white;
+    color: #1e3a5f;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #f0f0f0;
+}
+
+.main-section {
+    padding: 4rem 0;
+    min-height: calc(100vh - 200px);
+}
+
+.hero-content {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.hero-icon {
+    width: 100px;
+    height: 100px;
+    background: linear-gradient(135deg, #2d5a8c 0%, #1e3a5f 100%);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    box-shadow: 0 10px 30px rgba(30, 58, 95, 0.2);
+}
+
+.hero-title {
+    font-size: 2.5rem;
+    color: #1e3a5f;
+    margin-bottom: 0.5rem;
+    font-weight: 700;
+}
+
+.hero-subtitle {
+    font-size: 1.25rem;
+    color: #5a6c7d;
+    margin-bottom: 1rem;
+}
+
+.hero-quote {
+    font-style: italic;
+    color: #7a8a9a;
+    font-size: 1rem;
+}
+
+.form-container {
+    background: white;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 2.5rem;
+    margin-bottom: 3rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.form-title {
+    text-align: center;
+    font-size: 1.25rem;
+    color: #1e3a5f;
+    margin-bottom: 2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #5a6c7d;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.form-select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #d1dce5;
+    border-radius: 8px;
+    font-size: 1rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: #2d5a8c;
+    box-shadow: 0 0 0 3px rgba(45, 90, 140, 0.1);
+}
+
+.btn-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    width: 100%;
+    max-width: 300px;
+    margin: 0 auto;
+    padding: 1rem 2rem;
+    background: #1e3a5f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-submit:hover {
+    background: #2d5a8c;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(30, 58, 95, 0.3);
+}
+
+.arrow {
+    font-size: 1.25rem;
+    transition: transform 0.3s ease;
+}
+
+.btn-submit:hover .arrow {
+    transform: translateX(5px);
+}
+
+/* --- Boutons Spécifiques (Admin) --- */
+.btn-sync {
+    background: #007bff;
+    /* Bleu standard */
+    color: white;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+}
+
+.btn-sync:hover {
+    background: #0056b3;
+}
+
+.btn-logout {
+    background: #dc3545;
+    /* Rouge */
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-logout:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+/* Uniformisation taille boutons header */
+.header .btn-nav,
+.header .btn-sync,
+.header .btn-logout {
+    padding: 0.5rem 1rem;
+    height: 40px;
+    /* Hauteur fixe pour alignement */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+}
+
+.feature-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    border: 1px solid #e1e8ed;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.feature-title {
+    font-size: 1.25rem;
+    color: #1e3a5f;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.feature-text {
+    color: #5a6c7d;
+    line-height: 1.6;
+}
+
+.footer {
+    background: #2c3e50;
+    color: white;
+    padding: 2rem 0;
+    text-align: center;
+    margin-top: 4rem;
+}
+
+.footer-quote {
+    font-style: italic;
+    margin-bottom: 1rem;
+    opacity: 0.9;
+}
+
+.footer-copyright {
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.footer-links {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    align-items: center;
+    font-size: 0.875rem;
+}
+
+.footer-links a {
+    color: white;
+    text-decoration: none;
+    opacity: 0.8;
+    transition: opacity 0.3s ease;
+}
+
+.footer-links a:hover {
+    opacity: 1;
+}
+
+/* --- Hamburger Menu --- */
+.menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 30px;
+    height: 21px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    z-index: 100;
+}
+
+.menu-toggle .bar {
+    width: 100%;
+    height: 3px;
+    background-color: white;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: flex;
+    }
+
+    .nav-buttons {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #1e3a5f;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0;
+        display: none;
+        /* Caché par défaut */
+        z-index: 99;
+    }
+
+    .nav-buttons.active {
+        display: flex;
+    }
+
+    .nav-buttons a {
+        display: block;
+        width: 80%;
+        text-align: center;
+        margin: 0.5rem 0;
+    }
+}
+
+/* --- Dark Mode Variables & Styles --- */
+body.dark-mode {
+    background-color: #121212;
+    /* Vrai noir/gris très sombre */
+    color: #e0e0e0;
+}
+
+body.dark-mode .header {
+    background: #000000;
+    /* Header noir en mode sombre */
+    border-bottom: 1px solid #333;
+}
+
+body.dark-mode .form-container,
+body.dark-mode .feature-card {
+    background-color: #1e1e1e;
+    /* Carte gris foncé */
+    border-color: #333;
+    /* Bordure discrète */
+    color: #e0e0e0;
+    box-shadow: none;
+}
+
+body.dark-mode #sankey_chart {
+    background-color: #1e1e1e !important;
+    /* Graphique fond sombre */
+    border: 1px solid #333;
+}
+
+body.dark-mode .form-title,
+body.dark-mode .feature-title,
+body.dark-mode .hero-title {
+    color: #ffffff;
+}
+
+body.dark-mode .feature-text,
+body.dark-mode .form-group label {
+    color: #b0b0b0;
+}
+
+body.dark-mode .form-select {
+    background-color: #2c2c2c;
+    border-color: #444;
+    color: white;
+}
+
+body.dark-mode .form-select:focus {
+    border-color: #666;
+    /* Pas de violet */
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .btn-theme-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+body.dark-mode .footer {
+    background-color: #000000;
+    border-top: 1px solid #333;
+}
+
+/* --- Theme Toggle Button --- */
+.btn-theme-toggle {
+    font-size: 1.2rem;
+    padding: 0.4rem 0.8rem;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-right: 0.5rem;
+    color: white;
+    transition: background 0.3s;
+}
+
+.btn-theme-toggle:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* --- Login Page Specifics --- */
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #f0f2f5;
+}
+
+body.dark-mode.login-page {
+    background: #121212;
+}
+
+.login-wrapper {
+    margin: 0 auto;
+    width: 100%;
+    max-width: 400px;
+}
+
+/* Espacement supplémentaire Login */
+.login-wrapper .btn-submit {
+    margin-top: 2rem;
+    /* Espace entre mdp et bouton */
+}
+
+/* Espacement Sankey */
+#sankey_chart {
+    margin-bottom: 3rem;
+    /* Espace sous le graphique */
+}
