@@ -149,7 +149,7 @@ async function fetchAndDraw() {
 
 function drawSankey(data) {
     const container = document.getElementById('sankey_chart');
-    container.innerHTML = ""; // Clear previous
+    container.innerHTML = "";
 
     const chartData = new google.visualization.DataTable();
     chartData.addColumn('string', 'From');
@@ -170,7 +170,7 @@ function drawSankey(data) {
         sankey: {
             node: {
                 label: {
-                    fontName: 'Inter', // Police Sans-Serif standard
+                    fontName: 'Inter',
                     fontSize: 14,
                     color: textColor
                 },
