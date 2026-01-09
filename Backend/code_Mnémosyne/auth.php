@@ -21,7 +21,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         if ($check->fetchColumn() == 0) {
             // AUTO-FIX: Création d'un admin par défaut si aucun n'existe
             // Mot de passe par défaut : 'admin' (haché)
-            $defaultPass = password_hash('admin', PASSWORD_DEFAULT);
+            $defaultPass = password_hash('admin', PASSWORD_ARGON2ID);
             $stmt = $pdo->prepare("INSERT INTO ADMIN (identifiant, mot_de_passe) VALUES ('admin', ?)");
             $stmt->execute([$defaultPass]);
         }
