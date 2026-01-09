@@ -1,7 +1,9 @@
+// Scripte principale
+
 <?php
 //include 'index.php';
 
-function scodoc_api_get(string $path){
+function scodoc_api_get(string $path){// recuperation de token d'authentification et de l'url de scodoc
     $token = scodoc_recupToken();
     $SC    = scodoc_Config(); 
 
@@ -37,7 +39,7 @@ function scodoc_api_get(string $path){
     return $response;
 }
 
-function scodoc_save_json(string $json, string $filename){
+function scodoc_save_json(string $json, string $filename){// fonction qui prend du texte Json le rend plus lisible et lenregistre dans fcihier SAE_json
     $dir = __DIR__ . '/SAE_json';
 
     $filepath = $dir . '/' . $filename;
@@ -52,26 +54,26 @@ function scodoc_save_json(string $json, string $filename){
     }
 }
 
-function is_but_formation(array $f){
-    if (isset($f['type_titre']) && $f['type_titre'] === 'BUT') return true;
+function is_but_formation(array $f){//fonction qui va vérifier si la formation et bien de type BUT psk on s'intèrrésse qu'au BUT
+    if (isset($f['type_titre']) && $f['type_titre'] === 'BUT') return true;// ici on regarde le type et le titre pour vérifier ça
 
     if (isset($f['titre']) && stripos($f['titre'], 'BUT') === 0) return true;
 
     return false;
 }
 
-function hash_id($value){
-    $salt = 'ataraXyEstTrop';
+function hash_id($value){// Cette fct transforme un identifiant comme un nombre d'etudiant enune suite de caractères lisibles 
+    $salt = 'ataraXyEstTrop'; // le salt pour la securisation
     return hash('sha256', $salt . (string)$value);
 }
 
-function anonymize_decisions_array(&$data){
+function anonymize_decisions_array(&$data){// c'est une fonction tres imporatnte pour la sécurité des données a chaque fois ou elle trouve un champs sensible elle transforme sa valeur en hash
     if (is_array($data)) {
         foreach ($data as $key => &$value) {
 
             if ($key === 'etudid' || $key === 'code_nip' || $key === 'code_ine') {
                 if ($value !== null && $value !== '') {
-                    $value = hash_id($value);
+                    $value = hash_id($value);//appel de la fct hash_id pour hasher le id
                 }
                 continue;
             }
@@ -83,84 +85,71 @@ function anonymize_decisions_array(&$data){
         unset($value); 
     }
 }
+/////////main////////////////
 
-
-/* 1) Départements */
-$json = scodoc_api_get('/departements');
-scodoc_save_json($json, 'departements.json');
-echo "Départements sauvegardés\n";
-
-/* 2) Formations + référentiels de compétences des BUT */
-$formationsJson = scodoc_api_get('/formations');
-scodoc_save_json($formationsJson, 'formations.json');
-echo "Formations sauvegardées\n";
-
-$formations = json_decode($formationsJson, true);
-
-$butFormationIds = []; // on garde les IDs de toutes les formations BUT
-
-foreach ($formations as $formation) {
-    if (!is_but_formation($formation)) continue;
-    
-    $formationIdBut = $formation['formation_id'] ?? $formation['id'] ?? null;
-    if ($formationIdBut === null) continue;
-
-    $butFormationIds[] = $formationIdBut;
-    
-    $path = '/formation/' . $formationIdBut . '/referentiel_competences';
-    
-    $json = scodoc_api_get($path);
-    $decodedRef = json_decode($json, true);
-    if ($decodedRef === null) continue;
-    
-    $suffix = 'BUT_' . $formationIdBut;
-    if (!empty($formation['titre_court'])) {
-        $suffix .= '_' . preg_replace('/[^A-Za-z0-9_-]+/', '_', $formation['titre_court']);
-    }
-    
-    $filename = 'referentiel_competences_' . $suffix . '.json';
-    scodoc_save_json($json, $filename);
+if (!$pdo) {
+    die("La connexion à la BDD a échoué. Arrêt du script.");
 }
-echo "Référentiels de compétences sauvegardés\n";
 
-/* 3) Décisions de jury pour les formsemestres des BUT pour chaque année */
+try {
+    /* 1) Récupération et Stockage des Formations */
+    $formationsJson = scodoc_api_get('/formations');
+    $formations = json_decode($formationsJson, true);
 
-foreach([2021, 2022, 2023, 2024] as $annee){
-	$formsemestresJson = scodoc_api_get('/formsemestres/query?annee_scolaire=' . $annee);
-	scodoc_save_json($formsemestresJson, 'formsemestres_' . $annee . '.json');
-	echo "Formsemestres $annee sauvegardés\n";
+    $stmtForm = $pdo->prepare("INSERT IGNORE INTO formations (id, titre, type_titre) VALUES (?, ?, ?)");
+    
+    $butFormationIds = [];
 
-	$formsemestres = json_decode($formsemestresJson, true);
+    foreach ($formations as $f) {
+        $fId = $f['formation_id'] ?? $f['id'] ?? null;
+        if ($fId === null) continue;
 
-	// On parcourt les formsemestres
-	foreach ($formsemestres as $fs) {
-		$formationId = $fs['formation_id']
-			?? ($fs['formation']['formation_id'] ?? null)
-			?? null;
+        // On insère en BDD
+        $stmtForm->execute([$fId, $f['titre'] ?? 'Sans titre', $f['type_titre'] ?? 'N/A']);
 
-		if ($formationId === null) continue;
+        // On filtre pour les BUT pour la suite
+        if ((isset($f['type_titre']) && $f['type_titre'] === 'BUT') || 
+            (isset($f['titre']) && stripos($f['titre'], 'BUT') === 0)) {
+            $butFormationIds[] = $fId;
+        }
+    }
+    echo "Formations synchronisées en BDD.\n";
 
-		if (!in_array($formationId, $butFormationIds, true)) continue;
+    /* 2) Récupération et Anonymisation des Décisions de Jury */
+    $stmtJury = $pdo->prepare("INSERT INTO decisions_jury (etudid_hash, formsemestre_id, annee, decision) VALUES (?, ?, ?, ?)");
 
-		$formsemestreId = $fs['id'] ?? $fs['formsemestre_id'] ?? null;
-		if ($formsemestreId === null) continue;
+    foreach([2021, 2022, 2023, 2024] as $annee){
+        $fsJson = scodoc_api_get('/formsemestres/query?annee_scolaire=' . $annee);
+        $formsemestres = json_decode($fsJson, true);
 
-		$path = '/formsemestre/' . $formsemestreId . '/decisions_jury';
-		$json = scodoc_api_get($path);
-		
-		//Anonymisation
-		$decoded = json_decode($json, true);
-		if ($decoded === null) continue;
-		anonymize_decisions_array($decoded);
-		$jsonAnonym = json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        foreach ($formsemestres as $fs) {
+            $formationId = $fs['formation_id'] ?? ($fs['formation']['formation_id'] ?? null);
+            $fsId = $fs['id'] ?? $fs['formsemestre_id'] ?? null;
 
-		$titre = $fs['titre'] ?? ($fs['titre_court'] ?? '');
-		$safeTitre = $titre ? preg_replace('/[^A-Za-z0-9_-]+/', '_', $titre) : 'fs';
+            if ($fsId && in_array($formationId, $butFormationIds)) {
+                $decisionsJson = scodoc_api_get("/formsemestre/$fsId/decisions_jury");
+                $decisions = json_decode($decisionsJson, true);
 
-		$filename = 'decisions_jury_' . $annee . '_fs_' . $formsemestreId . '_' . $safeTitre . '.json';
-		scodoc_save_json($jsonAnonym, $filename);
-	}
+                if (is_array($decisions)) {
+                    foreach ($decisions as $d) {
+                        // ANONYMISATION immédiate avant insertion
+                        $etudIdRaw = $d['etudid'] ?? $d['code_nip'] ?? null;
+                        if (!$etudIdRaw) continue;
+                        
+                        $etudIdHash = hash_id($etudIdRaw);
+                        
+                        // Stockage de la décision 
+                        $decisionData = json_encode($d, JSON_UNESCAPED_UNICODE);
+                        
+                        $stmtJury->execute([$etudIdHash, $fsId, $annee, $decisionData]);
+                    }
+                }
+            }
+        }
+        echo "Année $annee traitée et sécurisée en BDD.\n";
+    }
 
-	echo "Décisions de jury $annee des BUT sauvegardées\n";
+} catch (Exception $e) {
+    echo "Erreur lors du traitement : " . $e->getMessage();
 }
 ?>
