@@ -21,13 +21,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $check = $pdo->query("SELECT COUNT(*) FROM admin");
         if ($check->fetchColumn() == 0) {
             // AUTO-FIX: Création d'un admin par défaut si aucun n'existe
-<<<<<<< HEAD:auth.php
             $defaultPass = password_hash('admin', PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("INSERT INTO admin (identifiant, mot_de_passe) VALUES ('admin', ?)");
-=======
-            $defaultPass = password_hash('admin', PASSWORD_ARGON2ID);
-            $stmt = $pdo->prepare("INSERT INTO ADMIN (identifiant, mot_de_passe) VALUES ('admin', ?)");
->>>>>>> 862260ce57fb93ac105373f2822c4d42e08a0dc4:Backend/code_Mnémosyne/auth.php
             $stmt->execute([$defaultPass]);
         }
 
