@@ -1,17 +1,17 @@
-# Dépendances PHP
-
-/vendor/
-
-# Fichiers système Mac/Windows 
-
+# System files
 .DS_Store
 Thumbs.db
 
-# Fichiers de configuration locaux
+# Dependencies
+node_modules/
+vendor/
 
-config.php
-.env
+# Editors
+.vscode/
+.idea/
 
-# Logs d'erreurs
+# Environment / Secrets
+Backend/code_Mnémosyne/config.php
 
+# Logs
 *.log
