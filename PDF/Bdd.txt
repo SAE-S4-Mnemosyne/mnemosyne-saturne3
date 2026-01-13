@@ -1,0 +1,164 @@
+# Contenu extrait de: Bdd.pdf
+# Date d'extraction: 2026-01-13 19:37:24.588926
+
+
+============================================================
+📄 PAGE 1
+============================================================
+
+Zoubida BENHABIB
+Mohamed BOUSARGHINI
+Ayman ELGOUANI
+Melissa FELOUAH
+Mohamed Yacine MEHADJI
+Amel LANOUAR
+User stoty (pris du cahier des charges) : 
+En tant qu'utilisateur "Consultant" : 
+• Je veux pouvoir sélectionner une formation (parmi les 6 BUT) et une année de promotion, 
+afin d'isoler mon analyse à un département spécifique.
+• Je veux pouvoir sélectionner "Tout l'IUT", afin d'avoir une vue d'ensemble de la 
+performance de l'établissement.
+• Je veux voir un diagramme Sankey affichant les flux de la cohorte sélectionnée, afin de 
+comprendre visuellement les parcours, les succès et les points de sortie.
+• Je veux voir le détail des statuts (ADM, PASD, RED...) pour une année donnée, afin de 
+quantifier les décisions de jury. 
+• Je veux pouvoir cliquer sur un flux (ex: "Redoublants BUT1"), afin de suivre le parcours de 
+cette sous-cohorte spécifique l'année suivante.
+• Je veux pouvoir cliquer sur un lien pour voir le détail d'un étudiant dans ScoDoc (si 
+faisable), afin d'accéder à la source de l'information en cas de besoin. 
+En tant qu'utilisateur "Administrateur" : 
+• Je veux un accès sécurisé (login/mot de passe) à la partie administration, afin d'empêcher 
+toute modification non autorisée des règles.
+• Je veux un bouton "Synchroniser" qui importe les nouvelles données depuis ScoDoc, afin de 
+garantir que les données de consultation sont à jour.
+• Je veux que la synchronisation ne crée pas de doublons, afin de maintenir l'intégrité de la 
+base de données.
+• Je veux une interface simple pour définir les "scénarios" (règles de calcul), afin d'adapter la 
+logique de l'outil à la réalité du terrain et aux cas particuliers.
+• Je veux une interface simple pour mapper les codes ScoDoc (ex: B1-GEA-FI), afin de 
+rendre les graphiques lisibles pour des utilisateurs non techniques. 
+
+============================================================
+📄 PAGE 2
+============================================================
+
+• Etudiant
+Représente un étudiant issu de ScoDoc.
+Cette entité permet d’identifier un étudiant et de créer un lien vers ScoDoc, conformément à 
+la User Story.
+• Formation
+Représente une formation (ex : BUT GEA, BUT INFO).
+Elle permet de filtrer les analyses par formation ou par département, en lien avec les User 
+Stories du consultant.
+• Departement
+Permet de regrouper les formations par département.
+• Semestre_Instance
+Représente une formation à un semestre et une année donnée.
+Elle est essentielle pour analyser les parcours d’une cohorte sur plusieurs années.
+• Inscription
+Représente l’inscription d’un étudiant à un semestre donné.
+Elle contient les décisions de jury (ADM, PASD, RED…).
+• Résultat_Compétence
+Stocke les résultats par compétence pour une inscription.
+Elle permet de calculer les indicateurs de réussite.
+• Scenario_Correspondance
+Permet de définir les règles et scénarios de calcul des flux (réorientations, redoublements, 
+etc.).
+Cette entité répond aux besoins de l’administrateur pour paramétrer l’outil sans modifier le 
+code.
+
+
+============================================================
+📄 PAGE 3
+============================================================
+
+• Admin
+Gère l’authentification des administrateurs (login / mot de passe).
+Schéma relationnel     :  
+ETUDIANT (
+  code_nip PK,
+  code_ine,
+  etudid_scodoc
+)
+DEPARTEMENT (
+  id_dept PK,
+  acronyme,
+  nom_complet
+)
+FORMATION (
+  id_formation PK,
+  id_dept FK,
+  code_scodoc,
+  titre
+)
+SEMESTRE_INSTANCE (
+  id_formsemestre PK,
+  id_formation FK,
+  annee_scolaire,
+  numero_semestre,
+  modalite
+)
+INSCRIPTION (
+  id_inscription PK,
+  code_nip FK,
+  id_formsemestre FK,
+  decision_jury,
+  decision_annee,
+  etat_inscription,
+  pcn_competences,
+  is_apc,
+  date_maj
+)
+RESULTAT_COMPETENCE (
+  id_resultat PK,
+  id_inscription FK,
+  numero_competence,
+  code_decision,
+  moyenne
+)
+SCENARIO_CORRESPONDANCE (
+  id_scenario PK,
+  id_formation_source FK,
+
+============================================================
+📄 PAGE 4
+============================================================
+
+  id_formation_cible FK,
+  type_flux
+)
+ADMIN (
+  id_utilisateur PK,
+  identifiant,
+  mot_de_passe
+)
+Lien avec les User stories     :   
+User Stories – Consultant
+La possibilité de sélectionner une formation et une année de promotion est faites grâce aux entités 
+Formation, Departement et Semestre_Instance. L’attribut annee_scolaire permet d’isoler une 
+cohorte précise pour l’analyse.
+Le choix d’une vue « Tout l’IUT » est possible par le lien entre les entités Departement et 
+Formation, ce qui permet de regrouper l’ensemble des formations de l’établissement.
+L’affichage d’un diagramme de Sankey représentant les parcours des étudiants repose sur les entités 
+Inscription et Semestre_Instance, qui permettent de suivre les inscriptions d’un étudiant d’une 
+année à l’autre. Les règles définies dans l’entité Scenario_Correspondance permettent ensuite 
+d’identifier les différents types de flux (réussite, redoublement, réorientation ou sortie).
+Le détail des décisions de jury (ADM, PASD, RED, etc.) pour une année donnée est accessible 
+grâce aux informations stockées dans l’entité Inscription, notamment les champs decision_jury et 
+decision_annee.
+Le suivi d’une sous-cohorte après un clic sur un flux est possible grâce au lien entre les entités 
+Etudiant, Inscription et Semestre_Instance, qui permet de retrouver les parcours successifs des 
+étudiants sur plusieurs années.
+L’accès au détail d’un étudiant dans ScoDoc est rendu possible par les identifiants stockés dans 
+l’entité Etudiant, code_nip et etudid_scodoc.
+User     Stories – Administrateur  
+L’accès sécurisé à la partie administration est géré par l’entité Admin, qui permet l’authentification 
+de l’administrateur via un identifiant et un mot de passe.
+La synchronisation des données provenant de ScoDoc sans créer de doublons est assurée par les 
+entités Etudiant et Inscription.
+La gestion des règles de calcul et des scénarios de parcours se fera grâce à l’entité 
+Scenario_Correspondance, qui permet à l’administrateur d’adapter la logique de l’outil aux 
+différents cas rencontrés.
+Le mapping des codes ScoDoc vers des libellés plus lisibles est pris en charge par les informations 
+stockées dans l’entité Formation et par l’entité Scenario_Correspondance, afin de rendre les 
+graphiques compréhensibles pour les utilisateurs.

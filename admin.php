@@ -216,10 +216,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         if (empty($etu["code_nip"])) continue;
 
                         $sqlInsertEtudiant->execute([":nip" => $etu["code_nip"], ":ine" => $etu["code_ine"] ?? null, ":etud" => $etu["etudid"] ?? null]);
+                        
+                        // CORRECTION: Utiliser annee.code pour la décision de jury (ADM, RED, NAR, etc.)
+                        // et etat pour l'état d'inscription (I=Inscrit, D=Démission)
+                        $decisionJury = $etu["annee"]["code"] ?? null;
+                        $etatInscription = $etu["etat"] ?? null;
+                        
                         $sqlInsertInscription->execute([
-                            ":nip" => $etu["code_nip"], ":fs" => $id_formsemestre, ":jury" => $etu["etat"] ?? null,
-                            ":annee"=> $etu["annee"]["ordre"] ?? null, ":etat" => $etu["etat"] ?? null,
-                            ":pct" => $etu["nb_competences"] ?? null, ":isapc"=> ($etu["is_apc"] ?? false) ? 1 : 0, ":maj" => date("Y-m-d H:i:s")
+                            ":nip" => $etu["code_nip"], 
+                            ":fs" => $id_formsemestre, 
+                            ":jury" => $decisionJury,  // ADM, RED, NAR, PASD, DEF, etc.
+                            ":annee"=> $etu["annee"]["ordre"] ?? null, 
+                            ":etat" => $etatInscription,  // I ou D
+                            ":pct" => $etu["nb_competences"] ?? null, 
+                            ":isapc"=> ($etu["is_apc"] ?? false) ? 1 : 0, 
+                            ":maj" => date("Y-m-d H:i:s")
                         ]);
                         $id_inscription = $pdo->lastInsertId();
 
@@ -452,7 +463,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                             <div class="status-info">
                                 <div class="status-indicator"></div>
                                 <div class="status-details">
-                                    <div class="status-header-line"><span class="status-code">ADM</span><span class="status-label">Validé</span></div>
+                                    <div class="status-header-line"><span class="status-code">ADM</span><span class="status-label">Diplômé</span></div>
                                 </div>
                             </div>
                             <div class="status-stats"><div class="status-number" id="count-valide">0</div><div class="status-percent" id="percent-valide">0%</div></div>
@@ -463,7 +474,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                             <div class="status-info">
                                 <div class="status-indicator"></div>
                                 <div class="status-details">
-                                    <div class="status-header-line"><span class="status-code">ADJ/CMP</span><span class="status-label">Compensé</span></div>
+                                    <div class="status-header-line"><span class="status-code">PASS</span><span class="status-label">En cours</span></div>
                                 </div>
                             </div>
                             <div class="status-stats"><div class="status-number" id="count-partiel">0</div><div class="status-percent" id="percent-partiel">0%</div></div>

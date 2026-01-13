@@ -130,9 +130,9 @@ require_once 'config.php';
                                 <div class="status-details">
                                     <div class="status-header-line">
                                         <span class="status-code">ADM</span>
-                                        <span class="status-label">Validé</span>
+                                        <span class="status-label">Diplômé</span>
                                     </div>
-                                    <p class="status-description">Passage à l'année suivante</p>
+                                    <p class="status-description">Obtention du diplôme BUT</p>
                                 </div>
                             </div>
                             <div class="status-stats">
@@ -148,10 +148,10 @@ require_once 'config.php';
                                 <div class="status-indicator"></div>
                                 <div class="status-details">
                                     <div class="status-header-line">
-                                        <span class="status-code">ADJ</span>
-                                        <span class="status-label">Compensé</span>
+                                        <span class="status-code">PASS</span>
+                                        <span class="status-label">En cours</span>
                                     </div>
-                                    <p class="status-description">Validation par compensation</p>
+                                    <p class="status-description">Étudiants en cours de cursus</p>
                                 </div>
                             </div>
                             <div class="status-stats">

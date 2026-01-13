@@ -1,0 +1,84 @@
+# Contenu extrait de: Mnemosyne (1).pdf
+# Date d'extraction: 2026-01-13 19:37:25.275015
+
+
+============================================================
+📄 PAGE 1
+============================================================
+
+Mnémosyne 
+ 
+Contexte et objectif 
+En septembre 2021, le diplôme des BUT a été instancié dans les IUT. Apprentissage par compétence, 
+SAE, ressource et tout plein de nouveau vocabulaire pour les IUT sont apparus. Ce fut le cas à l’IUT de 
+Villetaneuse qui prépare à 6 BUT réparti dans 6 départements :  
+BUT CJ – Carrière juridique 
+BUT GEA – Gestion des entreprises et des administrations 
+BUT GEII – Génie électrique et informatique industrielle 
+BUT INFO – Informatique 
+BUT RT – Réseaux et télécommunication 
+BUT SD – Science des données 
+ 
+Une question qui intéresse l’institution mais aussi le rectorat et le ministère est le suivit des cohortes. 
+Cohorte d ’étudiants : désigne l ’ensemble d ’étudiants qui commence une formation 
+donnée la même année et qui suivent leur parcours ensemble. 
+Le projet « Mnémosyne » a pour objectif d’accéder facilement et rapidement aux suivit des cohortes. 
+Aspect technique 
+La plateforme sera connectée à l ’API de gestion de la scolarité des étudiants « SCODOC ». La 
+documentation de cette API est disponible ici : https://scodoc.org/ScoDoc9API/ 
+Pour des raisons de confidentialité, l’accès au scodoc de l’IUT de Villetaneuse ne sera possible que lors 
+de test effectué avec le client.  Mais pour réaliser des tests, des « fausses » données seront rendu 
+accessible au format JSON. 
+L’application sera web (HTML/CSS/JS) et on préfèrera le PHP/SQL coté serveur, à débattre. 
+Architecture globale 
+La plateforme sera divisée en deux parties :  
+Une partie de « consultation » et une partie « administration ». 
+La partie « administration », ira lire scodoc et chargera les données inédites  dans la base de la 
+plateforme. Elle ne sera accessible qu’aux utilisateurs ayant les droits suffisants. Dans cette partie nous 
+pourront également définir des scénarii 
+La partie « consultation » proposera dans un premier temps à l ’utilisateur de choisir la formation et 
+l’année. Elle af fichera le suivit de la cohorte pour lesquelles les BUT1 sont dans l ’année choisie. Un 
+diagramme SANKEY semble le plus adapté pour une visualisation éclairante  
+(https://fr.wikipedia.org/wiki/Diagramme_de_Sankey), mais d’autre proposition peuvent être faite. 
+
+============================================================
+📄 PAGE 2
+============================================================
+
+Exemple d’utilisation coté « consultation » 
+Arrivé sur la plateforme nous choisissons l ’année (ex. : 2022/2023) et la formation (ex.  : INFO). Alors 
+la plateforme nous affiche un diag ramme SANKEY avec le s étudiants arrivant en BUT1 INFO en 
+2022/2023. Voici un exemple avec de fausse données 
+ 
+Les valeurs devront être cliquable. Par exemple en cliquant sur redoublant BUT1, on est redirigé vers 
+la même page mais de l ’année 2022/2023 pour suivre la cohorte (avec les redoublants). De même, il 
+sera possible de voir le détails avec des liens qui pointes vers SCODOC. 
+La plateforme indiquera, d’une manière à débattre, le nombre d’étudiant ayant validé avec toutes les 
+compétences (décision annuelle ADM), ceux qui n ’ont pas validé avec toute  leur compétence 
+(décisions annuelle PASD), les redoublants (décision RED), les abandons (décision NAR), les validations 
+par décision de jury (code annuelle ADJ) etc. Pour cela il faudra analyser la documentation de SCODOC 
+et les JSON pour définir la meilleur structure a adopter. 
+En plus des choix par département, il sera possible de choisir « Tout l’IUT » pour suivre l’intégralité des 
+cohortes d’une année de promotion choisie sur l’intégralité de l’IUT. 
+Exemple d’utilisation coté « Administration » 
+L’administrateur de la page aura un bouton de synchronisation. Au clique, la base de  donnée se 
+chargera des données non encore chargées, présentent dans scodoc. Cela implique donc de réfléchir 
+à une structure des données (la manière dont les données devront être stockée sur Mnémosyne. 
+Sur cette page d’administration on définira aussi les scenarii possibles : un étudiant en BUT2 GEA en FI 
+qui passe en BUT3 FA en apprentissage, dans quelle case devra-t-il compter ? Un étudiant qui bascule 
+de BUT1 SD à BUT2 Passerelle, comment devra-t-il compter ? En particulier sur cette page on définira 
+les codes permettant de suivre les cohortes (BUT1 GEA FI, BUT3 INFO FA qui seront les valeurs affichées 
+sur les SANKEY d’un côté et les valeur de scodoc d’un autre coté) 
+ 
+
+
+============================================================
+📄 PAGE 3
+============================================================
+
+A propos de Mnémosyne 
+Dans la mythologie grecque c’est la déesse de la mémoire. Sa fonction était de garder la trace du passé 
+pour nourrir le savoir, la création et la transmission. 
+A l’aide de l’IA, j’ai le slogan, satisfaisant mais à débattre : « Garder la mémoire, éclairer les parcours ». 
+L’IA m’a également proposé un logo que j’aime bien, à débattre :  
+ 
