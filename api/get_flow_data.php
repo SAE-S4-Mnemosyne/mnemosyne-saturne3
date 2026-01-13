@@ -23,9 +23,7 @@ try {
     $nodes = [];
     $flows = [];
     
-    // ==========================================================
     // ÉTAPE 1: Récupérer TOUS les étudiants BUT1 de l'année N
-    // ==========================================================
     
     if ($isAllFormations) {
         $sqlBUT1 = "
@@ -60,9 +58,7 @@ try {
         exit;
     }
     
-    // ==========================================================
     // STRUCTURE DES FLUX MULTI-ÉTAPES
-    // ==========================================================
     
     // Noeuds principaux
     $BUT1_label = "BUT1";
@@ -75,9 +71,7 @@ try {
     $flows["Redoublant||$BUT1_label"] = (int)($totalBUT1 * 0.08); // ~8% redoublants
     $flows["Hors ParcoursUp||$BUT1_label"] = $totalBUT1 - $flows["ParcoursUp||$BUT1_label"] - $flows["Redoublant||$BUT1_label"];
     
-    // ==========================================================
     // ÉTAPE 2: Suivre les étudiants année par année
-    // ==========================================================
     
     $nipsBUT1 = array_column($etudiantsBUT1, 'code_nip');
     
@@ -196,9 +190,7 @@ try {
     if ($redoublementBUT3 > 0) $flows["$BUT3_label||Redoublement BUT3"] = $redoublementBUT3;
     if ($abandonBUT3 > 0) $flows["$BUT3_label||Abandon BUT3"] = $abandonBUT3;
     
-    // ==========================================================
     // CONSTRUCTION DU RÉSULTAT
-    // ==========================================================
     
     $links = [];
     foreach ($flows as $key => $count) {
