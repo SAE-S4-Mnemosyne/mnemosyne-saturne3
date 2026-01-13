@@ -24,13 +24,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// --- Gestion du Menu Hamburger ---
+// Gestion du Menu Hamburger
 function toggleMenu() {
     const nav = document.getElementById('nav-menu');
     nav.classList.toggle('active');
 }
 
-// --- Gestion du Thème (Dark/Light) ---
+// Gestion du Thème (Dark/Light)
 function initTheme() {
     const savedTheme = localStorage.getItem('theme');
     const body = document.body;
@@ -59,7 +59,7 @@ function toggleTheme() {
     }
 }
 
-// --- Chargement des Options ---
+// Chargement des Options
 async function loadOptions() {
     try {
         const response = await fetch('api/get_options.php'); // Fixed path: was ../Backend/code_Mnémosyne/api/get_options.php
@@ -121,7 +121,7 @@ function populateSelects(data) {
     }
 }
 
-// --- Fonction Chips (Accès rapide & Auto-sélection dernière année) ---
+// Fonction Chips (Accès rapide & Auto-sélection dernière année)
 function quickSelect(searchTerm) {
     const select = document.getElementById('formation');
     const anneeSelect = document.getElementById('annee');
@@ -166,7 +166,7 @@ function quickSelect(searchTerm) {
     fetchAndDraw();
 }
 
-// --- Fonction Principale (Modifiée pour afficher le Jury sans les valeurs) ---
+// Fonction Principale (Modifiée pour afficher le Jury sans les valeurs)
 async function fetchAndDraw() {
     const formation = document.getElementById("formation").value;
     const annee = document.getElementById("annee").value;
@@ -239,7 +239,7 @@ function updateStatsUI(stats) {
     if (totalEl) totalEl.textContent = stats.total || 0;
 }
 
-// --- Nouvelle fonction : Affiche la section Jury sans toucher aux chiffres ---
+// Nouvelle fonction : Affiche la section Jury sans toucher aux chiffres
 function updateStatsDisplay(formation, annee) {
     const section = document.getElementById('results-section');
     const subtitle = document.getElementById('stats-subtitle');
@@ -267,7 +267,7 @@ function drawSankey(data) {
     const rows = data.links.map(link => [link.source, link.target, link.value]);
     chartData.addRows(rows);
 
-    // --- Adaptation Chart Colors (Dark Mode) ---
+    // Adaptation Chart Colors (Dark Mode)
     const isDarkMode = document.body.classList.contains('dark-mode');
     const textColor = isDarkMode ? '#e0e0e0' : '#333';
 

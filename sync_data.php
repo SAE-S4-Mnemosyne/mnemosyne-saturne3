@@ -37,7 +37,7 @@ foreach ($formFiles as $file) {
     if (!$data) continue;
 
     foreach ($data as $fs) {
-        // --- DEPARTEMENT ---
+        // DEPARTEMENT
         if (isset($fs['departement']) && isset($fs['departement']['id'])) {
             $deptId = $fs['departement']['id'];
             $acronyme = $fs['departement']['acronym'] ?? null;
@@ -52,7 +52,7 @@ foreach ($formFiles as $file) {
             }
         }
 
-        // --- FORMATION ---
+        // FORMATION
         if (isset($fs['formation']) && isset($fs['formation']['id'])) {
             $formId = $fs['formation']['id'];
             $deptIdFK = $fs['formation']['dept_id'] ?? null;
@@ -67,7 +67,7 @@ foreach ($formFiles as $file) {
              }
         }
 
-        // --- SEMESTRE_INSTANCE ---
+        // SEMESTRE_INSTANCE
         $fsId = $fs['id']; // ex: 1299
         $formationIdFK = $fs['formation_id'] ?? null;
         $anneeScolaire = $fs['annee_scolaire'] ?? null;
@@ -111,12 +111,12 @@ foreach ($juryFiles as $file) {
 
         if (!$nip) continue; // Pas de NIP, on ne peut pas l'identifier
 
-        // --- ETUDIANT ---
+        // ETUDIANT
         // On insère ou on met à jour (si on a enfin le code INE par exemple)
         $stmt = $pdo->prepare("INSERT INTO ETUDIANT (code_nip, code_ine, etudid_scodoc) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE code_ine = VALUES(code_ine), etudid_scodoc = VALUES(etudid_scodoc)");
         $stmt->execute([$nip, $ine, $scodocId]);
 
-        // --- INSCRIPTION ---
+        // INSCRIPTION
         // Données de décision
         $decisionAnnee = $e['annee']['code'] ?? null; // ex: ADM, RED
         // Pour la décision de jury (semestre), c'est souvent la "décision" tout court, mais dans ce JSON structure on a 'annee' qui est le plus important pour le passage.

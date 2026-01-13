@@ -28,7 +28,7 @@ try {
     $message_type = "error";
 }
 
-// --- HANDLER: Ajout Mapping ---
+// HANDLER: Ajout Mapping
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_mapping'])) {
     $code = trim($_POST['mapping_code'] ?? '');
     $label = trim($_POST['mapping_label'] ?? '');
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_mapping'])) {
     }
 }
 
-// --- HANDLER: Ajout Scénario ---
+// HANDLER: Ajout Scénario
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_scenario'])) {
     $source = trim($_POST['scenario_source'] ?? '');
     $target = trim($_POST['scenario_target'] ?? '');
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_scenario'])) {
     }
 }
 
-// --- LOGIQUE UNIQUE (Auto-Dézip + Import) ---
+// LOGIQUE UNIQUE (Auto-Dézip + Import)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
     ini_set("max_execution_time", 300);
     $has_error = false;
@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                     $id_formsemestre = $m[1] ?? null;
                     if (!$id_formsemestre) continue;
 
-                    // --- RECUPERATION / INSERTION FORMATION (AVEC CORRECTION ENCODAGE) ---
+                    // RECUPERATION / INSERTION FORMATION (AVEC CORRECTION ENCODAGE)
                     $formationTitre = null;
                     
                     // PRIORITE 1: Utiliser le titre du JSON (contient les accents corrects)

@@ -1,9 +1,7 @@
 <?php
 ini_set("max_execution_time", 300); // 5 min
 
-// -----------------------------
 // 🔌 CONNEXION A MYSQL (MAMP)
-// -----------------------------
 try {
     $pdo = new PDO(
         "mysql:host=localhost;dbname=sae_sankey;charset=utf8",
@@ -17,9 +15,7 @@ try {
 
 echo "<h2>Synchronisation en cours…</h2>";
 
-// -----------------------------
 // 📂 DOSSIER DES JSON
-// -----------------------------
 $folder = __DIR__ . "/uploads/saejson/";
 if (!is_dir($folder)) {
     die("❌ Dossier JSON introuvable : $folder");
@@ -30,9 +26,7 @@ if (!$files) {
     die("❌ Aucun fichier JSON trouvé.");
 }
 
-// -----------------------------
 // 📌 PREPARATION REQUETES
-// -----------------------------
 $sqlInsertEtudiant = $pdo->prepare("
     INSERT IGNORE INTO etudiant (code_nip, code_ine, etud_scodoc)
     VALUES (:nip, :ine, :etud)
@@ -55,9 +49,7 @@ $sqlInsertCompetence = $pdo->prepare("
     VALUES (:insc, :num, :code, :moy)
 ");
 
-// -----------------------------
 // 🔄 TRAITEMENT DES FICHIERS
-// -----------------------------
 foreach ($files as $file) {
 
     echo "<p>Lecture : <b>" . basename($file) . "</b></p>";
@@ -88,9 +80,7 @@ foreach ($files as $file) {
         ":modalite" => null
     ]);
 
-    // -----------------------------
     // 👇 BOUCLE SUR LES ÉTUDIANTS
-    // -----------------------------
     foreach ($data as $etu) {
 
         // 1) Étudiant
