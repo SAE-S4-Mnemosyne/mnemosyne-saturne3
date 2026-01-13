@@ -257,7 +257,7 @@ function updateStatsDisplay(formation, annee) {
 
 function drawSankey(data) {
     const container = document.getElementById('sankey_chart');
-    container.innerHTML = ""; // Clear previous
+    container.innerHTML = "";
 
     const chartData = new google.visualization.DataTable();
     chartData.addColumn('string', 'From');
