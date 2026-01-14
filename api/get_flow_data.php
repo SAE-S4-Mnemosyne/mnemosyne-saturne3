@@ -258,7 +258,7 @@ try {
             list($from, $to) = explode('||', $key);
             $nodes[$from] = true;
             $nodes[$to] = true;
-            $links[] = [$from, $to, $value];
+            $links[] = ['source' => $from, 'target' => $to, 'value' => $value];
         }
     }
     
