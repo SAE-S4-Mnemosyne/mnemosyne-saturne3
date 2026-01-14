@@ -148,41 +148,77 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         $formationTitre = "Formation Inconnue"; 
                     }
                     
-                    // NETTOYAGE COMPLET DU TITRE
+                    // =====================================================
+                    // NORMALISATION COMPLÈTE DU TITRE DE FORMATION
+                    // Objectif : Éviter les doublons, garder FI/FA et parcours
+                    // =====================================================
+                    
                     // 1. Décoder les entités HTML (&amp; -> &, etc.)
                     $formationTitre = html_entity_decode($formationTitre, ENT_QUOTES, 'UTF-8');
                     
-                    // 2. NORMALISATION PRINCIPALE : "Bachelor Universitaire de Technologie" -> "BUT"
-                    $formationTitre = preg_replace('/Bachelor\s+Universitaire\s+de\s+Technologie/i', 'BUT', $formationTitre);
-                    
-                    // 3. Corriger les patterns d'encodage cassés (fichiers sans accents)
+                    // 2. Corriger les patterns d'encodage cassés (fichiers sans accents)
                     $corrections = [
                         'Carri_res' => 'Carrières',
                         'carri_res' => 'carrières',
                         'G_nie' => 'Génie',
                         'g_nie' => 'génie',
                         'R_T' => 'R&T',
-                        '_' => ' ', // Underscores restants -> espaces
+                        '_' => ' ',
                     ];
                     foreach ($corrections as $search => $replace) {
                         $formationTitre = str_replace($search, $replace, $formationTitre);
                     }
                     
-                    // 4. Supprimer les numéros de niveau (BUT 1, BUT1, BUT 2, BUT2, BUT 3, BUT3)
+                    // 3. EXCLURE les formations d'autres IUT
+                    if (preg_match('/IUT\s+(de\s+)?Paris|IUT\s+Sceaux/i', $formationTitre)) {
+                        continue; // On passe au fichier suivant, on n'importe pas cette formation
+                    }
+                    
+                    // 4. "Bachelor Universitaire de Technologie" -> "BUT"
+                    $formationTitre = preg_replace('/Bachelor\s+Universitaire\s+de\s+Technologie/i', 'BUT', $formationTitre);
+                    
+                    // 5. Supprimer les numéros de niveau (BUT 1, BUT1, BUT 2, etc.)
                     $formationTitre = preg_replace('/\bBUT\s*[123]\b/i', 'BUT', $formationTitre);
                     
-                    // 5. Enlever les années (2020-2029)
-                    $formationTitre = preg_replace('/\s*20[2-9]\d\s*/', ' ', $formationTitre);
+                    // 6. Supprimer les numéros de semestre (S1, S2, S3, S4, S5, S6)
+                    $formationTitre = preg_replace('/\s+S[1-6]\b/i', '', $formationTitre);
                     
-                    // 6. Supprimer les suffixes de parcours/modalités redondants (optionnel mais recommandé)
-                    // Ex: "- FI", "- FA", "en alternance", "en FI classique", etc.
-                    $formationTitre = preg_replace('/\s*[-–]\s*(FI|FA|Apprentissage|Formation initiale)\.?\s*$/i', '', $formationTitre);
-                    $formationTitre = preg_replace('/\s+en\s+(FI\s+classique|alternance|FA\s+alternance|Apprentissage)\s*$/i', '', $formationTitre);
+                    // 7. Supprimer "PN", "PN 2021", "(PN 2021)", etc.
+                    $formationTitre = preg_replace('/\s*\(?PN\s*\d*\s*\.?\)?/i', '', $formationTitre);
                     
-                    // 7. Supprimer "PN 2021" ou similaires (Programme National)
-                    $formationTitre = preg_replace('/\s*\(?PN\s*\d{4}\s*\.?\)?/i', '', $formationTitre);
+                    // 8. Enlever les années isolées (2020-2029)
+                    $formationTitre = preg_replace('/\s+20[2-9]\d(\s|$)/', ' ', $formationTitre);
                     
-                    // 8. Supprimer les espaces multiples et trim
+                    // 9. NORMALISATION DES NOMS LONGS VERS ACRONYMES
+                    $normalisations = [
+                        // Ancien nom -> Nouveau
+                        '/\bSTID\b/i' => 'SD',
+                        // Noms complets -> Acronymes (pour éviter doublons)
+                        '/Génie\s+[EÉ]lectrique\s+et\s+Informatique\s+Industrielle/i' => 'GEII',
+                        '/Carrières\s+Juridiques/i' => 'CJ',
+                        '/Gestion\s+des\s+Entreprises\s+et\s+des?\s+Administrations?/i' => 'GEA',
+                        '/Réseaux\s+et\s+Télécommunications/i' => 'R&T',
+                        '/Sciences\s+des\s+Données/i' => 'SD',
+                    ];
+                    foreach ($normalisations as $pattern => $replacement) {
+                        $formationTitre = preg_replace($pattern, $replacement, $formationTitre);
+                    }
+                    
+                    // 10. Normaliser les modalités (garder FI/FA mais nettoyer les variantes)
+                    // "en alternance", "Apprentissage" -> "FA"
+                    // "en FI classique", "Formation initiale" -> "FI"
+                    $formationTitre = preg_replace('/\s+en\s+(alternance|Apprentissage)/i', ' FA', $formationTitre);
+                    $formationTitre = preg_replace('/\s+en\s+(FI\s+classique|Formation\s+initiale)/i', ' FI', $formationTitre);
+                    $formationTitre = preg_replace('/\bApprentissage\b/i', 'FA', $formationTitre);
+                    
+                    // 11. Nettoyer les tirets parasites autour de "Parcours"
+                    $formationTitre = preg_replace('/\s*[-–]\s*Parcours\s*/i', ' - Parcours ', $formationTitre);
+                    
+                    // 12. Supprimer "- FI" ou "- FA" isolés en fin (redondant si déjà dans le nom)
+                    // Mais on GARDE "BUT GEA FA" par exemple
+                    $formationTitre = preg_replace('/\s*[-–]\s*(FI|FA)\s*$/i', ' $1', $formationTitre);
+                    
+                    // 13. Supprimer les espaces multiples et trim
                     $formationTitre = preg_replace('/\s+/', ' ', $formationTitre);
                     $formationTitre = trim($formationTitre);
 
