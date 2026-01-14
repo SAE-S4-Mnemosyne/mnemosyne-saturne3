@@ -87,26 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_scenario'])) {
     }
 }
 
-// GESTIONNAIRE : Vider les donnees (pour resynchroniser proprement)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear_data'])) {
-    try {
-        $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
-        $pdo->exec("DELETE FROM resultat_competence");
-        $pdo->exec("DELETE FROM inscription");
-        $pdo->exec("DELETE FROM semestre_instance");
-        $pdo->exec("DELETE FROM formation");
-        $pdo->exec("DELETE FROM etudiant");
-        $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
-        
-        $_SESSION['sync_message'] = "Donnees videes. Vous pouvez maintenant resynchroniser.";
-        $_SESSION['sync_type'] = "success";
-    } catch (Exception $e) {
-        $_SESSION['sync_message'] = "Erreur : " . $e->getMessage();
-        $_SESSION['sync_type'] = "error";
-    }
-    header('Location: admin.php');
-    exit;
-}
+
 
 // LOGIQUE UNIQUE (Auto-Dezip + Import)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
@@ -461,14 +442,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                             Synchroniser
                         </button>
                     </form>
-                    <form method="POST" onsubmit="return confirm('Cela va supprimer toutes les donnees (etudiants, inscriptions, formations). Continuer ?')">
-                        <button type="submit" name="clear_data" class="btn-sync-header" style="background: #dc3545;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                            </svg>
-                            Vider
-                        </button>
-                    </form>
+
                 </div>
 
                 <nav class="nav-buttons">
