@@ -15,3 +15,7 @@ Backend/code_Mnémosyne/config.php
 
 # Logs
 *.log
+
+# Excluded Data
+PDF/
+uploads/
