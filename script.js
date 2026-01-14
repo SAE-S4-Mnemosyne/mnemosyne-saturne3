@@ -220,7 +220,7 @@ async function fetchAndDraw() {
 }
 
 function updateStatsUI(stats) {
-    const total = stats.total || 1; // Avoid division by zero
+    const total = stats.total || 1; // Éviter la division par zéro
 
     const setStat = (id, count) => {
         const elCount = document.getElementById(`count-${id}`);
@@ -234,7 +234,7 @@ function updateStatsUI(stats) {
     setStat('red', stats.redoublement);
     setStat('abd', stats.abandon);
 
-    // Update total
+    // Mise à jour du total
     const totalEl = document.getElementById('total-students');
     if (totalEl) totalEl.textContent = stats.total || 0;
 }

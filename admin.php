@@ -28,7 +28,7 @@ try {
     $message_type = "error";
 }
 
-// HANDLER: Ajout Mapping
+// GESTIONNAIRE : Ajout Mapping
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_mapping'])) {
     $code = trim($_POST['mapping_code'] ?? '');
     $label = trim($_POST['mapping_label'] ?? '');
@@ -52,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_mapping'])) {
     }
 }
 
-// HANDLER: Ajout Scénario
+// GESTIONNAIRE : Ajout Scénario
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_scenario'])) {
     $source = trim($_POST['scenario_source'] ?? '');
     $target = trim($_POST['scenario_target'] ?? '');
@@ -152,7 +152,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                     // 1. Décoder les entités HTML (&amp; -> &, etc.)
                     $formationTitre = html_entity_decode($formationTitre, ENT_QUOTES, 'UTF-8');
                     
-                    // 2. Corriger les patterns d'encodage cassés (fichiers sans accents)
+                    // 2. NORMALISATION PRINCIPALE : "Bachelor Universitaire de Technologie" -> "BUT"
+                    $formationTitre = preg_replace('/Bachelor\s+Universitaire\s+de\s+Technologie/i', 'BUT', $formationTitre);
+                    
+                    // 3. Corriger les patterns d'encodage cassés (fichiers sans accents)
                     $corrections = [
                         'Carri_res' => 'Carrières',
                         'carri_res' => 'carrières',
@@ -165,16 +168,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         $formationTitre = str_replace($search, $replace, $formationTitre);
                     }
                     
-                    // 3. Enlever les années (2020-2029)
+                    // 4. Supprimer les numéros de niveau (BUT 1, BUT1, BUT 2, BUT2, BUT 3, BUT3)
+                    $formationTitre = preg_replace('/\bBUT\s*[123]\b/i', 'BUT', $formationTitre);
+                    
+                    // 5. Enlever les années (2020-2029)
                     $formationTitre = preg_replace('/\s*20[2-9]\d\s*/', ' ', $formationTitre);
                     
-                    // 4. Supprimer les espaces multiples et trim
+                    // 6. Supprimer les suffixes de parcours/modalités redondants (optionnel mais recommandé)
+                    // Ex: "- FI", "- FA", "en alternance", "en FI classique", etc.
+                    $formationTitre = preg_replace('/\s*[-–]\s*(FI|FA|Apprentissage|Formation initiale)\.?\s*$/i', '', $formationTitre);
+                    $formationTitre = preg_replace('/\s+en\s+(FI\s+classique|alternance|FA\s+alternance|Apprentissage)\s*$/i', '', $formationTitre);
+                    
+                    // 7. Supprimer "PN 2021" ou similaires (Programme National)
+                    $formationTitre = preg_replace('/\s*\(?PN\s*\d{4}\s*\.?\)?/i', '', $formationTitre);
+                    
+                    // 8. Supprimer les espaces multiples et trim
                     $formationTitre = preg_replace('/\s+/', ' ', $formationTitre);
                     $formationTitre = trim($formationTitre);
 
                     $id_formation_bdd = null;
                     if ($formationTitre) {
-                        // Check if formation exists
+                        // Vérifier si la formation existe déjà
                         $stmtCheck = $pdo->prepare("SELECT id_formation FROM formation WHERE titre = ? LIMIT 1");
                         $stmtCheck->execute([$formationTitre]);
                         $existingForm = $stmtCheck->fetch(PDO::FETCH_ASSOC);
@@ -182,10 +196,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         if ($existingForm) {
                             $id_formation_bdd = $existingForm['id_formation'];
                         } else {
-                            // Ensure department exists
+                            // S'assurer que le département existe
                             $pdo->exec("INSERT IGNORE INTO departement (id_dept, acronyme, nom_complet) VALUES (1, 'IUT', 'IUT Villetaneuse')");
                             
-                            // INSERT the formation
+                            // INSÉRER la formation
                             $stmtInsertForm = $pdo->prepare("INSERT INTO formation (id_dept, titre) VALUES (1, ?)");
                             $stmtInsertForm->execute([$formationTitre]);
                             $id_formation_bdd = $pdo->lastInsertId();
