@@ -205,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                     }
                     
                     // 3b. Exclure les formations en alternance et passerelle (gardees pour les scenarios)
-                    if (preg_match('/alternance|Apprentissage|Passerelle/i', $formationTitre)) {
+                    if (preg_match('/altern?ance|Apprentissage|Passerelle/i', $formationTitre)) {
                         continue;
                     }
                     
