@@ -24,7 +24,7 @@ try {
     $pdo = new PDO($dsn, DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 } catch (PDOException $e) {
-    $message_sync = "❌ Erreur connexion BDD: " . $e->getMessage();
+    $message_sync = "Erreur connexion BDD: " . $e->getMessage();
     $message_type = "error";
 }
 
@@ -43,10 +43,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_mapping'])) {
             $stmt = $pdo->prepare("INSERT INTO mapping_codes (code_scodoc, libelle_graphique) VALUES (?, ?) 
                                    ON DUPLICATE KEY UPDATE libelle_graphique = VALUES(libelle_graphique)");
             $stmt->execute([$code, $label]);
-            $message_sync = "✅ Mapping ajouté : $code → $label";
+            $message_sync = "Mapping ajouté : $code → $label";
             $message_type = "success";
         } catch (Exception $e) {
-            $message_sync = "❌ Erreur ajout mapping : " . $e->getMessage();
+            $message_sync = "Erreur ajout mapping : " . $e->getMessage();
             $message_type = "error";
         }
     }
@@ -70,12 +70,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_scenario'])) {
             $stmt = $pdo->prepare("INSERT INTO scenario_correspondance (formation_source, formation_cible, type_flux) VALUES (?, ?, ?) 
                                    ON DUPLICATE KEY UPDATE type_flux = VALUES(type_flux)");
             $stmt->execute([$source, $target, $type]);
-            $message_sync = "✅ Scénario ajouté : $source → $target [$type]";
+            $message_sync = "Scénario ajouté : $source → $target [$type]";
             $message_type = "success";
         } catch (Exception $e) {
-            $message_sync = "❌ Erreur ajout scénario : " . $e->getMessage();
+            $message_sync = "Erreur ajout scénario : " . $e->getMessage();
             $message_type = "error";
         }
+    }
+}
+
+// GESTIONNAIRE : Réinitialisation des formations (pour appliquer nouvelles règles de normalisation)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_formations'])) {
+    try {
+        // Supprimer les données liées dans l'ordre (à cause des clés étrangères)
+        $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
+        $pdo->exec("DELETE FROM resultat_competence");
+        $pdo->exec("DELETE FROM inscription");
+        $pdo->exec("DELETE FROM semestre_instance");
+        $pdo->exec("DELETE FROM formation");
+        $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
+        
+        $message_sync = "Formations réinitialisées ! Vous pouvez maintenant relancer la synchronisation.";
+        $message_type = "success";
+    } catch (Exception $e) {
+        $message_sync = "Erreur lors de la réinitialisation : " . $e->getMessage();
+        $message_type = "error";
     }
 }
 
@@ -98,7 +117,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 $zip->close();
                 // On ne loggue plus le succès du dézip pour l'utilisateur
             } else {
-                $steps_log[] = "⚠️ Erreur technique (Zip corrompu).";
+                $steps_log[] = "Erreur technique (Zip corrompu).";
                 $has_error = true;
             }
         }
@@ -108,14 +127,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
         if (is_dir($folder . "SAE_json")) $folder = $folder . "SAE_json/";
 
         if (!is_dir($folder)) {
-            $message_sync = "❌ Dossier de données introuvable.";
+            $message_sync = "Dossier de données introuvable.";
             $message_type = "error";
         } else {
             $files = glob($folder . "*.json");
             if (empty($files)) $files = glob($folder . "*/*.json");
 
             if (empty($files)) {
-                $message_sync = "❌ Aucun fichier de données trouvé.";
+                $message_sync = "Aucun fichier de données trouvé.";
                 $message_type = "error";
             } else {
                 // Requêtes SQL
@@ -394,13 +413,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                     </div>
                 </div>
 
-                <div class="header-center">
+                <div class="header-center" style="display: flex; gap: 0.5rem;">
                     <form method="POST" class="sync-form-header" onsubmit="document.getElementById('inline-loader').style.display='flex'">
                         <button type="submit" name="run_sync" class="btn-sync-header">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9"/>
                             </svg>
-                            Synchroniser ScoDoc
+                            Synchroniser
+                        </button>
+                    </form>
+                    <form method="POST" onsubmit="return confirm('⚠️ Cela va supprimer TOUTES les données (formations, inscriptions, résultats). Continuer ?')">
+                        <button type="submit" name="reset_formations" class="btn-sync-header" style="background: #dc3545;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                            </svg>
+                            Réinitialiser
                         </button>
                     </form>
                 </div>
@@ -584,7 +611,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
             </div>
         </div>
 
-        <!-- ===== SECTION ADMINISTRATION AVANCÉE ===== -->
+        <!-- SECTION ADMINISTRATION AVANCÉE -->
         <div class="container" style="margin-top: 3rem;">
             <h2 style="color: var(--heading-color, #1a3a5c); margin-bottom: 2rem; border-bottom: 2px solid #2d5a8c; padding-bottom: 0.5rem;">
                 Configuration Avancée
