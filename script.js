@@ -70,7 +70,7 @@ async function loadOptions() {
         console.warn("API non accessible ou BDD vide, chargement des données de secours...", error);
         // Données de Fallback (Secours) pour que l'interface fonctionne
         const fallbackData = {
-            formations: ["BUT Informatique", "BUT GEA", "BUT TC", "BUT GEII"],
+            formations: ["BUT Informatique", "BUT GEA", "BUT R&T", "BUT GEII"],
             annees: ["2023-2024", "2022-2023", "2021-2022"]
         };
         populateSelects(fallbackData);
@@ -88,7 +88,7 @@ function populateSelects(data) {
         // Ajouter l'option "Tout l'IUT" en premier
         const optAll = document.createElement("option");
         optAll.value = "__ALL__";
-        optAll.textContent = "📊 Tout l'IUT (Vue globale)";
+        optAll.textContent = "Tout l'IUT (Vue globale)";
         formationSelect.appendChild(optAll);
 
         // Ajouter les formations individuelles

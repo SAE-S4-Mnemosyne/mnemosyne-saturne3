@@ -232,18 +232,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         $formationTitre = preg_replace($pattern, $replacement, $formationTitre);
                     }
                     
-                    // 10. SUPPRIMER FI/FA et toutes les variantes (selon image prof)
+                    // 10. SUPPRIMER FI/FA et toutes les variantes
                     $formationTitre = preg_replace('/\s+(FI|FA)\b/i', '', $formationTitre);
-                    $formationTitre = preg_replace('/\s+en\s+(alternance|Apprentissage|FI\s+classique|Formation\s+initiale)/i', '', $formationTitre);
+                    $formationTitre = preg_replace('/\s+en\s+(alternance|Apprentissage|classique)/i', '', $formationTitre);
+                    $formationTitre = preg_replace('/\s+en\s+FI\s+classique/i', '', $formationTitre);
                     $formationTitre = preg_replace('/\bApprentissage\b/i', '', $formationTitre);
+                    $formationTitre = preg_replace('/\bFormation\s+initiale\b/i', '', $formationTitre);
                     
-                    // 11. Supprimer les parcours (pour simplifier)
+                    // 11. Supprimer les parcours
                     $formationTitre = preg_replace('/\s*[-–]\s*Parcours\s+[A-Z0-9\s]+/i', '', $formationTitre);
                     
-                    // 12. Supprimer Passerelle en debut (devient formation separee)
-                    // Garder "BUT Passerelle SD INFO" comme cas special
+                    // 12. Cas speciaux problematiques
+                    // "BUT CJ GEA" -> "BUT GEA" (le fichier CJ_GEA est pour GEA, pas CJ)
+                    $formationTitre = preg_replace('/\bBUT\s+CJ\s+GEA\b/i', 'BUT GEA', $formationTitre);
+                    // "BUT SD INFO" -> garder (Passerelle SD vers INFO)
+                    // Mais "BUT SD" seul doit rester "BUT SD"
                     
-                    // 13. Nettoyage final
+                    // 13. Supprimer tirets et caracteres speciaux en fin de nom
+                    $formationTitre = preg_replace('/\s*[-–_]\s*$/i', '', $formationTitre);
+                    
+                    // 14. Nettoyage final
                     $formationTitre = preg_replace('/\s+/', ' ', $formationTitre);
                     $formationTitre = trim($formationTitre);
 
@@ -288,8 +296,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
 
                         $sqlInsertEtudiant->execute([":nip" => $etu["code_nip"], ":ine" => $etu["code_ine"] ?? null, ":etud" => $etu["etudid"] ?? null]);
                         
-                        // CORRECTION: Utiliser annee.code pour la décision de jury (ADM, RED, NAR, etc.)
-                        // et etat pour l'état d'inscription (I=Inscrit, D=Démission)
                         $decisionJury = $etu["annee"]["code"] ?? null;
                         $etatInscription = $etu["etat"] ?? null;
                         
@@ -506,7 +512,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         <span class="quick-label">Accès rapide :</span>
                         <button type="button" class="chip" onclick="quickSelect('BUT Informatique')">Informatique</button>
                         <button type="button" class="chip" onclick="quickSelect('BUT GEA')">GEA</button>
-                        <button type="button" class="chip" onclick="quickSelect('BUT TC')">TC</button>
+                        <button type="button" class="chip" onclick="quickSelect('BUT R&T')">R&T</button>
                     </div>
 
                     <button type="submit" class="btn-submit">

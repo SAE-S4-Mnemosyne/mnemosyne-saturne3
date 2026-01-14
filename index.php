@@ -87,7 +87,7 @@ require_once 'config.php';
                         <span class="quick-label">Accès rapide :</span>
                         <button type="button" class="chip" onclick="quickSelect('BUT Informatique')">Informatique</button>
                         <button type="button" class="chip" onclick="quickSelect('BUT GEA')">GEA</button>
-                        <button type="button" class="chip" onclick="quickSelect('BUT TC')">TC</button>
+                        <button type="button" class="chip" onclick="quickSelect('BUT R&T')">R&T</button>
                     </div>
 
                     <button type="submit" class="btn-submit">
