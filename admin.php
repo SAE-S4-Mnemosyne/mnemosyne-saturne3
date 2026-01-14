@@ -204,6 +204,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         continue;
                     }
                     
+                    // 3b. Exclure les formations en alternance et passerelle (gardees pour les scenarios)
+                    if (preg_match('/alternance|Apprentissage|Passerelle/i', $formationTitre)) {
+                        continue;
+                    }
+                    
                     // 4. "Bachelor Universitaire de Technologie" -> "BUT"
                     $formationTitre = preg_replace('/Bachelor\s+Universitaire\s+de\s+Technologie/i', 'BUT', $formationTitre);
                     
