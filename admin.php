@@ -16,7 +16,15 @@ if (isset($_GET['logout'])) {
 }
 
 $message_sync = "";
-$message_type = ""; // "success" or "error"
+$message_type = "";
+
+// Recuperer le message de la session (POST-Redirect-GET pattern)
+if (isset($_SESSION['sync_message'])) {
+    $message_sync = $_SESSION['sync_message'];
+    $message_type = $_SESSION['sync_type'] ?? 'success';
+    unset($_SESSION['sync_message']);
+    unset($_SESSION['sync_type']);
+}
 
 // Connexion PDO pour les opérations admin
 try {
@@ -79,24 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_scenario'])) {
     }
 }
 
-// GESTIONNAIRE : Réinitialisation des formations (pour appliquer nouvelles règles de normalisation)
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['reset_formations'])) {
-    try {
-        // Supprimer les données liées dans l'ordre (à cause des clés étrangères)
-        $pdo->exec("SET FOREIGN_KEY_CHECKS = 0");
-        $pdo->exec("DELETE FROM resultat_competence");
-        $pdo->exec("DELETE FROM inscription");
-        $pdo->exec("DELETE FROM semestre_instance");
-        $pdo->exec("DELETE FROM formation");
-        $pdo->exec("SET FOREIGN_KEY_CHECKS = 1");
-        
-        $message_sync = "Formations réinitialisées ! Vous pouvez maintenant relancer la synchronisation.";
-        $message_type = "success";
-    } catch (Exception $e) {
-        $message_sync = "Erreur lors de la réinitialisation : " . $e->getMessage();
-        $message_type = "error";
-    }
-}
 
 // LOGIQUE UNIQUE (Auto-Dézip + Import)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
@@ -137,11 +127,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 $message_sync = "Aucun fichier de données trouvé.";
                 $message_type = "error";
             } else {
-                // Requêtes SQL
+                // Requetes SQL - INSERT IGNORE pour eviter les doublons
                 $sqlInsertEtudiant = $pdo->prepare("INSERT IGNORE INTO etudiant (code_nip, code_ine, etudid_scodoc) VALUES (:nip, :ine, :etud)");
                 $sqlInsertSemestre = $pdo->prepare("INSERT IGNORE INTO semestre_instance (id_formsemestre, id_formation, annee_scolaire, numero_semestre, modalite) VALUES (:idfs, :idf, :annee, :num, :modalite)");
-                $sqlInsertInscription = $pdo->prepare("INSERT INTO inscription (code_nip, id_formsemestre, decision_jury, decision_annee, etat_inscription, pcn_competences, is_apc, date_maj) VALUES (:nip, :fs, :jury, :annee, :etat, :pct, :isapc, :maj)");
-                $sqlInsertCompetence = $pdo->prepare("INSERT INTO resultat_competence (id_inscription, numero_competence, code_decision, moyenne) VALUES (:insc, :num, :code, :moy)");
+                $sqlInsertInscription = $pdo->prepare("INSERT IGNORE INTO inscription (code_nip, id_formsemestre, decision_jury, decision_annee, etat_inscription, pcn_competences, is_apc, date_maj) VALUES (:nip, :fs, :jury, :annee, :etat, :pct, :isapc, :maj)");
+                $sqlInsertCompetence = $pdo->prepare("INSERT IGNORE INTO resultat_competence (id_inscription, numero_competence, code_decision, moyenne) VALUES (:insc, :num, :code, :moy)");
 
                 $count = 0;
                 foreach ($files as $file) {
@@ -166,21 +156,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                     } else {
                         $formationTitre = "Formation Inconnue"; 
                     }
+                
+                    // NORMALISATION DES NOMS DE FORMATIONS
+                    // Objectif : noms simples comme "BUT Informatique", "BUT GEA" (sans FI/FA)
                     
-                    // =====================================================
-                    // NORMALISATION COMPLÈTE DU TITRE DE FORMATION
-                    // Objectif : Éviter les doublons, garder FI/FA et parcours
-                    // =====================================================
-                    
-                    // 1. Décoder les entités HTML (&amp; -> &, etc.)
+                    // 1. Decoder les entites HTML
                     $formationTitre = html_entity_decode($formationTitre, ENT_QUOTES, 'UTF-8');
                     
-                    // 2. Corriger les patterns d'encodage cassés (fichiers sans accents)
+                    // 2. Corriger les encodages casses
                     $corrections = [
-                        'Carri_res' => 'Carrières',
-                        'carri_res' => 'carrières',
-                        'G_nie' => 'Génie',
-                        'g_nie' => 'génie',
+                        'Carri_res' => 'Carrieres',
+                        'carri_res' => 'carrieres',
+                        'G_nie' => 'Genie',
+                        'g_nie' => 'genie',
                         'R_T' => 'R&T',
                         '_' => ' ',
                     ];
@@ -188,56 +176,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         $formationTitre = str_replace($search, $replace, $formationTitre);
                     }
                     
-                    // 3. EXCLURE les formations d'autres IUT
+                    // 3. Exclure les formations d'autres IUT
                     if (preg_match('/IUT\s+(de\s+)?Paris|IUT\s+Sceaux/i', $formationTitre)) {
-                        continue; // On passe au fichier suivant, on n'importe pas cette formation
+                        continue;
                     }
                     
                     // 4. "Bachelor Universitaire de Technologie" -> "BUT"
                     $formationTitre = preg_replace('/Bachelor\s+Universitaire\s+de\s+Technologie/i', 'BUT', $formationTitre);
                     
-                    // 5. Supprimer les numéros de niveau (BUT 1, BUT1, BUT 2, etc.)
+                    // 5. Supprimer numeros de niveau (BUT 1, BUT1, etc.)
                     $formationTitre = preg_replace('/\bBUT\s*[123]\b/i', 'BUT', $formationTitre);
                     
-                    // 6. Supprimer les numéros de semestre (S1, S2, S3, S4, S5, S6)
+                    // 6. Supprimer numeros de semestre (S1-S6)
                     $formationTitre = preg_replace('/\s+S[1-6]\b/i', '', $formationTitre);
                     
-                    // 7. Supprimer "PN", "PN 2021", "(PN 2021)", etc.
+                    // 7. Supprimer "PN", "PN 2021", etc.
                     $formationTitre = preg_replace('/\s*\(?PN\s*\d*\s*\.?\)?/i', '', $formationTitre);
                     
-                    // 8. Enlever les années isolées (2020-2029)
+                    // 8. Enlever les annees (2020-2029)
                     $formationTitre = preg_replace('/\s+20[2-9]\d(\s|$)/', ' ', $formationTitre);
                     
-                    // 9. NORMALISATION DES NOMS LONGS VERS ACRONYMES
+                    // 9. Normaliser noms longs vers acronymes
                     $normalisations = [
-                        // Ancien nom -> Nouveau
                         '/\bSTID\b/i' => 'SD',
-                        // Noms complets -> Acronymes (pour éviter doublons)
-                        '/Génie\s+[EÉ]lectrique\s+et\s+Informatique\s+Industrielle/i' => 'GEII',
-                        '/Carrières\s+Juridiques/i' => 'CJ',
+                        '/G[eé]nie\s+[EÉe]lectrique\s+et\s+Informatique\s+Industrielle/i' => 'GEII',
+                        '/Carri[eè]res\s+Juridiques/i' => 'CJ',
                         '/Gestion\s+des\s+Entreprises\s+et\s+des?\s+Administrations?/i' => 'GEA',
-                        '/Réseaux\s+et\s+Télécommunications/i' => 'R&T',
-                        '/Sciences\s+des\s+Données/i' => 'SD',
+                        '/R[eé]seaux\s+et\s+T[eé]l[eé]communications/i' => 'R&T',
+                        '/Sciences\s+des\s+Donn[eé]es/i' => 'SD',
                     ];
                     foreach ($normalisations as $pattern => $replacement) {
                         $formationTitre = preg_replace($pattern, $replacement, $formationTitre);
                     }
                     
-                    // 10. Normaliser les modalités (garder FI/FA mais nettoyer les variantes)
-                    // "en alternance", "Apprentissage" -> "FA"
-                    // "en FI classique", "Formation initiale" -> "FI"
-                    $formationTitre = preg_replace('/\s+en\s+(alternance|Apprentissage)/i', ' FA', $formationTitre);
-                    $formationTitre = preg_replace('/\s+en\s+(FI\s+classique|Formation\s+initiale)/i', ' FI', $formationTitre);
-                    $formationTitre = preg_replace('/\bApprentissage\b/i', 'FA', $formationTitre);
+                    // 10. SUPPRIMER FI/FA et toutes les variantes (selon image prof)
+                    $formationTitre = preg_replace('/\s+(FI|FA)\b/i', '', $formationTitre);
+                    $formationTitre = preg_replace('/\s+en\s+(alternance|Apprentissage|FI\s+classique|Formation\s+initiale)/i', '', $formationTitre);
+                    $formationTitre = preg_replace('/\bApprentissage\b/i', '', $formationTitre);
                     
-                    // 11. Nettoyer les tirets parasites autour de "Parcours"
-                    $formationTitre = preg_replace('/\s*[-–]\s*Parcours\s*/i', ' - Parcours ', $formationTitre);
+                    // 11. Supprimer les parcours (pour simplifier)
+                    $formationTitre = preg_replace('/\s*[-–]\s*Parcours\s+[A-Z0-9\s]+/i', '', $formationTitre);
                     
-                    // 12. Supprimer "- FI" ou "- FA" isolés en fin (redondant si déjà dans le nom)
-                    // Mais on GARDE "BUT GEA FA" par exemple
-                    $formationTitre = preg_replace('/\s*[-–]\s*(FI|FA)\s*$/i', ' $1', $formationTitre);
+                    // 12. Supprimer Passerelle en debut (devient formation separee)
+                    // Garder "BUT Passerelle SD INFO" comme cas special
                     
-                    // 13. Supprimer les espaces multiples et trim
+                    // 13. Nettoyage final
                     $formationTitre = preg_replace('/\s+/', ' ', $formationTitre);
                     $formationTitre = trim($formationTitre);
 
@@ -261,15 +244,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         }
                     }
 
-                    // Calcul du numéro de semestre (Fallback si absent du JSON)
                     $numSemestre = $data[0]["semestre"]["ordre"] ?? null;
                     if (!$numSemestre && isset($data[0]["annee"]["ordre"])) {
-                         // Approximation : Année 1 -> Semestre 1, Année 2 -> Semestre 3, etc.
                          $numSemestre = ($data[0]["annee"]["ordre"] * 2) - 1;
                     }
 
-                    // MISE A JOUR OU INSERTION (ON DUPLICATE KEY UPDATE est CRITIQUE ici pour corriger les liens)
-                    // On force la mise à jour de l'ID formation si le semestre existe déjà
                     $sqlInsertSemestreGeneric = "INSERT INTO semestre_instance (id_formsemestre, id_formation, annee_scolaire, numero_semestre, modalite) 
                                                  VALUES (:idfs, :idf, :annee, :num, :modalite) 
                                                  ON DUPLICATE KEY UPDATE id_formation = VALUES(id_formation), annee_scolaire = VALUES(annee_scolaire), numero_semestre = VALUES(numero_semestre)";
@@ -314,20 +293,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                     $count++;
                 }
 
-                // Message final simplifié
+                // Message final
                 if ($has_error) {
-                     $message_sync = implode("<br>", $steps_log) . "<br>❌ Synchronisation partielle ou échouée.";
-                     $message_type = "error";
+                     $_SESSION['sync_message'] = implode("<br>", $steps_log) . "<br> Synchronisation partielle ou echouee.";
+                     $_SESSION['sync_type'] = "error";
                 } else {
-                     $message_sync = "✅ Données ScoDoc synchronisées avec succès ($count fichiers traités).";
-                     $message_type = "success";
+                     $_SESSION['sync_message'] = "Donnees ScoDoc synchronisees avec succes ($count fichiers traites).";
+                     $_SESSION['sync_type'] = "success";
                 }
             }
         }
     } catch (Exception $e) {
-        $message_sync = "❌ Erreur : " . $e->getMessage();
-        $message_type = "error";
+        $_SESSION['sync_message'] = "Erreur : " . $e->getMessage();
+        $_SESSION['sync_type'] = "error";
     }
+    
+    // Redirection pour eviter la resynchronisation au refresh (POST-Redirect-GET)
+    header('Location: admin.php');
+    exit;
 }
 ?>
 <!DOCTYPE html>
@@ -422,14 +405,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                             Synchroniser
                         </button>
                     </form>
-                    <form method="POST" onsubmit="return confirm('⚠️ Cela va supprimer TOUTES les données (formations, inscriptions, résultats). Continuer ?')">
-                        <button type="submit" name="reset_formations" class="btn-sync-header" style="background: #dc3545;">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
-                            </svg>
-                            Réinitialiser
-                        </button>
-                    </form>
+
                 </div>
 
                 <nav class="nav-buttons">
