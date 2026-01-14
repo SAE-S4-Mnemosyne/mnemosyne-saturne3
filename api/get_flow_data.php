@@ -1,20 +1,21 @@
 <?php
 /**
- * API pour générer le diagramme Sankey multi-étapes
- * Version CORRIGÉE : Utilise les décisions de jury réelles (decision_jury)
- * au lieu de deviner en cherchant les étudiants dans l'année N+1
+ * API pour generer le diagramme Sankey multi-etapes
+ * Format conforme a l'exemple du professeur
  * 
- * Format: Entrée → BUT1 → BUT2 → BUT3 → Diplôme
- * Avec branches: Passerelle, Redoublement, Abandon, Réorientation
+ * Structure du diagramme:
+ * - Entrees (gauche): Sources des etudiants BUT1
+ * - Centre: BUT1 -> BUT2 -> BUT3 avec branches
+ * - Sorties (droite): Diplome, Abandons, Reorientations
  */
-header('Content-Type: application/json');
+
 require_once '../config.php';
 
 $formationTitre = $_GET['formation'] ?? '';
 $anneeDebut = $_GET['annee'] ?? '';
 
 if (!$formationTitre || !$anneeDebut) {
-    echo json_encode(['error' => 'Paramètres manquants']);
+    echo json_encode(['error' => 'Parametres manquants']);
     exit;
 }
 
@@ -23,20 +24,16 @@ try {
     $pdo = new PDO($dsn, DB_USER, DB_PASS);
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    $isAllFormations = ($formationTitre === '__ALL__');
-    $flows = [];
+    $isAllFormations = ($formationTitre === 'all' || $formationTitre === 'Toutes les formations');
     
-    // Labels des noeuds
+    // Labels pour le Sankey
     $BUT1_label = "BUT1";
     $BUT2_label = "BUT2";
     $BUT3_label = "BUT3";
     
-    /**
-     * NOUVELLE LOGIQUE : Récupérer les inscriptions avec leurs décisions de jury
-     * On utilise decision_jury qui contient le vrai verdict (ADM, RED, NAR, etc.)
-     */
+    // =========== RECUPERATION BUT1 ===========
+    $annee1 = $anneeDebut;
     
-    // Récupérer les étudiants BUT1 de l'année sélectionnée avec leur décision
     if ($isAllFormations) {
         $sqlBUT1 = "
             SELECT DISTINCT 
@@ -48,11 +45,11 @@ try {
             FROM inscription i
             JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
             JOIN formation f ON si.id_formation = f.id_formation
-            WHERE si.annee_scolaire LIKE ?
-            AND (si.numero_semestre = 1 OR si.numero_semestre = 2)
+            WHERE si.annee_scolaire = ?
+            AND si.numero_semestre IN (1, 2)
         ";
         $stmt = $pdo->prepare($sqlBUT1);
-        $stmt->execute(["$anneeDebut%"]);
+        $stmt->execute([$annee1]);
     } else {
         $sqlBUT1 = "
             SELECT DISTINCT 
@@ -65,79 +62,64 @@ try {
             JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
             JOIN formation f ON si.id_formation = f.id_formation
             WHERE f.titre LIKE ?
-            AND si.annee_scolaire LIKE ?
-            AND (si.numero_semestre = 1 OR si.numero_semestre = 2)
+            AND si.annee_scolaire = ?
+            AND si.numero_semestre IN (1, 2)
         ";
         $stmt = $pdo->prepare($sqlBUT1);
-        $stmt->execute(["%$formationTitre%", "$anneeDebut%"]);
+        $stmt->execute(["%$formationTitre%", $annee1]);
     }
     
     $etudiantsBUT1 = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $totalBUT1 = count($etudiantsBUT1);
     
     if ($totalBUT1 == 0) {
-        echo json_encode(['nodes' => [], 'links' => [], 'stats' => ['total' => 0], 'message' => 'Aucun étudiant BUT1 trouvé']);
+        echo json_encode([
+            'nodes' => [], 
+            'links' => [], 
+            'stats' => ['total' => 0], 
+            'message' => 'Aucun etudiant BUT1 trouve pour cette annee'
+        ]);
         exit;
     }
     
-    // Compteurs pour BUT1
+    // Compteurs BUT1
     $passageBUT2 = 0;
     $redoublementBUT1 = 0;
     $abandonBUT1 = 0;
     $nipsBUT2 = [];
     
-    // Analyser les décisions de jury pour BUT1
+    // Analyser les decisions de jury BUT1
     foreach ($etudiantsBUT1 as $etu) {
         $decision = strtoupper(trim($etu['decision_jury'] ?? ''));
         $etat = strtoupper(trim($etu['etat_inscription'] ?? ''));
         
-        // Mapper les décisions ScoDoc vers les catégories
-        // ADM, ADSUP, PASD, CMP = Passage en année suivante
-        // RED, AJ = Redoublement
-        // NAR, DEF, DEM = Abandon/Sortie
-        // D (état) = Démissionnaire
-        
-        if ($etat === 'D' || $decision === 'DEF' || $decision === 'NAR' || $decision === 'DEM') {
-            $abandonBUT1++;
-        } elseif ($decision === 'RED' || $decision === 'AJ' || $decision === 'ATJ') {
-            $redoublementBUT1++;
-        } elseif ($decision === 'ADM' || $decision === 'ADSUP' || $decision === 'PASD' || $decision === 'CMP' || $decision === 'ADJ') {
+        // Mapping des decisions ScoDoc
+        if (in_array($decision, ['ADM', 'PASD', 'PAS1', 'ADSUP', 'ADJ', 'ADJR', 'CMP'])) {
+            // Passage en annee superieure
             $passageBUT2++;
             $nipsBUT2[] = $etu['code_nip'];
+        } elseif (in_array($decision, ['RED', 'REDOUBLE', 'ATT', 'RAT'])) {
+            // Redoublement
+            $redoublementBUT1++;
+        } elseif (in_array($decision, ['NAR', 'DEF', 'DEM', 'EXCLU', 'ABL', 'ABS'])) {
+            // Abandon / Sortie
+            $abandonBUT1++;
+        } elseif ($etat === 'D') {
+            // Demission
+            $abandonBUT1++;
         } else {
-            // Décision inconnue ou vide - on vérifie l'année suivante
-            // Si pas de décision claire, on compte comme passage si inscrit (etat I)
-            if ($etat === 'I' || empty($decision)) {
-                $passageBUT2++;
-                $nipsBUT2[] = $etu['code_nip'];
-            } else {
-                $abandonBUT1++;
-            }
+            // Decision inconnue ou vide - on suppose passage
+            $passageBUT2++;
+            $nipsBUT2[] = $etu['code_nip'];
         }
     }
     
-    // Estimation des sources d'entrée (basée sur données typiques IUT)
-    // Note: Ces données ne sont pas dans les JSON fournis
-    $entreeParcoursup = (int)($totalBUT1 * 0.85);
-    $entreeRedoublant = $redoublementBUT1 > 0 ? min($redoublementBUT1, (int)($totalBUT1 * 0.10)) : (int)($totalBUT1 * 0.05);
-    $entreeAutre = $totalBUT1 - $entreeParcoursup - $entreeRedoublant;
-    if ($entreeAutre < 0) $entreeAutre = 0;
-    
-    $flows["ParcoursUp||$BUT1_label"] = $entreeParcoursup;
-    if ($entreeRedoublant > 0) $flows["Redoublant||$BUT1_label"] = $entreeRedoublant;
-    if ($entreeAutre > 0) $flows["Hors ParcoursUp||$BUT1_label"] = $entreeAutre;
-    
-    // Flux BUT1 → destinations
-    if ($passageBUT2 > 0) $flows["$BUT1_label||$BUT2_label"] = $passageBUT2;
-    if ($redoublementBUT1 > 0) $flows["$BUT1_label||Redoublement"] = $redoublementBUT1;
-    if ($abandonBUT1 > 0) $flows["$BUT1_label||Sortie"] = $abandonBUT1;
-    
-    // =========== BUT2 ===========
-    // Récupérer les inscriptions BUT2 pour les étudiants qui ont passé
-    $anneeN1 = (int)$anneeDebut + 1;
+    // =========== RECUPERATION BUT2 ===========
+    $annee2 = (int)$anneeDebut + 1;
     $passageBUT3 = 0;
     $redoublementBUT2 = 0;
     $abandonBUT2 = 0;
+    $reorientationBUT2 = 0;
     $nipsBUT3 = [];
     
     if (!empty($nipsBUT2)) {
@@ -150,53 +132,49 @@ try {
                 si.numero_semestre
             FROM inscription i
             JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
+            JOIN formation f ON si.id_formation = f.id_formation
             WHERE i.code_nip IN ($placeholders)
-            AND si.annee_scolaire LIKE ?
-            AND (si.numero_semestre = 3 OR si.numero_semestre = 4)
+            AND si.annee_scolaire = ?
+            AND si.numero_semestre IN (3, 4)
         ";
-        $params = array_merge($nipsBUT2, ["$anneeN1%"]);
+        
+        $params = array_merge($nipsBUT2, [$annee2]);
         $stmt = $pdo->prepare($sqlBUT2);
         $stmt->execute($params);
         $etudiantsBUT2 = $stmt->fetchAll(PDO::FETCH_ASSOC);
         
-        // Créer un index par code_nip pour les étudiants trouvés en BUT2
         $but2ByNip = [];
         foreach ($etudiantsBUT2 as $etu) {
             $but2ByNip[$etu['code_nip']] = $etu;
         }
         
-        // Analyser chaque étudiant supposé passer en BUT2
+        // Analyser chaque etudiant suppose passer en BUT2
         foreach ($nipsBUT2 as $nip) {
             if (isset($but2ByNip[$nip])) {
                 $etu = $but2ByNip[$nip];
                 $decision = strtoupper(trim($etu['decision_jury'] ?? ''));
-                $etat = strtoupper(trim($etu['etat_inscription'] ?? ''));
                 
-                if ($etat === 'D' || $decision === 'DEF' || $decision === 'NAR' || $decision === 'DEM') {
-                    $abandonBUT2++;
-                } elseif ($decision === 'RED' || $decision === 'AJ' || $decision === 'ATJ') {
+                if (in_array($decision, ['ADM', 'PASD', 'PAS1', 'ADSUP', 'ADJ', 'ADJR', 'CMP'])) {
+                    $passageBUT3++;
+                    $nipsBUT3[] = $nip;
+                } elseif (in_array($decision, ['RED', 'REDOUBLE', 'ATT', 'RAT'])) {
                     $redoublementBUT2++;
+                } elseif (in_array($decision, ['NAR', 'DEF', 'DEM', 'EXCLU'])) {
+                    $abandonBUT2++;
                 } else {
+                    // Decision vide = passage presume
                     $passageBUT3++;
                     $nipsBUT3[] = $nip;
                 }
             } else {
-                // Pas trouvé en BUT2 l'année N+1 - données manquantes
-                // On ne compte PAS comme abandon, on suppose passage si les données existent ailleurs
-                // Pour l'instant, on les compte comme "suivi non disponible" = passage estimé
-                $passageBUT3++;
-                $nipsBUT3[] = $nip;
+                // Pas trouve en BUT2 = reorientation ou suivi non disponible
+                $reorientationBUT2++;
             }
         }
     }
     
-    // Flux BUT2 → destinations
-    if ($passageBUT3 > 0) $flows["$BUT2_label||$BUT3_label"] = $passageBUT3;
-    if ($redoublementBUT2 > 0) $flows["$BUT2_label||Redoublement"] = ($flows["$BUT2_label||Redoublement"] ?? 0) + $redoublementBUT2;
-    if ($abandonBUT2 > 0) $flows["$BUT2_label||Sortie"] = $abandonBUT2;
-    
-    // =========== BUT3 ===========
-    $anneeN2 = (int)$anneeDebut + 2;
+    // =========== RECUPERATION BUT3 ===========
+    $annee3 = (int)$anneeDebut + 2;
     $diplome = 0;
     $redoublementBUT3 = 0;
     $abandonBUT3 = 0;
@@ -211,11 +189,13 @@ try {
                 si.numero_semestre
             FROM inscription i
             JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
+            JOIN formation f ON si.id_formation = f.id_formation
             WHERE i.code_nip IN ($placeholders)
-            AND si.annee_scolaire LIKE ?
-            AND (si.numero_semestre = 5 OR si.numero_semestre = 6)
+            AND si.annee_scolaire = ?
+            AND si.numero_semestre IN (5, 6)
         ";
-        $params = array_merge($nipsBUT3, ["$anneeN2%"]);
+        
+        $params = array_merge($nipsBUT3, [$annee3]);
         $stmt = $pdo->prepare($sqlBUT3);
         $stmt->execute($params);
         $etudiantsBUT3 = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -229,56 +209,83 @@ try {
             if (isset($but3ByNip[$nip])) {
                 $etu = $but3ByNip[$nip];
                 $decision = strtoupper(trim($etu['decision_jury'] ?? ''));
-                $etat = strtoupper(trim($etu['etat_inscription'] ?? ''));
                 
-                if ($etat === 'D' || $decision === 'DEF' || $decision === 'NAR' || $decision === 'DEM') {
-                    $abandonBUT3++;
-                } elseif ($decision === 'RED' || $decision === 'AJ' || $decision === 'ATJ') {
+                if (in_array($decision, ['RED', 'REDOUBLE', 'ATT', 'RAT'])) {
                     $redoublementBUT3++;
+                } elseif (in_array($decision, ['NAR', 'DEF', 'DEM', 'EXCLU'])) {
+                    $abandonBUT3++;
                 } else {
-                    // ADM en BUT3 = Diplômé !
+                    // ADM ou autre = Diplome
                     $diplome++;
                 }
             } else {
-                // Pas de données BUT3 - on estime diplômé si arrivé jusque là
+                // Pas de donnees BUT3 - presume diplome
                 $diplome++;
             }
         }
     }
     
-    // Flux BUT3 → destinations
-    if ($diplome > 0) $flows["$BUT3_label||Diplômé"] = $diplome;
-    if ($redoublementBUT3 > 0) $flows["$BUT3_label||Redoublement"] = ($flows["$BUT3_label||Redoublement"] ?? 0) + $redoublementBUT3;
-    if ($abandonBUT3 > 0) $flows["$BUT3_label||Sortie"] = ($flows["$BUT3_label||Sortie"] ?? 0) + $abandonBUT3;
+    // =========== CONSTRUCTION DU SANKEY ===========
+    $flows = [];
     
-    // =========== CONSTRUCTION DU RÉSULTAT ===========
+    // Entrees vers BUT1 (on ne peut pas distinguer ParcoursUp/eCandidat)
+    // On affiche juste "Entrants" avec le total
+    $entrants = $totalBUT1;
+    $flows["Entrants||$BUT1_label"] = $entrants;
+    
+    // BUT1 vers destinations
+    if ($passageBUT2 > 0) $flows["$BUT1_label||$BUT2_label"] = $passageBUT2;
+    if ($redoublementBUT1 > 0) $flows["$BUT1_label||Redoublement BUT1"] = $redoublementBUT1;
+    if ($abandonBUT1 > 0) $flows["$BUT1_label||Abandon BUT1"] = $abandonBUT1;
+    
+    // BUT2 vers destinations
+    if ($passageBUT3 > 0) $flows["$BUT2_label||$BUT3_label"] = $passageBUT3;
+    if ($redoublementBUT2 > 0) $flows["$BUT2_label||Redoublement BUT2"] = $redoublementBUT2;
+    if ($abandonBUT2 > 0) $flows["$BUT2_label||Abandon BUT2"] = $abandonBUT2;
+    if ($reorientationBUT2 > 0) $flows["$BUT2_label||Reorientation"] = $reorientationBUT2;
+    
+    // BUT3 vers destinations
+    if ($diplome > 0) $flows["$BUT3_label||Diplome"] = $diplome;
+    if ($redoublementBUT3 > 0) $flows["$BUT3_label||Redoublement BUT3"] = $redoublementBUT3;
+    if ($abandonBUT3 > 0) $flows["$BUT3_label||Abandon BUT3"] = $abandonBUT3;
+    
+    // Construire les noeuds et liens pour Google Charts
     $nodes = [];
     $links = [];
     
-    foreach ($flows as $key => $count) {
-        if ($count > 0) {
-            list($source, $target) = explode("||", $key);
-            $links[] = ['source' => $source, 'target' => $target, 'value' => $count];
-            $nodes[$source] = true;
-            $nodes[$target] = true;
+    foreach ($flows as $key => $value) {
+        if ($value > 0) {
+            list($from, $to) = explode('||', $key);
+            $nodes[$from] = true;
+            $nodes[$to] = true;
+            $links[] = [$from, $to, $value];
         }
     }
     
-    $nodeList = [];
-    foreach (array_keys($nodes) as $n) {
-        $nodeList[] = ['name' => $n];
-    }
+    $nodeList = array_keys($nodes);
     
-    // Stats basées sur les vraies décisions
+    // Statistiques
     $totalRedoublement = $redoublementBUT1 + $redoublementBUT2 + $redoublementBUT3;
-    $totalAbandon = $abandonBUT1 + $abandonBUT2 + $abandonBUT3;
+    $totalAbandon = $abandonBUT1 + $abandonBUT2 + $abandonBUT3 + $reorientationBUT2;
     
     $stats = [
-        'valide' => $diplome,
-        'partiel' => $passageBUT2 + $passageBUT3, // En cours de cursus
+        'entrants' => $entrants,
+        'but1' => $totalBUT1,
+        'but2' => $passageBUT2,
+        'but3' => $passageBUT3,
+        'diplome' => $diplome,
         'redoublement' => $totalRedoublement,
         'abandon' => $totalAbandon,
-        'total' => $totalBUT1
+        'total' => $totalBUT1,
+        'details' => [
+            'redoublement_but1' => $redoublementBUT1,
+            'abandon_but1' => $abandonBUT1,
+            'redoublement_but2' => $redoublementBUT2,
+            'abandon_but2' => $abandonBUT2,
+            'reorientation' => $reorientationBUT2,
+            'redoublement_but3' => $redoublementBUT3,
+            'abandon_but3' => $abandonBUT3
+        ]
     ];
     
     echo json_encode([
