@@ -281,9 +281,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         }
                     }
 
+                    // EXTRACTION: numero de semestre depuis le JSON ou le nom de fichier
                     $numSemestre = $data[0]["semestre"]["ordre"] ?? null;
                     if (!$numSemestre && isset($data[0]["annee"]["ordre"])) {
                          $numSemestre = ($data[0]["annee"]["ordre"] * 2) - 1;
+                    }
+                    // Fallback: extraire depuis le nom de fichier (BUT1, BUT_2, S2, S4, etc.)
+                    if (!$numSemestre) {
+                        $filename = basename($file);
+                        if (preg_match('/BUT[_\s]?1/i', $filename)) $numSemestre = 1;
+                        elseif (preg_match('/BUT[_\s]?2/i', $filename)) $numSemestre = 3;
+                        elseif (preg_match('/BUT[_\s]?3/i', $filename)) $numSemestre = 5;
+                        elseif (preg_match('/S2\b/i', $filename)) $numSemestre = 2;
+                        elseif (preg_match('/S4\b/i', $filename)) $numSemestre = 4;
+                        elseif (preg_match('/S6\b/i', $filename)) $numSemestre = 6;
+                        else $numSemestre = 1; // Default to S1 if unknown
+                    }
+                    
+                    // EXTRACTION: annee scolaire depuis le JSON ou le nom de fichier
+                    $anneeScolaire = $data[0]["annee"]["annee_scolaire"] ?? null;
+                    if (!$anneeScolaire) {
+                        // Extraire depuis le nom de fichier: decisions_jury_2022_fs_...
+                        if (preg_match('/decisions_jury_(\d{4})_/', basename($file), $matchAnnee)) {
+                            $anneeScolaire = $matchAnnee[1];
+                        }
                     }
 
                     $sqlInsertSemestreGeneric = "INSERT INTO semestre_instance (id_formsemestre, id_formation, annee_scolaire, numero_semestre, modalite) 
@@ -293,7 +314,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
 
                     $stmtSemestreUpdate->execute([
                         ":idfs" => $id_formsemestre, ":idf" => $id_formation_bdd, 
-                        ":annee" => $data[0]["annee"]["annee_scolaire"] ?? null, 
+                        ":annee" => $anneeScolaire, 
                         ":num" => $numSemestre, ":modalite" => null
                     ]);
 
