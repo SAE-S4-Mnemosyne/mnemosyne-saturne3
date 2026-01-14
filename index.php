@@ -210,7 +210,7 @@ require_once 'config.php';
                     <p class="info-text"><strong>Entrées (Gauche) :</strong> Les différentes sources d'arrivée des étudiants (Parcoursup, Redoublants, Passerelles).</p>
                     <p class="info-text"><strong>Flux (Centre) :</strong> Les parcours des étudiants BUT1 ⇨ BUT2 ⇨ BUT3. L'épaisseur représente le nombre d'étudiants.</p>
                     <p class="info-text"><strong>Sorties (Droite) :</strong> Diplômés, Abandons, Réorientations.</p>
-                    <p class="info-note">💡 <strong>Astuce :</strong> Survolez les flux pour voir le nombre exact d'étudiants concernés.</p>
+                    <p class="info-note"><strong>Astuce :</strong> Survolez les flux pour voir le nombre exact d'étudiants concernés.</p>
                 </div>
             </div>
 

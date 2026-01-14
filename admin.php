@@ -630,7 +630,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                     <p class="info-text"><strong>Entrées (Gauche) :</strong> Sources d'arrivée des étudiants (Parcoursup, Redoublants, Passerelles).</p>
                     <p class="info-text"><strong>Flux (Centre) :</strong> Parcours BUT1 ⇨ BUT2 ⇨ BUT3. L'épaisseur représente le nombre d'étudiants.</p>
                     <p class="info-text"><strong>Sorties (Droite) :</strong> Diplômés, Abandons, Réorientations.</p>
-                    <p class="info-note">💡 <strong>Astuce :</strong> Survolez les flux pour voir le nombre exact d'étudiants.</p>
+                    <p class="info-note"><strong>Astuce :</strong> Survolez les flux pour voir le nombre exact d'étudiants.</p>
                 </div>
             </div>
 
