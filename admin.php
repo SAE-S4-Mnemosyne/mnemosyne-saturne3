@@ -711,6 +711,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
             </div>
         </div>
     </main>
+
+    <!-- MODALE LISTE ETUDIANTS (Conformité Cahier des Charges) -->
+    <div id="student-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 id="modal-title">Étudiants du flux</h3>
+            <p id="modal-subtitle" style="color: #666; margin-bottom: 1rem;">Liste des étudiants concernés par ce parcours.</p>
+            <div id="student-list-container" class="student-list">
+                <p>Chargement...</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-close-modal" onclick="document.getElementById('student-modal').style.display='none'">Fermer</button>
+            </div>
+        </div>
+    </div>
+
     <footer class="footer">
         <div class="container">
             <p class="footer-copyright">© 2025 Mnémosyne</p>

@@ -267,15 +267,19 @@ function drawSankey(data) {
     const rows = data.links.map(link => [link.source, link.target, link.value]);
     chartData.addRows(rows);
 
+    // Stocker les données pour l'accès au clic
+    window.currentSankeyData = data;
+
     // Adaptation Chart Colors (Dark Mode)
     const isDarkMode = document.body.classList.contains('dark-mode');
     const textColor = isDarkMode ? '#e0e0e0' : '#333';
 
-    // Options du graphique
+    // Options du graphique avec interactivité activée
     const options = {
         width: '100%',
         sankey: {
             node: {
+                interactivity: true,
                 label: {
                     fontName: 'Inter',
                     fontSize: 14,
@@ -293,5 +297,141 @@ function drawSankey(data) {
     };
 
     const chart = new google.visualization.Sankey(container);
+
+    // --- CONFORMITE : Clic sur le diagramme Sankey ---
+    google.visualization.events.addListener(chart, 'select', function () {
+        const selection = chart.getSelection();
+        console.log("Selection event fired:", selection);
+        if (selection.length > 0) {
+            const item = selection[0];
+            if (item.name) {
+                console.log("Clic Noeud:", item.name);
+                openStudentModal(item.name, null);
+            } else if (item.row != null) {
+                const source = chartData.getValue(item.row, 0);
+                const target = chartData.getValue(item.row, 1);
+                console.log("Clic Lien:", source, "->", target);
+                openStudentModal(source, target);
+            }
+        }
+        chart.setSelection([]);
+    });
+
+    // Alternative: Ajouter un écouteur de clic directement sur le conteneur SVG
+    google.visualization.events.addListener(chart, 'ready', function () {
+        // Ajouter des écouteurs de clic sur les liens (paths)
+        const paths = container.querySelectorAll('path');
+        paths.forEach((path, index) => {
+            path.style.cursor = 'pointer';
+            path.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (index < data.links.length) {
+                    const link = data.links[index];
+                    console.log("Clic direct sur lien:", link.source, "->", link.target);
+                    openStudentModal(link.source, link.target);
+                }
+            });
+        });
+
+        // Ajouter curseur pointer sur les rectangles (noeuds)
+        const rects = container.querySelectorAll('rect');
+        rects.forEach(rect => {
+            rect.style.cursor = 'pointer';
+        });
+
+        // Ajouter curseur pointer sur les textes (labels des noeuds)
+        const texts = container.querySelectorAll('text');
+        texts.forEach(text => {
+            text.style.cursor = 'pointer';
+        });
+    });
+
     chart.draw(chartData, options);
 }
+
+// --- FONCTIONS MODALES (Conformité) ---
+async function openStudentModal(source, target) {
+    const modal = document.getElementById('student-modal');
+    const listContainer = document.getElementById('student-list-container');
+    const modalTitle = document.getElementById('modal-title');
+    const formation = document.getElementById("formation").value;
+    const annee = document.getElementById("annee").value;
+
+    if (!modal) return;
+    modal.style.display = 'block';
+
+    if (target) {
+        modalTitle.textContent = `Flux : ${source} ➔ ${target}`;
+    } else {
+        modalTitle.textContent = `Étudiants : ${source}`;
+    }
+
+    listContainer.innerHTML = '<p style="text-align:center;">Chargement...</p>';
+
+    try {
+        const url = `api/get_students_by_flow.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}&source=${encodeURIComponent(source)}&target=${encodeURIComponent(target || '')}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        if (data.error) {
+            listContainer.innerHTML = `<p class="error">Erreur: ${data.error}</p>`;
+            return;
+        }
+
+        if (!data.students || data.students.length === 0) {
+            // Afficher info debug si disponible
+            let debugMsg = '';
+            if (data.debug) {
+                debugMsg = `<br><small style="color:#888;">Année recherchée: ${data.debug.annee_recherchee}, Candidats trouvés: ${data.debug.nb_candidats}</small>`;
+            }
+            listContainer.innerHTML = `<p style="text-align:center; color:#666;">Aucun étudiant trouvé pour ce flux.${debugMsg}<br><small>(Les données peuvent ne pas être disponibles pour cette année/semestre)</small></p>`;
+            return;
+        }
+
+        // Afficher le nombre total d'étudiants
+        let html = `<p style="text-align:center; margin-bottom:1rem; font-weight:bold;">${data.students.length} étudiant(s) trouvé(s)</p>`;
+
+        // En-tête du tableau
+        html += `<div class="student-item" style="font-weight:bold; background:#f0f0f0; border-radius:4px;">
+            <span style="min-width:30px;">#</span>
+            <span style="flex:2;">Identifiant (anonymisé)</span>
+            <span style="flex:1;">Formation</span>
+            <span style="min-width:50px;">Sem.</span>
+            <span style="min-width:80px;">Décision</span>
+            <span style="min-width:80px;">Action</span>
+        </div>`;
+
+        data.students.forEach((etu, index) => {
+            const decisionClass = etu.decision ? `decision-${etu.decision.substr(0, 3)}` : '';
+            // Tronquer l'identifiant pour un affichage plus lisible
+            const shortNip = etu.nip.length > 16 ? etu.nip.substr(0, 6) + '...' + etu.nip.substr(-6) : etu.nip;
+            // Tronquer la formation
+            const shortFormation = etu.formation ? (etu.formation.length > 20 ? etu.formation.substr(0, 18) + '...' : etu.formation) : 'N/A';
+            const linkHtml = etu.scodoc_id
+                ? `<a href="#" onclick="alert('Fiche ScoDoc ID: ${etu.scodoc_id}'); return false;" class="scodoc-link">Fiche</a>`
+                : '<span style="color:#999;">-</span>';
+            html += `<div class="student-item">
+                <span style="color:#888; min-width:30px;">${index + 1}.</span>
+                <span class="student-nip" title="${etu.nip}" style="flex:2;">${shortNip}</span>
+                <span style="flex:1; font-size:0.8rem; color:#666;" title="${etu.formation}">${shortFormation}</span>
+                <span style="min-width:50px; font-size:0.8rem; color:#888;">${etu.semestre || '-'}</span>
+                <span class="student-decision ${decisionClass}" style="min-width:80px;">${etu.decision || 'N/A'}</span>
+                <span style="min-width:80px;">${linkHtml}</span>
+            </div>`;
+        });
+        listContainer.innerHTML = html;
+    } catch (error) {
+        console.error("Erreur modal:", error);
+        listContainer.innerHTML = `<p class="error">Erreur technique.</p>`;
+    }
+}
+
+// Fermeture modale
+window.onclick = function (event) {
+    const modal = document.getElementById('student-modal');
+    if (event.target == modal) modal.style.display = "none";
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const closeBtn = document.querySelector('.close-modal');
+    if (closeBtn) closeBtn.onclick = () => document.getElementById('student-modal').style.display = "none";
+});
