@@ -225,8 +225,8 @@ function updateStatsUI(stats) {
     const setStat = (id, count) => {
         const elCount = document.getElementById(`count-${id}`);
         const elPercent = document.getElementById(`percent-${id}`);
-        if (elCount) elCount.textContent = count;
-        if (elPercent) elPercent.textContent = Math.round((count / total) * 100) + "%";
+        if (elCount) elCount.textContent = count || 0;
+        if (elPercent) elPercent.textContent = Math.round(((count || 0) / total) * 100) + "%";
     };
 
     setStat('valide', stats.valide);
@@ -237,6 +237,21 @@ function updateStatsUI(stats) {
     // Mise à jour du total
     const totalEl = document.getElementById('total-students');
     if (totalEl) totalEl.textContent = stats.total || 0;
+
+    // Afficher le statut de la promotion si disponible
+    const statutEl = document.getElementById('statut-promo');
+    if (statutEl && stats.statutPromo) {
+        if (stats.statutPromo === 'terminée') {
+            statutEl.textContent = 'Promotion terminée';
+            statutEl.style.color = '#28a745';
+        } else {
+            statutEl.textContent = `Promotion ${stats.statutPromo}`;
+            statutEl.style.color = '#17a2b8';
+        }
+        statutEl.style.display = 'block';
+    } else if (statutEl) {
+        statutEl.style.display = 'none';
+    }
 }
 
 // Nouvelle fonction : Affiche la section Jury sans toucher aux chiffres
@@ -275,18 +290,24 @@ function drawSankey(data) {
     const textColor = isDarkMode ? '#e0e0e0' : '#333';
 
     // Options du graphique avec interactivité activée
+    // Hauteur calculée dynamiquement selon le nombre de liens
+    const nbLinks = data.links.length;
+    const hauteur = Math.max(500, Math.min(800, nbLinks * 60));
+    container.style.height = hauteur + 'px';
+
     const options = {
         width: '100%',
+        height: hauteur,
         sankey: {
             node: {
                 interactivity: true,
                 label: {
                     fontName: 'Inter',
-                    fontSize: 14,
+                    fontSize: 13,
                     color: textColor
                 },
-                nodePadding: 30,
-                width: 20,
+                nodePadding: 50, // Augmenté pour plus d'espace
+                width: 15,
                 colors: isDarkMode ? ['#7cb342', '#fb8c00', '#039be5', '#e53935'] : undefined
             },
             link: {

@@ -120,6 +120,7 @@ require_once 'config.php';
                 <div class="results-header">
                     <h3 class="results-title">Bilan des compétences & Décisions de jury</h3>
                     <p class="results-subtitle" id="stats-subtitle">Formation : - • Année : -</p>
+                    <p id="statut-promo" style="display:none; font-weight: bold; margin-top: 0.5rem;"></p>
                 </div>
 
                 <div class="status-cards">
