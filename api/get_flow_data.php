@@ -65,6 +65,51 @@ try {
     $isAllFormations = ($formationTitre === '__ALL__');
     $flows = [];
     
+    /**
+     * CHARGEMENT DES MAPPINGS ET SCÉNARIOS
+     * Ces configurations permettent à l'admin de personnaliser l'affichage
+     */
+    $mappings = [];  // Code ScoDoc -> Libellé affiché
+    $scenarios = []; // Formation source + cible -> Type de flux
+    
+    try {
+        // Charger les mappings (table mapping_codes)
+        $stmtMapping = $pdo->query("SELECT code_scodoc, libelle_graphique FROM mapping_codes");
+        while ($row = $stmtMapping->fetch(PDO::FETCH_ASSOC)) {
+            $mappings[$row['code_scodoc']] = $row['libelle_graphique'];
+        }
+    } catch (Exception $e) {
+        // Table n'existe pas encore, pas grave
+    }
+    
+    try {
+        // Charger les scénarios (table scenario_correspondance)
+        $stmtScenario = $pdo->query("SELECT formation_source, formation_cible, type_flux FROM scenario_correspondance");
+        while ($row = $stmtScenario->fetch(PDO::FETCH_ASSOC)) {
+            $key = $row['formation_source'] . '||' . $row['formation_cible'];
+            $scenarios[$key] = $row['type_flux'];
+        }
+    } catch (Exception $e) {
+        // Table n'existe pas encore, pas grave
+    }
+    
+    /**
+     * Fonction pour appliquer le mapping à un libellé
+     */
+    $appliquerMapping = function($label) use ($mappings) {
+        // Si un mapping exact existe, l'utiliser
+        if (isset($mappings[$label])) {
+            return $mappings[$label];
+        }
+        // Sinon, chercher un mapping partiel
+        foreach ($mappings as $code => $libelle) {
+            if (stripos($label, $code) !== false) {
+                return str_ireplace($code, $libelle, $label);
+            }
+        }
+        return $label;
+    };
+    
     // Année actuelle pour déterminer si la promo est "en cours"
     $anneeActuelle = (int)date('Y');
     $moisActuel = (int)date('m');
@@ -438,19 +483,24 @@ try {
         return $prio;
     };
     
-    // Construire les liens avec priorité
+    // Construire les liens avec priorité ET appliquer le mapping
     $linksAvecPrio = [];
     foreach ($flows as $key => $count) {
         if ($count > 0) {
             list($source, $target) = explode("||", $key);
+            
+            // Appliquer le mapping aux libellés
+            $sourceMapped = $appliquerMapping($source);
+            $targetMapped = $appliquerMapping($target);
+            
             $linksAvecPrio[] = [
-                'source' => $source, 
-                'target' => $target, 
+                'source' => $sourceMapped, 
+                'target' => $targetMapped, 
                 'value' => $count,
                 'prio' => $getPriorite($source, $target)
             ];
-            $nodes[$source] = true;
-            $nodes[$target] = true;
+            $nodes[$sourceMapped] = true;
+            $nodes[$targetMapped] = true;
         }
     }
     

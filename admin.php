@@ -87,6 +87,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_scenario'])) {
     }
 }
 
+// GESTIONNAIRE : Suppression Mapping
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_mapping'])) {
+    $id = (int)($_POST['delete_mapping_id'] ?? 0);
+    if ($id > 0) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM mapping_codes WHERE id = ?");
+            $stmt->execute([$id]);
+            $message_sync = "Mapping supprimé";
+            $message_type = "success";
+        } catch (Exception $e) {
+            $message_sync = "Erreur suppression mapping";
+            $message_type = "error";
+        }
+    }
+}
+
+// GESTIONNAIRE : Suppression Scénario
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_scenario'])) {
+    $id = (int)($_POST['delete_scenario_id'] ?? 0);
+    if ($id > 0) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM scenario_correspondance WHERE id_scenario = ?");
+            $stmt->execute([$id]);
+            $message_sync = "Scénario supprimé";
+            $message_type = "success";
+        } catch (Exception $e) {
+            $message_sync = "Erreur suppression scénario";
+            $message_type = "error";
+        }
+    }
+}
 
 
 // LOGIQUE UNIQUE (Auto-Dezip + Import)
@@ -653,6 +684,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 <div class="config-hint">
                     <p>Les mappings seront utilises pour rendre les noms de formation plus lisibles dans les graphiques.</p>
                 </div>
+                
+                <!-- Liste des mappings existants -->
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Mappings existants</h4>
+                    <?php
+                    try {
+                        $stmtMappings = $pdo->query("SELECT id, code_scodoc, libelle_graphique FROM mapping_codes ORDER BY code_scodoc");
+                        $mappingsList = $stmtMappings->fetchAll(PDO::FETCH_ASSOC);
+                        if (count($mappingsList) > 0): ?>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr style="background: var(--bg-secondary, #f5f5f5);">
+                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Code ScoDoc</th>
+                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Libellé Affiché</th>
+                                    <th style="padding: 0.5rem; text-align: center; border-bottom: 1px solid #ddd;">Action</th>
+                                </tr>
+                                <?php foreach ($mappingsList as $m): ?>
+                                <tr>
+                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><?php echo htmlspecialchars($m['code_scodoc']); ?></td>
+                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><?php echo htmlspecialchars($m['libelle_graphique']); ?></td>
+                                    <td style="padding: 0.5rem; text-align: center; border-bottom: 1px solid #eee;">
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="delete_mapping_id" value="<?php echo $m['id']; ?>">
+                                            <button type="submit" name="delete_mapping" style="background: #dc3545; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer;">✕</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </table>
+                        <?php else: ?>
+                            <p style="color: var(--text-muted, #666); font-style: italic;">Aucun mapping défini.</p>
+                        <?php endif;
+                    } catch (Exception $e) { ?>
+                        <p style="color: var(--text-muted, #666); font-style: italic;">Aucun mapping défini.</p>
+                    <?php } ?>
+                </div>
             </div>
             
             <!-- Interface Scénarios -->
@@ -707,6 +773,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 
                 <div class="config-example">
                     <strong>Exemple :</strong> Si un etudiant passe de "BUT1 SD" a "BUT2 Passerelle INFO", classifiez ce flux comme "Passerelle" pour le voir correctement dans le Sankey.
+                </div>
+                
+                <!-- Liste des scénarios existants -->
+                <div style="margin-top: 1.5rem;">
+                    <h4 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Scénarios existants</h4>
+                    <?php
+                    try {
+                        $stmtScenarios = $pdo->query("SELECT id_scenario, formation_source, formation_cible, type_flux FROM scenario_correspondance ORDER BY formation_source");
+                        $scenariosList = $stmtScenarios->fetchAll(PDO::FETCH_ASSOC);
+                        if (count($scenariosList) > 0): ?>
+                            <table style="width: 100%; border-collapse: collapse;">
+                                <tr style="background: var(--bg-secondary, #f5f5f5);">
+                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Source</th>
+                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Cible</th>
+                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Type</th>
+                                    <th style="padding: 0.5rem; text-align: center; border-bottom: 1px solid #ddd;">Action</th>
+                                </tr>
+                                <?php foreach ($scenariosList as $s): ?>
+                                <tr>
+                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><?php echo htmlspecialchars($s['formation_source']); ?></td>
+                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><?php echo htmlspecialchars($s['formation_cible']); ?></td>
+                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;">
+                                        <span style="background: #17a2b8; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
+                                            <?php echo htmlspecialchars($s['type_flux']); ?>
+                                        </span>
+                                    </td>
+                                    <td style="padding: 0.5rem; text-align: center; border-bottom: 1px solid #eee;">
+                                        <form method="POST" style="display: inline;">
+                                            <input type="hidden" name="delete_scenario_id" value="<?php echo $s['id_scenario']; ?>">
+                                            <button type="submit" name="delete_scenario" style="background: #dc3545; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer;">✕</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </table>
+                        <?php else: ?>
+                            <p style="color: var(--text-muted, #666); font-style: italic;">Aucun scénario défini.</p>
+                        <?php endif;
+                    } catch (Exception $e) { ?>
+                        <p style="color: var(--text-muted, #666); font-style: italic;">Aucun scénario défini.</p>
+                    <?php } ?>
                 </div>
             </div>
         </div>
