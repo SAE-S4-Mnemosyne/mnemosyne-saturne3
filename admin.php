@@ -67,7 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_scenario'])) {
     $type = trim($_POST['scenario_type'] ?? '');
     if ($source && $target && $type) {
         try {
-            // Créer la table si elle n'existe pas
+            // Vérifier si la table existe avec les bonnes colonnes
+            $checkCols = $pdo->query("SHOW COLUMNS FROM scenario_correspondance LIKE 'formation_source'");
+            if ($checkCols->rowCount() == 0) {
+                // L'ancienne table utilise des IDs, on la supprime et recrée
+                $pdo->exec("DROP TABLE IF EXISTS scenario_correspondance");
+            }
+            
+            // Créer la table avec les colonnes texte (noms de formations)
             $pdo->exec("CREATE TABLE IF NOT EXISTS scenario_correspondance (
                 id_scenario INT AUTO_INCREMENT PRIMARY KEY,
                 formation_source VARCHAR(255),
@@ -75,6 +82,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_scenario'])) {
                 type_flux VARCHAR(50),
                 UNIQUE KEY unique_scenario (formation_source, formation_cible)
             )");
+            
             $stmt = $pdo->prepare("INSERT INTO scenario_correspondance (formation_source, formation_cible, type_flux) VALUES (?, ?, ?) 
                                    ON DUPLICATE KEY UPDATE type_flux = VALUES(type_flux)");
             $stmt->execute([$source, $target, $type]);
@@ -724,35 +732,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
             <!-- Interface Scénarios -->
             <div class="config-card">
                 <h3 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Règles de Scénarios (Flux)</h3>
-                <p style="color: var(--text-muted, #666); margin-bottom: 1.5rem;">Définissez comment les transitions entre formations sont classifiées dans le Sankey.</p>
+                <p style="color: var(--text-muted, #666); margin-bottom: 1.5rem;">Définissez comment les transitions sont classifiées dans le Sankey. Les noeuds sont les étapes du parcours étudiant.</p>
                 
                 <form method="POST" style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr 1fr auto;">
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Formation Source</label>
+                        <label style="font-weight: 600; color: var(--text-color, #333);">Noeud Source</label>
                         <select name="scenario_source" class="config-input">
                             <option value="">Sélectionner...</option>
-                            <?php
-                            try {
-                                $stmtForms = $pdo->query("SELECT DISTINCT titre FROM formation ORDER BY titre");
-                                while ($row = $stmtForms->fetch(PDO::FETCH_ASSOC)) {
-                                    echo "<option value=\"" . htmlspecialchars($row['titre']) . "\">" . htmlspecialchars($row['titre']) . "</option>";
-                                }
-                            } catch (Exception $e) {}
-                            ?>
+                            <option value="Nouveaux inscrits">Nouveaux inscrits</option>
+                            <option value="Redoublant">Redoublant</option>
+                            <option value="Passerelle">Passerelle</option>
+                            <option value="BUT1">BUT1</option>
+                            <option value="BUT2">BUT2</option>
+                            <option value="BUT3">BUT3</option>
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Formation Cible</label>
+                        <label style="font-weight: 600; color: var(--text-color, #333);">Noeud Cible</label>
                         <select name="scenario_target" class="config-input">
                             <option value="">Sélectionner...</option>
-                            <?php
-                            try {
-                                $stmtForms2 = $pdo->query("SELECT DISTINCT titre FROM formation ORDER BY titre");
-                                while ($row = $stmtForms2->fetch(PDO::FETCH_ASSOC)) {
-                                    echo "<option value=\"" . htmlspecialchars($row['titre']) . "\">" . htmlspecialchars($row['titre']) . "</option>";
-                                }
-                            } catch (Exception $e) {}
-                            ?>
+                            <option value="BUT1">BUT1</option>
+                            <option value="BUT2">BUT2</option>
+                            <option value="BUT3">BUT3</option>
+                            <option value="Diplômé">Diplômé</option>
+                            <option value="Abandon BUT1">Abandon BUT1</option>
+                            <option value="Abandon BUT2">Abandon BUT2</option>
+                            <option value="Abandon BUT3">Abandon BUT3</option>
+                            <option value="Redoublement BUT1">Redoublement BUT1</option>
+                            <option value="Redoublement BUT2">Redoublement BUT2</option>
+                            <option value="Redoublement BUT3">Redoublement BUT3</option>
+                            <option value="En cours BUT1">En cours BUT1</option>
+                            <option value="En cours BUT2">En cours BUT2</option>
+                            <option value="En cours BUT3">En cours BUT3</option>
+                            <option value="Réorientation">Réorientation</option>
                         </select>
                     </div>
                     <div>
@@ -772,7 +784,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 </form>
                 
                 <div class="config-example">
-                    <strong>Exemple :</strong> Si un etudiant passe de "BUT1 SD" a "BUT2 Passerelle INFO", classifiez ce flux comme "Passerelle" pour le voir correctement dans le Sankey.
+                    <strong>Exemple :</strong> Pour renommer le flux "BUT1 → BUT2" en ajoutant "(Pass.)", créez : Source = "BUT1", Cible = "BUT2", Type = "passerelle".
                 </div>
                 
                 <!-- Liste des scénarios existants -->

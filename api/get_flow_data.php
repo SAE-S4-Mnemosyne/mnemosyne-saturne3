@@ -493,6 +493,10 @@ try {
             $sourceMapped = $appliquerMapping($source);
             $targetMapped = $appliquerMapping($target);
             
+            // Note: Les scénarios sont chargés pour référence mais ne modifient pas
+            // les libellés pour éviter de créer des noeuds séparés (ex: BUT2 vs BUT2 (Pass.))
+            // Ils servent de documentation pour l'admin sur les règles métier
+            
             $linksAvecPrio[] = [
                 'source' => $sourceMapped, 
                 'target' => $targetMapped, 

@@ -292,7 +292,7 @@ function drawSankey(data) {
     // Options du graphique avec interactivité activée
     // Hauteur calculée dynamiquement selon le nombre de liens
     const nbLinks = data.links.length;
-    const hauteur = Math.max(500, Math.min(800, nbLinks * 60));
+    const hauteur = Math.max(350, Math.min(450, nbLinks * 35));
     container.style.height = hauteur + 'px';
 
     const options = {
@@ -303,11 +303,11 @@ function drawSankey(data) {
                 interactivity: true,
                 label: {
                     fontName: 'Inter',
-                    fontSize: 13,
+                    fontSize: 12,
                     color: textColor
                 },
-                nodePadding: 50, // Augmenté pour plus d'espace
-                width: 15,
+                nodePadding: 25,
+                width: 12,
                 colors: isDarkMode ? ['#7cb342', '#fb8c00', '#039be5', '#e53935'] : undefined
             },
             link: {
