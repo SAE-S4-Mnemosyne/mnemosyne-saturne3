@@ -2,14 +2,14 @@
 
 Application web de visualisation des parcours étudiants de l'IUT de Villetaneuse via diagrammes Sankey.
 
-## 🎯 Fonctionnalités
+## Fonctionnalités
 
 - **Diagramme Sankey** : Visualisation des flux étudiants BUT1 → BUT2 → BUT3 → Diplômé
 - **Filtres** : Par formation (6 BUT + Tout l'IUT) et par année de promotion
 - **Interactivité** : Clic sur un flux pour voir la liste des étudiants
 - **Administration** : Synchronisation, mapping des codes, scénarios de flux
 
-## 📦 Installation
+## Installation
 
 ### Prérequis
 - PHP 7.4+ avec extensions PDO, JSON, ZIP
@@ -57,7 +57,7 @@ define('DB_USER', 'user');
 define('DB_PASS', 'password');
 ```
 
-## 📁 Structure du Projet
+## Structure du Projet
 
 ```
 ├── api/                    # APIs JSON
@@ -72,13 +72,13 @@ define('DB_PASS', 'password');
 └── full_schema.sql         # Schéma base de données
 ```
 
-## 🔐 Sécurité
+## Sécurité
 
 - Authentification par session PHP
 - Mots de passe hashés (bcrypt)
 - Requêtes préparées contre injections SQL
 - Fichier `config.php` exclu de Git
 
-## 📝 Auteurs
+## Auteurs
 
 Projet SAE - BUT Informatique - Université Sorbonne Paris Nord

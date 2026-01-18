@@ -368,6 +368,7 @@ function drawSankey(data) {
 }
 
 // --- FONCTIONS MODALES (Conformité) ---
+// --- FONCTIONS MODALES (Conformité) ---
 async function openStudentModal(source, target) {
     const modal = document.getElementById('student-modal');
     const listContainer = document.getElementById('student-list-container');
@@ -377,6 +378,17 @@ async function openStudentModal(source, target) {
 
     if (!modal) return;
     modal.style.display = 'block';
+
+    // Fonction de sécurité anti-XSS
+    const escapeHtml = (text) => {
+        if (!text && text !== 0) return '';
+        return String(text)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    };
 
     if (target) {
         modalTitle.textContent = `Flux : ${source} ➔ ${target}`;
@@ -392,7 +404,7 @@ async function openStudentModal(source, target) {
         const data = await response.json();
 
         if (data.error) {
-            listContainer.innerHTML = `<p class="error">Erreur: ${data.error}</p>`;
+            listContainer.innerHTML = `<p class="error">Erreur: ${escapeHtml(data.error)}</p>`;
             return;
         }
 
@@ -400,7 +412,7 @@ async function openStudentModal(source, target) {
             // Afficher info debug si disponible
             let debugMsg = '';
             if (data.debug) {
-                debugMsg = `<br><small style="color:#888;">Année recherchée: ${data.debug.annee_recherchee}, Candidats trouvés: ${data.debug.nb_candidats}</small>`;
+                debugMsg = `<br><small style="color:#888;">Année recherchée: ${escapeHtml(data.debug.annee_recherchee)}, Candidats trouvés: ${escapeHtml(data.debug.nb_candidats)}</small>`;
             }
             listContainer.innerHTML = `<p style="text-align:center; color:#666;">Aucun étudiant trouvé pour ce flux.${debugMsg}<br><small>(Les données peuvent ne pas être disponibles pour cette année/semestre)</small></p>`;
             return;
@@ -420,20 +432,32 @@ async function openStudentModal(source, target) {
         </div>`;
 
         data.students.forEach((etu, index) => {
-            const decisionClass = etu.decision ? `decision-${etu.decision.substr(0, 3)}` : '';
+            const safeDecision = escapeHtml(etu.decision || 'N/A');
+            const decisionClass = etu.decision ? `decision-${escapeHtml(etu.decision.substr(0, 3))}` : '';
+
             // Tronquer l'identifiant pour un affichage plus lisible
-            const shortNip = etu.nip.length > 16 ? etu.nip.substr(0, 6) + '...' + etu.nip.substr(-6) : etu.nip;
+            const rawShortNip = etu.nip.length > 16 ? etu.nip.substr(0, 6) + '...' + etu.nip.substr(-6) : etu.nip;
+            const safeNip = escapeHtml(etu.nip);
+            const safeShortNip = escapeHtml(rawShortNip);
+
             // Tronquer la formation
-            const shortFormation = etu.formation ? (etu.formation.length > 20 ? etu.formation.substr(0, 18) + '...' : etu.formation) : 'N/A';
+            const rawShortFormation = etu.formation ? (etu.formation.length > 20 ? etu.formation.substr(0, 18) + '...' : etu.formation) : 'N/A';
+            const safeFormation = escapeHtml(etu.formation || '');
+            const safeShortFormation = escapeHtml(rawShortFormation);
+
+            const safeSemestre = escapeHtml(etu.semestre || '-');
+            const safeScodocId = etu.scodoc_id ? String(etu.scodoc_id).replace(/'/g, "\\'") : ''; // Simple JS escape for alert
+
             const linkHtml = etu.scodoc_id
-                ? `<a href="#" onclick="alert('Fiche ScoDoc ID: ${etu.scodoc_id}'); return false;" class="scodoc-link">Fiche</a>`
+                ? `<a href="#" onclick="alert('Fiche ScoDoc ID: ${safeScodocId}'); return false;" class="scodoc-link">Fiche</a>`
                 : '<span style="color:#999;">-</span>';
+
             html += `<div class="student-item">
                 <span style="color:#888; min-width:30px;">${index + 1}.</span>
-                <span class="student-nip" title="${etu.nip}" style="flex:2;">${shortNip}</span>
-                <span style="flex:1; font-size:0.8rem; color:#666;" title="${etu.formation}">${shortFormation}</span>
-                <span style="min-width:50px; font-size:0.8rem; color:#888;">${etu.semestre || '-'}</span>
-                <span class="student-decision ${decisionClass}" style="min-width:80px;">${etu.decision || 'N/A'}</span>
+                <span class="student-nip" title="${safeNip}" style="flex:2;">${safeShortNip}</span>
+                <span style="flex:1; font-size:0.8rem; color:#666;" title="${safeFormation}">${safeShortFormation}</span>
+                <span style="min-width:50px; font-size:0.8rem; color:#888;">${safeSemestre}</span>
+                <span class="student-decision ${decisionClass}" style="min-width:80px;">${safeDecision}</span>
                 <span style="min-width:80px;">${linkHtml}</span>
             </div>`;
         });
