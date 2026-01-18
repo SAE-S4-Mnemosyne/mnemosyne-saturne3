@@ -2,13 +2,13 @@
 
 Guide d'utilisation de l'interface d'administration.
 
-## 🔑 Connexion
+## Connexion
 
 1. Accéder à `/login.html`
 2. Entrer identifiant et mot de passe
 3. Vous êtes redirigé vers `/admin.php`
 
-## 🔄 Synchronisation des Données
+## Synchronisation des Données
 
 ### Prérequis
 Placer les fichiers JSON ScoDoc dans le dossier `uploads/SAE_json/`
@@ -22,7 +22,7 @@ Placer les fichiers JSON ScoDoc dans le dossier `uploads/SAE_json/`
 
 ---
 
-## 🏷️ Mapping des Codes
+## Mapping des Codes
 
 Le mapping permet de renommer les libellés affichés dans le Sankey.
 
@@ -41,30 +41,33 @@ Cliquer sur le bouton **✕** rouge dans la liste des mappings existants.
 ---
 
 ## 🔀 Règles de Scénarios
-
-Les scénarios définissent comment classifier les transitions entre formations.
-
-### Ajouter un scénario
-1. Section **"Règles de Scénarios"**
-2. Sélectionner la **Formation Source** (ex: `BUT SD`)
-3. Sélectionner la **Formation Cible** (ex: `BUT Informatique`)
-4. Choisir le **Type de Flux** :
-   - `passage` : Transition normale
-   - `redoublement` : Redoublement
-   - `passerelle` : Passerelle entre formations
-   - `reorientation` : Réorientation
-   - `abandon` : Abandon de formation
-5. Cliquer **"+ Ajouter"**
-
-### Exemple d'utilisation
-Un étudiant passant de "BUT1 SD" à "BUT2 Passerelle INFO" peut être classifié comme "Passerelle" pour apparaître correctement dans le Sankey.
+ 
+ Les scénarios permettent de **documenter** les règles de gestion appliquées aux flux étudiants.
+ Le logiciel détecte **automatiquement** la plupart des flux (redoublements, passerelles), mais vous pouvez enregistrer ici vos décisions de gestion pour garder une trace.
+ 
+ ### Ajouter une règle (Documentation)
+ 1. Section **"Règles de Scénarios"**
+ 2. Sélectionner la **Formation Source** (ex: `BUT SD`)
+ 3. Sélectionner la **Formation Cible** (ex: `BUT Informatique`)
+ 4. Choisir le **Type de Flux** correspondant à la réalité :
+    - `passage`
+    - `redoublement`
+    - `passerelle`
+    - `reorientation`
+    - `abandon`
+ 5. Cliquer **"+ Ajouter"**
+ 
+ ### Fonctionnement
+ Le calcul des flux est **automatique** dans le diagramme Sankey. Cette interface sert de référence pour l'administrateur afin de valider que les transitions complexes (ex: Passerelles) sont bien prises en compte conformément aux décisions de l'équipe pédagogique.
+ 
+ > **Note :** Pour modifier le *nom* affiché d'une formation sur le graphique, utilisez la section "Mapping des Codes".
 
 ### Supprimer un scénario
 Cliquer sur le bouton **✕** rouge dans la liste des scénarios existants.
 
 ---
 
-## 📊 Consultation du Sankey
+## Consultation du Sankey
 
 La page admin permet aussi de consulter le Sankey :
 1. Sélectionner une **Formation** et une **Année**
@@ -74,7 +77,7 @@ La page admin permet aussi de consulter le Sankey :
 
 ---
 
-## ⚠️ Résolution de Problèmes
+## Résolution de Problèmes
 
 | Problème | Solution |
 |----------|----------|
@@ -84,6 +87,6 @@ La page admin permet aussi de consulter le Sankey :
 
 ---
 
-## 🔒 Déconnexion
+## Déconnexion
 
 Cliquer sur **"Déconnexion"** dans l'en-tête pour terminer la session.
