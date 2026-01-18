@@ -322,16 +322,13 @@ function drawSankey(data) {
     // --- CONFORMITE : Clic sur le diagramme Sankey ---
     google.visualization.events.addListener(chart, 'select', function () {
         const selection = chart.getSelection();
-        console.log("Selection event fired:", selection);
         if (selection.length > 0) {
             const item = selection[0];
             if (item.name) {
-                console.log("Clic Noeud:", item.name);
                 openStudentModal(item.name, null);
             } else if (item.row != null) {
                 const source = chartData.getValue(item.row, 0);
                 const target = chartData.getValue(item.row, 1);
-                console.log("Clic Lien:", source, "->", target);
                 openStudentModal(source, target);
             }
         }
