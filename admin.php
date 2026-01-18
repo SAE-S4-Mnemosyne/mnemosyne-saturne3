@@ -810,7 +810,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 </form>
                 
                 <div class="config-example">
-                    <strong>Exemple :</strong> Pour renommer le flux "BUT1 → BUT2" en ajoutant "(Pass.)", créez : Source = "BUT1", Cible = "BUT2", Type = "passerelle".
+                    <strong>Note :</strong> Cette section sert à <strong>documenter</strong> les flux spécifiques (Passerelles, Redoublements). Le calcul est automatique.
                 </div>
                 
                 <!-- Liste des scénarios existants -->
