@@ -374,7 +374,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                      $_SESSION['sync_message'] = implode("<br>", $steps_log) . "<br> Synchronisation partielle ou echouee.";
                      $_SESSION['sync_type'] = "error";
                 } else {
-                     $_SESSION['sync_message'] = "Donnees ScoDoc synchronisees avec succes ($count fichiers traites).";
+                     $_SESSION['sync_message'] = "Données ScoDoc synchronisées avec succès.";
                      $_SESSION['sync_type'] = "success";
                 }
             }
@@ -682,7 +682,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
 
         <!-- SECTION ADMINISTRATION AVANCÉE -->
         <div class="container" style="margin-top: 3rem;">
-            <h2 style="color: var(--heading-color, #1a3a5c); margin-bottom: 2rem; border-bottom: 2px solid #2d5a8c; padding-bottom: 0.5rem;">
+            <h2 class="config-main-title">
                 Configuration Avancée
             </h2>
             
@@ -700,48 +700,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                         <label style="font-weight: 600; color: var(--text-color, #333);">Libellé Affiché</label>
                         <input type="text" name="mapping_label" placeholder="Ex: BUT1 Informatique FI" class="config-input">
                     </div>
-                    <button type="submit" name="add_mapping" 
-                            style="background: #28a745; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; align-self: end; font-weight: 600;">
-                        + Ajouter
+                    <button type="submit" name="add_mapping" class="btn-shiny" style="align-self: end;">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Ajouter
                     </button>
                 </form>
                 
-                <div class="config-hint">
-                    <p>Les mappings seront utilises pour rendre les noms de formation plus lisibles dans les graphiques.</p>
-                </div>
+                <!-- Hint removed -->
+                <div style="margin-top: 1rem;"></div>
                 
                 <!-- Liste des mappings existants -->
                 <div style="margin-top: 1.5rem;">
-                    <h4 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Mappings existants</h4>
+                    <h4 class="config-subtitle">Mappings existants</h4>
                     <?php
                     try {
                         $stmtMappings = $pdo->query("SELECT id, code_scodoc, libelle_graphique FROM mapping_codes ORDER BY code_scodoc");
                         $mappingsList = $stmtMappings->fetchAll(PDO::FETCH_ASSOC);
                         if (count($mappingsList) > 0): ?>
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tr style="background: var(--bg-secondary, #f5f5f5);">
-                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Code ScoDoc</th>
-                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Libellé Affiché</th>
-                                    <th style="padding: 0.5rem; text-align: center; border-bottom: 1px solid #ddd;">Action</th>
-                                </tr>
-                                <?php foreach ($mappingsList as $m): ?>
-                                <tr>
-                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><?php echo htmlspecialchars($m['code_scodoc']); ?></td>
-                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><?php echo htmlspecialchars($m['libelle_graphique']); ?></td>
-                                    <td style="padding: 0.5rem; text-align: center; border-bottom: 1px solid #eee;">
-                                        <form method="POST" style="display: inline;">
-                                            <input type="hidden" name="delete_mapping_id" value="<?php echo $m['id']; ?>">
-                                            <button type="submit" name="delete_mapping" style="background: #dc3545; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer;">✕</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
+                            <table class="config-table">
+                                <thead>
+                                    <tr>
+                                        <th>Code ScoDoc</th>
+                                        <th>Libellé Affiché</th>
+                                        <th style="text-align: center;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($mappingsList as $m): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($m['code_scodoc']); ?></td>
+                                        <td><?php echo htmlspecialchars($m['libelle_graphique']); ?></td>
+                                        <td style="text-align: center;">
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="delete_mapping_id" value="<?php echo $m['id']; ?>">
+                                                <button type="submit" name="delete_mapping" class="btn-delete-item">✕</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
                             </table>
                         <?php else: ?>
-                            <p style="color: var(--text-muted, #666); font-style: italic;">Aucun mapping défini.</p>
+                            <p class="config-empty">Aucun mapping défini.</p>
                         <?php endif;
                     } catch (Exception $e) { ?>
-                        <p style="color: var(--text-muted, #666); font-style: italic;">Aucun mapping défini.</p>
+                        <p class="config-empty">Aucun mapping défini.</p>
                     <?php } ?>
                 </div>
             </div>
@@ -794,9 +800,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                             <option value="abandon">Abandon</option>
                         </select>
                     </div>
-                    <button type="submit" name="add_scenario" 
-                            style="background: #17a2b8; color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; cursor: pointer; align-self: end; font-weight: 600;">
-                        + Ajouter
+                    <button type="submit" name="add_scenario" class="btn-shiny" style="align-self: end;">
+                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Ajouter
                     </button>
                 </form>
                 
@@ -806,42 +815,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 
                 <!-- Liste des scénarios existants -->
                 <div style="margin-top: 1.5rem;">
-                    <h4 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Scénarios existants</h4>
+                    <h4 class="config-subtitle">Scénarios existants</h4>
                     <?php
                     try {
                         $stmtScenarios = $pdo->query("SELECT id_scenario, formation_source, formation_cible, type_flux FROM scenario_correspondance ORDER BY formation_source");
                         $scenariosList = $stmtScenarios->fetchAll(PDO::FETCH_ASSOC);
                         if (count($scenariosList) > 0): ?>
-                            <table style="width: 100%; border-collapse: collapse;">
-                                <tr style="background: var(--bg-secondary, #f5f5f5);">
-                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Source</th>
-                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Cible</th>
-                                    <th style="padding: 0.5rem; text-align: left; border-bottom: 1px solid #ddd;">Type</th>
-                                    <th style="padding: 0.5rem; text-align: center; border-bottom: 1px solid #ddd;">Action</th>
-                                </tr>
-                                <?php foreach ($scenariosList as $s): ?>
-                                <tr>
-                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><?php echo htmlspecialchars($s['formation_source']); ?></td>
-                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;"><?php echo htmlspecialchars($s['formation_cible']); ?></td>
-                                    <td style="padding: 0.5rem; border-bottom: 1px solid #eee;">
-                                        <span style="background: #17a2b8; color: white; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.85rem;">
-                                            <?php echo htmlspecialchars($s['type_flux']); ?>
-                                        </span>
-                                    </td>
-                                    <td style="padding: 0.5rem; text-align: center; border-bottom: 1px solid #eee;">
-                                        <form method="POST" style="display: inline;">
-                                            <input type="hidden" name="delete_scenario_id" value="<?php echo $s['id_scenario']; ?>">
-                                            <button type="submit" name="delete_scenario" style="background: #dc3545; color: white; border: none; padding: 0.3rem 0.6rem; border-radius: 4px; cursor: pointer;">✕</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
+                            <table class="config-table">
+                                <thead>
+                                    <tr>
+                                        <th>Source</th>
+                                        <th>Cible</th>
+                                        <th>Type</th>
+                                        <th style="text-align: center;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($scenariosList as $s): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($s['formation_source']); ?></td>
+                                        <td><?php echo htmlspecialchars($s['formation_cible']); ?></td>
+                                        <td>
+                                            <span class="chip-scenario <?php echo htmlspecialchars($s['type_flux']); ?>">
+                                                <?php echo htmlspecialchars($s['type_flux']); ?>
+                                            </span>
+                                        </td>
+                                        <td style="text-align: center;">
+                                            <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="delete_scenario_id" value="<?php echo $s['id_scenario']; ?>">
+                                                <button type="submit" name="delete_scenario" class="btn-delete-item">✕</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
                             </table>
                         <?php else: ?>
-                            <p style="color: var(--text-muted, #666); font-style: italic;">Aucun scénario défini.</p>
+                            <p class="config-empty">Aucun scénario défini.</p>
                         <?php endif;
                     } catch (Exception $e) { ?>
-                        <p style="color: var(--text-muted, #666); font-style: italic;">Aucun scénario défini.</p>
+                        <p class="config-empty">Aucun scénario défini.</p>
                     <?php } ?>
                 </div>
             </div>

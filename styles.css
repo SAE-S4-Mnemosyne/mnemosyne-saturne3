@@ -1838,3 +1838,238 @@ body.dark-mode .login-page .btn-theme-toggle {
     opacity: 1;
     background: rgba(0,0,0,0.05);
 }
+
+/* ===============================================
+   REFONTE VISUELLE CONFIGURATION AVANCEE (Override)
+   =============================================== */
+
+/* Light mode */
+.config-card {
+    background: white;
+    border: 2px solid #e1e8ed;
+    border-radius: 12px;
+    padding: 2.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.config-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 2px solid #d1dce5;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    background: white;
+    color: #333;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+}
+
+.config-input:focus {
+    outline: none;
+    border-color: #2d5a8c;
+    box-shadow: 0 0 0 3px rgba(45, 90, 140, 0.1);
+}
+
+/* Dark mode */
+body.dark-mode .config-card {
+    background-color: #1a1d29;
+    border-color: #2a2d3a;
+    color: #e0e0e0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode .config-input {
+    background-color: #24272f;
+    border-color: #3a3d4a;
+    color: white;
+}
+
+body.dark-mode .config-input:focus {
+    border-color: #4a4d5a;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .config-input::placeholder {
+    color: #888;
+}
+
+
+/* ===============================================
+   TABLEAUX CONFIGURATION AVANCEE (Refonte)
+   =============================================== */
+
+.config-subtitle {
+    color: #1e3a5f;
+    margin-bottom: 1rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.config-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e1e8ed;
+}
+
+.config-table th {
+    background: #f8f9fa;
+    color: #5a6c7d;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e1e8ed;
+}
+
+.config-table td {
+    background: white;
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #eee;
+    color: #333;
+}
+
+.config-table tr:last-child td {
+    border-bottom: none;
+}
+
+.btn-delete-item {
+    background: #ffebee;
+    color: #c62828;
+    border: none;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-delete-item:hover {
+    background: #ffcdd2;
+    color: #b71c1c;
+}
+
+.chip-scenario {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    background: #e3f2fd;
+    color: #1e3a5f;
+}
+
+/* --- DARK MODE CONFIG TABLES --- */
+body.dark-mode .config-subtitle {
+    color: #ffffff !important; /* TITRE BLANC DEMANDÉ */
+}
+
+body.dark-mode .config-table {
+    border-color: #3a3d4a;
+}
+
+body.dark-mode .config-table th {
+    background: #24272f;
+    color: #b0b8c1;
+    border-bottom-color: #3a3d4a;
+}
+
+body.dark-mode .config-table td {
+    background: #1a1d29;
+    border-bottom-color: #3a3d4a;
+    color: #e0e0e0;
+}
+
+body.dark-mode .btn-delete-item {
+    background: rgba(244, 67, 54, 0.2);
+    color: #ef9a9a;
+}
+
+body.dark-mode .btn-delete-item:hover {
+    background: rgba(244, 67, 54, 0.3);
+    color: white;
+}
+
+body.dark-mode .chip-scenario {
+    background: #2d5a8c;
+    color: white;
+}
+
+body.dark-mode .config-empty {
+    color: #888;
+    font-style: italic;
+}
+
+
+/* Titre Section Configuration */
+.config-main-title {
+    color: #1e3a5f;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #2d5a8c;
+    padding-bottom: 0.5rem;
+}
+
+body.dark-mode .config-main-title {
+    color: #ffffff; /* Titre blanc en mode sombre */
+    border-bottom-color: #64b5f6;
+}
+
+/* Shiny Button Style */
+.btn-shiny {
+  position: relative;
+  transition: all 0.3s ease-in-out;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.2);
+  padding-block: 0.5rem;
+  padding-inline: 1.25rem;
+  background-color: rgb(0 107 179);
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffff;
+  gap: 10px;
+  font-weight: bold;
+  border: 3px solid #ffffff4d;
+  outline: none;
+  overflow: hidden;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.btn-shiny .icon {
+  width: 24px;
+  height: 24px;
+  transition: all 0.3s ease-in-out;
+  fill: currentColor;
+}
+
+.btn-shiny:hover {
+  transform: scale(1.05);
+  border-color: #fff9;
+}
+
+.btn-shiny:hover .icon {
+  transform: translate(4px);
+}
+
+.btn-shiny:hover::before {
+  animation: shine 1.5s ease-out infinite;
+}
+
+.btn-shiny::before {
+  content: '';
+  position: absolute;
+  width: 100px;
+  height: 100%;
+  background-image: linear-gradient(120deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0) 70%);
+  top: 0;
+  left: -100px;
+  opacity: 0.6;
+}
+
+@keyframes shine {
+  0% { left: -100px; }
+  60% { left: 100%; }
+  to { left: 100%; }
+}

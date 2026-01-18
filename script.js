@@ -302,7 +302,7 @@ function drawSankey(data) {
             node: {
                 interactivity: true,
                 label: {
-                    fontName: 'Inter',
+                    fontName: 'sans-serif',
                     fontSize: 12,
                     color: textColor
                 },
