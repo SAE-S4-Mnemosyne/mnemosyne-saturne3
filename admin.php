@@ -398,6 +398,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/logo.png?v=3">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="loader.css">
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <style>
         /* CSS Admin Spécifique pour Loader Inline */
@@ -460,6 +461,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
     </style>
 </head>
 <body>
+
+    <!-- Écran de chargement -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-logo">
+                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+            </div>
+            <div class="loader-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
+            <p class="loader-text">Chargement en cours...</p>
+            <div class="loader-progress-bar">
+                <div class="loader-progress-fill"></div>
+            </div>
+        </div>
+    </div>
 
     <header class="header">
         <div class="container">
@@ -647,20 +670,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 </div>
             </div>
 
-            <div class="features" style="margin-top: 3rem;">
-                <div class="feature-card">
-                    <h4 class="feature-title">Suivi en temps réel</h4>
-                    <p class="feature-text">Visualisation dynamique des parcours étudiants.</p>
-                </div>
-                <div class="feature-card">
-                    <h4 class="feature-title">Données actualisées</h4>
-                    <p class="feature-text">Synchronisation avec les données officielles.</p>
-                </div>
-                <div class="feature-card">
-                    <h4 class="feature-title">Statistiques avancées</h4>
-                    <p class="feature-text">Analyses des taux de réussite et d'échec.</p>
-                </div>
-            </div>
+
         </div>
 
         <!-- SECTION ADMINISTRATION AVANCÉE -->
@@ -848,9 +858,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
 
     <footer class="footer">
         <div class="container">
-            <p class="footer-copyright">© 2025 Mnémosyne</p>
+            <p class="footer-copyright">© 2025 Mnémosyne - Université Sorbonne Paris Nord</p>
         </div>
     </footer>
     <script src="script.js"></script>
+    <script src="loader.js"></script>
 </body>
 </html>

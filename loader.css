@@ -1,0 +1,178 @@
+/* ==========================================
+   ÉCRAN DE CHARGEMENT (PAGE LOADER)
+   ========================================== */
+
+.page-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Bleu 'Marque' (Plus soutenu) pour mode jour */
+    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    transition: opacity 0.5s ease;
+}
+
+body.dark-mode .page-loader {
+    /* Bleu foncé aligné sur admin dark mode (souvent #1a2942 ou #0a0a0a dans ce projet, je vais vérifier) */
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}
+
+.page-loader.fade-out {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.loader-content {
+    text-align: center;
+    color: white;
+}
+
+.loader-logo {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: pulse-logo 2s ease-in-out infinite;
+    backdrop-filter: blur(10px);
+    border: 3px solid rgba(255, 255, 255, 0.2);
+}
+
+.loader-logo svg {
+    color: white;
+    animation: float-book 3s ease-in-out infinite;
+}
+
+@keyframes pulse-logo {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 15px rgba(255, 255, 255, 0);
+    }
+}
+
+@keyframes float-book {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.loader-spinner {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1.5rem;
+}
+
+.spinner-ring {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: 4px solid transparent;
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1.5s linear infinite;
+}
+
+.spinner-ring:nth-child(1) {
+    animation-duration: 1.5s;
+    border-top-color: rgba(255, 255, 255, 0.9);
+}
+
+.spinner-ring:nth-child(2) {
+    animation-duration: 2s;
+    animation-direction: reverse;
+    border-top-color: rgba(255, 255, 255, 0.6);
+    width: 70%;
+    height: 70%;
+    top: 15%;
+    left: 15%;
+}
+
+.spinner-ring:nth-child(3) {
+    animation-duration: 2.5s;
+    border-top-color: rgba(255, 255, 255, 0.3);
+    width: 40%;
+    height: 40%;
+    top: 30%;
+    left: 30%;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.loader-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.5px;
+    animation: fade-in-out 2s ease-in-out infinite;
+}
+
+@keyframes fade-in-out {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+}
+
+.loader-progress-bar {
+    width: 200px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 0 auto;
+    overflow: hidden;
+}
+
+.loader-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0.8) 0%,
+            rgba(255, 255, 255, 1) 50%,
+            rgba(255, 255, 255, 0.8) 100%);
+    border-radius: 2px;
+    animation: progress-slide 1.5s ease-in-out infinite;
+}
+
+@keyframes progress-slide {
+    0% {
+        transform: translateX(-100%);
+    }
+
+    100% {
+        transform: translateX(200%);
+    }
+}
