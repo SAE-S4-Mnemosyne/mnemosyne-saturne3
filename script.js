@@ -368,7 +368,8 @@ function drawSankey(data) {
 }
 
 // --- FONCTIONS MODALES (Conformité) ---
-// --- FONCTIONS MODALES (Conformité) ---
+let currentModalData = []; // Stockage pour l'export CSV
+
 async function openStudentModal(source, target) {
     const modal = document.getElementById('student-modal');
     const listContainer = document.getElementById('student-list-container');
@@ -378,6 +379,9 @@ async function openStudentModal(source, target) {
 
     if (!modal) return;
     modal.style.display = 'block';
+
+    // Reset data
+    currentModalData = [];
 
     // Fonction de sécurité anti-XSS
     const escapeHtml = (text) => {
@@ -409,7 +413,6 @@ async function openStudentModal(source, target) {
         }
 
         if (!data.students || data.students.length === 0) {
-            // Afficher info debug si disponible
             let debugMsg = '';
             if (data.debug) {
                 debugMsg = `<br><small style="color:#888;">Année recherchée: ${escapeHtml(data.debug.annee_recherchee)}, Candidats trouvés: ${escapeHtml(data.debug.nb_candidats)}</small>`;
@@ -417,6 +420,9 @@ async function openStudentModal(source, target) {
             listContainer.innerHTML = `<p style="text-align:center; color:#666;">Aucun étudiant trouvé pour ce flux.${debugMsg}<br><small>(Les données peuvent ne pas être disponibles pour cette année/semestre)</small></p>`;
             return;
         }
+
+        // Sauvegarder pour l'export
+        currentModalData = data.students;
 
         // Afficher le nombre total d'étudiants
         let html = `<p style="text-align:center; margin-bottom:1rem; font-weight:bold;">${data.students.length} étudiant(s) trouvé(s)</p>`;
@@ -435,18 +441,16 @@ async function openStudentModal(source, target) {
             const safeDecision = escapeHtml(etu.decision || 'N/A');
             const decisionClass = etu.decision ? `decision-${escapeHtml(etu.decision.substr(0, 3))}` : '';
 
-            // Tronquer l'identifiant pour un affichage plus lisible
             const rawShortNip = etu.nip.length > 16 ? etu.nip.substr(0, 6) + '...' + etu.nip.substr(-6) : etu.nip;
             const safeNip = escapeHtml(etu.nip);
             const safeShortNip = escapeHtml(rawShortNip);
 
-            // Tronquer la formation
             const rawShortFormation = etu.formation ? (etu.formation.length > 20 ? etu.formation.substr(0, 18) + '...' : etu.formation) : 'N/A';
             const safeFormation = escapeHtml(etu.formation || '');
             const safeShortFormation = escapeHtml(rawShortFormation);
 
             const safeSemestre = escapeHtml(etu.semestre || '-');
-            const safeScodocId = etu.scodoc_id ? String(etu.scodoc_id).replace(/'/g, "\\'") : ''; // Simple JS escape for alert
+            const safeScodocId = etu.scodoc_id ? String(etu.scodoc_id).replace(/'/g, "\\'") : '';
 
             const linkHtml = etu.scodoc_id
                 ? `<a href="#" onclick="alert('Fiche ScoDoc ID: ${safeScodocId}'); return false;" class="scodoc-link">Fiche</a>`
@@ -466,6 +470,43 @@ async function openStudentModal(source, target) {
         console.error("Erreur modal:", error);
         listContainer.innerHTML = `<p class="error">Erreur technique.</p>`;
     }
+}
+
+// Fonction d'export CSV
+function exportToCSV() {
+    if (!currentModalData || currentModalData.length === 0) {
+        alert("Aucune donnée à exporter.");
+        return;
+    }
+
+    // En-têtes CSV
+    let csvContent = "Identifiant;Formation;Semestre;Decision;ScoDoc_ID\n";
+
+    currentModalData.forEach(row => {
+        // Nettoyage des données pour CSV (éviter les conflits de séparateurs)
+        const nip = `"${String(row.nip).replace(/"/g, '""')}"`;
+        const formation = `"${String(row.formation || '').replace(/"/g, '""')}"`;
+        const semestre = `"${String(row.semestre || '').replace(/"/g, '""')}"`;
+        const decision = `"${String(row.decision || '').replace(/"/g, '""')}"`;
+        const scodocId = `"${String(row.scodoc_id || '').replace(/"/g, '""')}"`;
+
+        csvContent += `${nip};${formation};${semestre};${decision};${scodocId}\n`;
+    });
+
+    // Création du Blob avec BOM pour UTF-8 (Excel)
+    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    // Nom du fichier avec date
+    const date = new Date().toISOString().slice(0, 10);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `etudiants_flux_${date}.csv`);
+    link.style.visibility = 'hidden';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
 }
 
 // Fermeture modale

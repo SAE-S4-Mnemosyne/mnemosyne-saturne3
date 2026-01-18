@@ -871,6 +871,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 <p>Chargement...</p>
             </div>
             <div class="modal-footer">
+                <button class="btn-export-csv" onclick="exportToCSV()" style="margin-right: auto; background-color: #2e7d32; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                    <svg style="width:16px;height:16px;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                    Exporter CSV
+                </button>
                 <button class="btn-close-modal" onclick="document.getElementById('student-modal').style.display='none'">Fermer</button>
             </div>
         </div>
