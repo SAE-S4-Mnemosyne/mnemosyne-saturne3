@@ -1819,3 +1819,22 @@ body.dark-mode .login-page .btn-theme-toggle {
     background: rgba(255,255,255,0.15);
     border-color: rgba(255,255,255,0.25);
 }
+
+/* Bouton fermeture alerte */
+.close-alert {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.6;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: opacity 0.2s, background 0.2s;
+}
+.close-alert:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0.05);
+}
