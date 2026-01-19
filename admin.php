@@ -128,262 +128,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_scenario'])) {
 }
 
 
-// LOGIQUE UNIQUE (Auto-Dezip + Import)
+// LOGIQUE UNIQUE (Auto-Dezip + Import via orchestrateur)
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
     ini_set("max_execution_time", 300);
-    $has_error = false;
-    $steps_log = [];
 
     try {
         // ETAPE 1 : AUTO-DEZIP (Silencieux si réussi)
         $zipFile = 'SAE_json.zip';
         $targetDir = __DIR__ . '/uploads/saejson/';
-        
+
         if (file_exists($zipFile)) {
             $zip = new ZipArchive;
             if ($zip->open($zipFile) === TRUE) {
                 if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
                 $zip->extractTo($targetDir);
                 $zip->close();
-                // On ne loggue plus le succès du dézip pour l'utilisateur
             } else {
-                $steps_log[] = "Erreur technique (Zip corrompu).";
-                $has_error = true;
+                $_SESSION['sync_message'] = "Erreur technique (Zip corrompu).";
+                $_SESSION['sync_type'] = "error";
+                header('Location: admin.php');
+                exit;
             }
         }
 
-        // ETAPE 2 : IMPORTS
+        // ETAPE 2 : Déterminer le dossier JSON
         $folder = __DIR__ . "/uploads/SAE_json/";
         if (!is_dir($folder)) {
             $folder = __DIR__ . "/uploads/saejson/";
             if (is_dir($folder . "SAE_json")) $folder = $folder . "SAE_json/";
         }
 
+        // Vérifier aussi le dossier import/SAE_json
         if (!is_dir($folder)) {
-            $message_sync = "Dossier de données introuvable.";
-            $message_type = "error";
-        } else {
-            $files = glob($folder . "*.json");
-            if (empty($files)) $files = glob($folder . "*/*.json");
-
-            if (empty($files)) {
-                $message_sync = "Aucun fichier de données trouvé.";
-                $message_type = "error";
-            } else {
-                // Requetes SQL - INSERT IGNORE pour eviter les doublons
-                $sqlInsertEtudiant = $pdo->prepare("INSERT IGNORE INTO etudiant (code_nip, code_ine, etudid_scodoc) VALUES (:nip, :ine, :etud)");
-                $sqlInsertSemestre = $pdo->prepare("INSERT IGNORE INTO semestre_instance (id_formsemestre, id_formation, annee_scolaire, numero_semestre, modalite) VALUES (:idfs, :idf, :annee, :num, :modalite)");
-                $sqlInsertInscription = $pdo->prepare("INSERT IGNORE INTO inscription (code_nip, id_formsemestre, decision_jury, decision_annee, etat_inscription, pcn_competences, is_apc, date_maj) VALUES (:nip, :fs, :jury, :annee, :etat, :pct, :isapc, :maj)");
-                $sqlInsertCompetence = $pdo->prepare("INSERT IGNORE INTO resultat_competence (id_inscription, numero_competence, code_decision, moyenne) VALUES (:insc, :num, :code, :moy)");
-
-                $count = 0;
-                foreach ($files as $file) {
-                    $json = file_get_contents($file);
-                    $data = json_decode($json, true);
-                    if (!is_array($data)) continue;
-
-                    preg_match('/fs_(\d+)/', basename($file), $m);
-                    $id_formsemestre = $m[1] ?? null;
-                    if (!$id_formsemestre) continue;
-
-                    // RECUPERATION / INSERTION FORMATION (AVEC CORRECTION ENCODAGE)
-                    $formationTitre = null;
-                    
-                    // PRIORITE 1: Utiliser le titre du JSON (contient les accents corrects)
-                    if (isset($data[0]["formation"]["titre"]) && !empty($data[0]["formation"]["titre"])) {
-                        $formationTitre = trim($data[0]["formation"]["titre"]);
-                    }
-                    // PRIORITE 2: Fallback sur le nom de fichier
-                    elseif (preg_match('/fs_\d+_(.*?)\.json$/i', basename($file), $matches)) {
-                        $formationTitre = $matches[1];
-                    } else {
-                        $formationTitre = "Formation Inconnue"; 
-                    }
-                
-                    // NORMALISATION DES NOMS DE FORMATIONS
-                    // Objectif : noms simples comme "BUT Informatique", "BUT GEA" (sans FI/FA)
-                    
-                    // 1. Decoder les entites HTML
-                    $formationTitre = html_entity_decode($formationTitre, ENT_QUOTES, 'UTF-8');
-                    
-                    // 2. Corriger les encodages casses
-                    $corrections = [
-                        'Carri_res' => 'Carrieres',
-                        'carri_res' => 'carrieres',
-                        'G_nie' => 'Genie',
-                        'g_nie' => 'genie',
-                        'R_T' => 'R&T',
-                        '_' => ' ',
-                    ];
-                    foreach ($corrections as $search => $replace) {
-                        $formationTitre = str_replace($search, $replace, $formationTitre);
-                    }
-                    
-                    // 3. Exclure les formations d'autres IUT
-                    if (preg_match('/IUT\s+(de\s+)?Paris|IUT\s+Sceaux/i', $formationTitre)) {
-                        continue;
-                    }
-                    
-                    // 3b. Exclure les formations en alternance et passerelle (gardees pour les scenarios)
-                    // alternance, altenance (faute), Apprentissage, Passerelle, FA
-                    if (preg_match('/alternance|altenance|Apprentissage|Passerelle|\\bFA\\b/i', $formationTitre)) {
-                        continue;
-                    }
-                    
-                    // 4. "Bachelor Universitaire de Technologie" -> "BUT"
-                    $formationTitre = preg_replace('/Bachelor\s+Universitaire\s+de\s+Technologie/i', 'BUT', $formationTitre);
-                    
-                    // 5. Supprimer numeros de niveau (BUT 1, BUT1, etc.)
-                    $formationTitre = preg_replace('/\bBUT\s*[123]\b/i', 'BUT', $formationTitre);
-                    
-                    // 6. Supprimer numeros de semestre (S1-S6)
-                    $formationTitre = preg_replace('/\s+S[1-6]\b/i', '', $formationTitre);
-                    
-                    // 7. Supprimer "PN", "PN 2021", etc.
-                    $formationTitre = preg_replace('/\s*\(?PN\s*\d*\s*\.?\)?/i', '', $formationTitre);
-                    
-                    // 8. Enlever les annees (2020-2029)
-                    $formationTitre = preg_replace('/\s+20[2-9]\d(\s|$)/', ' ', $formationTitre);
-                    
-                    // 9. Normaliser noms longs vers acronymes
-                    $normalisations = [
-                        '/\bSTID\b/i' => 'SD',
-                        '/G[eé]nie\s+[EÉe]lectrique\s+et\s+Informatique\s+Industrielle/i' => 'GEII',
-                        '/Carri[eè]res\s+Juridiques/i' => 'CJ',
-                        '/Gestion\s+des\s+Entreprises\s+et\s+des?\s+Administrations?/i' => 'GEA',
-                        '/R[eé]seaux\s+et\s+T[eé]l[eé]communications/i' => 'R&T',
-                        '/Sciences\s+des\s+Donn[eé]es/i' => 'SD',
-                    ];
-                    foreach ($normalisations as $pattern => $replacement) {
-                        $formationTitre = preg_replace($pattern, $replacement, $formationTitre);
-                    }
-                    
-                    // 10. SUPPRIMER FI/FA et toutes les variantes
-                    $formationTitre = preg_replace('/\s+(FI|FA)\b/i', '', $formationTitre);
-                    $formationTitre = preg_replace('/\s+en\s+(alternance|Apprentissage|classique)/i', '', $formationTitre);
-                    $formationTitre = preg_replace('/\s+en\s+FI\s+classique/i', '', $formationTitre);
-                    $formationTitre = preg_replace('/\bApprentissage\b/i', '', $formationTitre);
-                    $formationTitre = preg_replace('/\bFormation\s+initiale\b/i', '', $formationTitre);
-                    
-                    // 11. Supprimer les parcours
-                    $formationTitre = preg_replace('/\s*[-–]\s*Parcours\s+[A-Z0-9\s]+/i', '', $formationTitre);
-                    
-                    // 12. Cas speciaux problematiques
-                    // "BUT CJ GEA" -> "BUT GEA" (le fichier CJ_GEA est pour GEA, pas CJ)
-                    $formationTitre = preg_replace('/\bBUT\s+CJ\s+GEA\b/i', 'BUT GEA', $formationTitre);
-                    // "BUT SD INFO" -> garder (Passerelle SD vers INFO)
-                    // Mais "BUT SD" seul doit rester "BUT SD"
-                    
-                    // 13. Supprimer tirets et caracteres speciaux en fin de nom
-                    $formationTitre = preg_replace('/\s*[-–_]\s*$/i', '', $formationTitre);
-                    
-                    // 14. Nettoyage final
-                    $formationTitre = preg_replace('/\s+/', ' ', $formationTitre);
-                    $formationTitre = trim($formationTitre);
-
-                    $id_formation_bdd = null;
-                    if ($formationTitre) {
-                        // Vérifier si la formation existe déjà
-                        $stmtCheck = $pdo->prepare("SELECT id_formation FROM formation WHERE titre = ? LIMIT 1");
-                        $stmtCheck->execute([$formationTitre]);
-                        $existingForm = $stmtCheck->fetch(PDO::FETCH_ASSOC);
-
-                        if ($existingForm) {
-                            $id_formation_bdd = $existingForm['id_formation'];
-                        } else {
-                            // S'assurer que le département existe
-                            $pdo->exec("INSERT IGNORE INTO departement (id_dept, acronyme, nom_complet) VALUES (1, 'IUT', 'IUT Villetaneuse')");
-                            
-                            // INSÉRER la formation
-                            $stmtInsertForm = $pdo->prepare("INSERT INTO formation (id_dept, titre) VALUES (1, ?)");
-                            $stmtInsertForm->execute([$formationTitre]);
-                            $id_formation_bdd = $pdo->lastInsertId();
-                        }
-                    }
-
-                    // EXTRACTION: numero de semestre depuis le JSON ou le nom de fichier
-                    $numSemestre = $data[0]["semestre"]["ordre"] ?? null;
-                    if (!$numSemestre && isset($data[0]["annee"]["ordre"])) {
-                         $numSemestre = ($data[0]["annee"]["ordre"] * 2) - 1;
-                    }
-                    // Fallback: extraire depuis le nom de fichier (BUT1, BUT_2, S2, S4, etc.)
-                    if (!$numSemestre) {
-                        $filename = basename($file);
-                        if (preg_match('/BUT[_\s]?1/i', $filename)) $numSemestre = 1;
-                        elseif (preg_match('/BUT[_\s]?2/i', $filename)) $numSemestre = 3;
-                        elseif (preg_match('/BUT[_\s]?3/i', $filename)) $numSemestre = 5;
-                        elseif (preg_match('/S2\b/i', $filename)) $numSemestre = 2;
-                        elseif (preg_match('/S4\b/i', $filename)) $numSemestre = 4;
-                        elseif (preg_match('/S6\b/i', $filename)) $numSemestre = 6;
-                        else $numSemestre = 1; // Default to S1 if unknown
-                    }
-                    
-                    // EXTRACTION: annee scolaire depuis le JSON ou le nom de fichier
-                    $anneeScolaire = $data[0]["annee"]["annee_scolaire"] ?? null;
-                    if (!$anneeScolaire) {
-                        // Extraire depuis le nom de fichier: decisions_jury_2022_fs_...
-                        if (preg_match('/decisions_jury_(\d{4})_/', basename($file), $matchAnnee)) {
-                            $anneeScolaire = $matchAnnee[1];
-                        }
-                    }
-
-                    $sqlInsertSemestreGeneric = "INSERT INTO semestre_instance (id_formsemestre, id_formation, annee_scolaire, numero_semestre, modalite) 
-                                                 VALUES (:idfs, :idf, :annee, :num, :modalite) 
-                                                 ON DUPLICATE KEY UPDATE id_formation = VALUES(id_formation), annee_scolaire = VALUES(annee_scolaire), numero_semestre = VALUES(numero_semestre)";
-                    $stmtSemestreUpdate = $pdo->prepare($sqlInsertSemestreGeneric);
-
-                    $stmtSemestreUpdate->execute([
-                        ":idfs" => $id_formsemestre, ":idf" => $id_formation_bdd, 
-                        ":annee" => $anneeScolaire, 
-                        ":num" => $numSemestre, ":modalite" => null
-                    ]);
-
-                    foreach ($data as $etu) {
-                        if (empty($etu["code_nip"])) continue;
-
-                        $sqlInsertEtudiant->execute([":nip" => $etu["code_nip"], ":ine" => $etu["code_ine"] ?? null, ":etud" => $etu["etudid"] ?? null]);
-                        
-                        $decisionJury = $etu["annee"]["code"] ?? null;
-                        $etatInscription = $etu["etat"] ?? null;
-                        
-                        $sqlInsertInscription->execute([
-                            ":nip" => $etu["code_nip"], 
-                            ":fs" => $id_formsemestre, 
-                            ":jury" => $decisionJury,  // ADM, RED, NAR, PASD, DEF, etc.
-                            ":annee"=> $etu["annee"]["ordre"] ?? null, 
-                            ":etat" => $etatInscription,  // I ou D
-                            ":pct" => $etu["nb_competences"] ?? null, 
-                            ":isapc"=> ($etu["is_apc"] ?? false) ? 1 : 0, 
-                            ":maj" => date("Y-m-d H:i:s")
-                        ]);
-                        $id_inscription = $pdo->lastInsertId();
-
-                        if (!empty($etu["rcues"])) {
-                            $num = 1;
-                            foreach ($etu["rcues"] as $rc) {
-                                $sqlInsertCompetence->execute([":insc" => $id_inscription, ":num" => $num, ":code" => $rc["code"], ":moy" => $rc["moy"]]);
-                                $num++;
-                            }
-                        }
-                    }
-                    $count++;
-                }
-
-                // Message final
-                if ($has_error) {
-                     $_SESSION['sync_message'] = implode("<br>", $steps_log) . "<br> Synchronisation partielle ou echouee.";
-                     $_SESSION['sync_type'] = "error";
-                } else {
-                     $_SESSION['sync_message'] = "Données ScoDoc synchronisées avec succès.";
-                     $_SESSION['sync_type'] = "success";
-                }
-            }
+            $folder = __DIR__ . "/import/SAE_json/";
         }
+
+        if (!is_dir($folder)) {
+            $_SESSION['sync_message'] = "Dossier de données introuvable.";
+            $_SESSION['sync_type'] = "error";
+            header('Location: admin.php');
+            exit;
+        }
+
+        // ETAPE 3 : Appeler l'orchestrateur d'import
+        require_once __DIR__ . '/import/run_all_imports.php';
+
+        $results = runAllImports($pdo, $folder);
+
+        // Message final
+        if ($results['success']) {
+            $stepsMsg = implode(" | ", $results['steps']);
+            $_SESSION['sync_message'] = "Données ScoDoc synchronisées avec succès.<br><small>$stepsMsg</small>";
+            $_SESSION['sync_type'] = "success";
+        } else {
+            $errorsMsg = implode("<br>", $results['errors']);
+            $_SESSION['sync_message'] = "Synchronisation partielle ou échouée.<br>$errorsMsg";
+            $_SESSION['sync_type'] = "error";
+        }
+
     } catch (Exception $e) {
         $_SESSION['sync_message'] = "Erreur : " . $e->getMessage();
         $_SESSION['sync_type'] = "error";
     }
-    
+
     // Redirection pour eviter la resynchronisation au refresh (POST-Redirect-GET)
     header('Location: admin.php');
     exit;
@@ -398,7 +205,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/logo.png?v=3">
     <link rel="stylesheet" href="styles.css">
-    <link rel="stylesheet" href="loader.css">
+
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <style>
         /* CSS Admin Spécifique pour Loader Inline */
@@ -436,53 +243,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
         .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
         .alert-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
 
-        /* Loader Inline */
-        #inline-loader {
-            display: none; /* Caché par défaut */
-            background: #e3f2fd;
-            color: #0d47a1;
-            padding: 1.5rem;
-            border-radius: 8px;
-            text-align: center;
-            margin-bottom: 2rem;
-            align-items: center;
-            justify-content: center;
-            gap: 1rem;
-            font-weight: 600;
-            border: 1px solid #90caf9;
-        }
-        .inline-spinner {
-            width: 24px; height: 24px;
-            border: 3px solid #bbdefb;
-            border-top: 3px solid #0d47a1;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
+
     </style>
 </head>
 <body>
 
-    <!-- Écran de chargement -->
-    <div id="page-loader" class="page-loader">
-        <div class="loader-content">
-            <div class="loader-logo">
-                <svg width="80" height="80" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-            </div>
-            <div class="loader-spinner">
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-                <div class="spinner-ring"></div>
-            </div>
-            <p class="loader-text">Chargement en cours...</p>
-            <div class="loader-progress-bar">
-                <div class="loader-progress-fill"></div>
-            </div>
-        </div>
-    </div>
+
 
     <header class="header">
         <div class="container">
@@ -496,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 </div>
 
                 <div class="header-center" style="display: flex; gap: 0.5rem;">
-                    <form method="POST" class="sync-form-header" onsubmit="document.getElementById('inline-loader').style.display='flex'">
+                    <form method="POST" class="sync-form-header">
                         <button type="submit" name="run_sync" class="btn-sync-header">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9"/>
@@ -538,10 +304,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
             </div>
 
             <!-- Loader Inline (Juste au dessus du formulaire) -->
-            <div id="inline-loader">
-                <div class="inline-spinner"></div>
-                <span>Récupération des données en cours, veuillez patienter...</span>
-            </div>
+
 
             <!-- ALERT DE FEEDBACK -->
             <?php if (!empty($message_sync)): ?>
@@ -580,7 +343,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
 
                     <div class="quick-filters">
                         <span class="quick-label">Accès rapide :</span>
-                        <button type="button" class="chip" onclick="quickSelect('BUT Informatique')">Informatique</button>
+                        <button type="button" class="chip" onclick="quickSelect('BUT INFO')">Informatique</button>
                         <button type="button" class="chip" onclick="quickSelect('BUT GEA')">GEA</button>
                         <button type="button" class="chip" onclick="quickSelect('BUT R&T')">R&T</button>
                     </div>
@@ -810,7 +573,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 </form>
                 
                 <div class="config-example">
-                    <strong>Note :</strong> Cette section sert à <strong>documenter</strong> les flux spécifiques (Passerelles, Redoublements). Le calcul est automatique.
+                    <strong>Exemple :</strong> Pour renommer le flux "BUT1 → BUT2" en ajoutant "(Pass.)", créez : Source = "BUT1", Cible = "BUT2", Type = "passerelle".
                 </div>
                 
                 <!-- Liste des scénarios existants -->
@@ -871,10 +634,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 <p>Chargement...</p>
             </div>
             <div class="modal-footer">
-                <button class="btn-export-csv" onclick="exportToCSV()" style="margin-right: auto; background-color: #2e7d32; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: 500;">
-                    <svg style="width:16px;height:16px;vertical-align:middle;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Exporter CSV
-                </button>
                 <button class="btn-close-modal" onclick="document.getElementById('student-modal').style.display='none'">Fermer</button>
             </div>
         </div>
@@ -886,6 +645,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
         </div>
     </footer>
     <script src="script.js"></script>
-    <script src="loader.js"></script>
+
 </body>
 </html>

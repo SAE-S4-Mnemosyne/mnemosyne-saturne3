@@ -10,7 +10,7 @@
 header('Content-Type: application/json');
 require_once '../config.php';
 
-// Configuration ScoDoc - À ADAPTER SELON VOTRE INSTANCE
+// Configuration ScoDoc
 // L'URL de base doit être de la forme: https://scodoc.votre-iut.fr/ScoDoc
 define('SCODOC_BASE_URL', 'https://scodoc.iutv.univ-paris13.fr/ScoDoc'); // Exemple IUT Villetaneuse
 define('SCODOC_USER', ''); // Nom d'utilisateur ScoDoc avec permission ScoView
@@ -122,7 +122,7 @@ function syncFromScoDoc($pdo) {
             $results['errors'][] = 'Départements: ' . $depts['error'];
         } else {
             foreach ($depts as $dept) {
-                $stmt = $pdo->prepare("INSERT INTO departement (id_dept, acronyme, nom_complet) 
+                $stmt = $pdo->prepare("INSERT INTO Departement (id_dept, acronyme, nom_complet) 
                                        VALUES (?, ?, ?) 
                                        ON DUPLICATE KEY UPDATE nom_complet = VALUES(nom_complet)");
                 $stmt->execute([$dept['id'], $dept['acronyme'], $dept['description'] ?? $dept['acronyme']]);
@@ -136,12 +136,12 @@ function syncFromScoDoc($pdo) {
             if (!isset($formsemestres['error'])) {
                 foreach ($formsemestres as $fs) {
                     // Insérer la formation si elle n'existe pas
-                    $stmt = $pdo->prepare("INSERT IGNORE INTO formation (id_formation, id_dept, titre) VALUES (?, ?, ?)");
+                    $stmt = $pdo->prepare("INSERT IGNORE INTO Formation (id_formation, id_dept, titre) VALUES (?, ?, ?)");
                     $stmt->execute([$fs['formation_id'], $dept['id'], $fs['titre'] ?? 'Formation']);
                     $results['formations']++;
                     
                     // Insérer le semestre instance
-                    $stmt = $pdo->prepare("INSERT INTO semestre_instance (id_formsemestre, id_formation, annee_scolaire, numero_semestre)
+                    $stmt = $pdo->prepare("INSERT INTO Semestre_Instance (id_formsemestre, id_formation, annee_scolaire, numero_semestre)
                                            VALUES (?, ?, ?, ?)
                                            ON DUPLICATE KEY UPDATE annee_scolaire = VALUES(annee_scolaire)");
                     $anneeScolaire = substr($fs['date_debut'] ?? '', 0, 4);
@@ -153,13 +153,13 @@ function syncFromScoDoc($pdo) {
                     if (!isset($etudiants['error'])) {
                         foreach ($etudiants as $etu) {
                             // Insérer l'étudiant
-                            $stmt = $pdo->prepare("INSERT INTO etudiant (code_nip, code_ine, etudid_scodoc) 
+                            $stmt = $pdo->prepare("INSERT INTO Etudiant (code_nip, code_ine, etudid_scodoc) 
                                                    VALUES (?, ?, ?)
                                                    ON DUPLICATE KEY UPDATE etudid_scodoc = VALUES(etudid_scodoc)");
                             $stmt->execute([$etu['code_nip'], $etu['code_ine'] ?? null, $etu['id']]);
                             
                             // Insérer l'inscription
-                            $stmt = $pdo->prepare("INSERT IGNORE INTO inscription (code_nip, id_formsemestre, etat_inscription) VALUES (?, ?, ?)");
+                            $stmt = $pdo->prepare("INSERT IGNORE INTO Inscription (code_nip, id_formsemestre, etat_inscription) VALUES (?, ?, ?)");
                             $stmt->execute([$etu['code_nip'], $fs['id'], $etu['etat'] ?? 'I']);
                             $results['etudiants']++;
                         }

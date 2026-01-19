@@ -68,7 +68,7 @@ Modifier le fichier `script.js`, variable `colors` dans la fonction `drawSankey(
 
 ### Déployer sur un nouveau serveur
 1.  Copier les fichiers via FTP/SFTP.
-2.  Importer `full_schema.sql` dans la nouvelle base de données.
+2.  Importer `mnemosyne-projet_bdd.sql` dans la nouvelle base de données.
 3.  Configurer `config.php` avec les nouveaux identifiants.
 
 ---

@@ -62,7 +62,7 @@ function toggleTheme() {
 // Chargement des Options
 async function loadOptions() {
     try {
-        const response = await fetch('api/get_options.php'); // Fixed path: was ../Backend/code_Mnémosyne/api/get_options.php
+        const response = await fetch('api/get_options.php'); // Chemin corrigé : anciennement ../Backend/code_Mnémosyne/api/get_options.php
         const data = await response.json();
         populateSelects(data);
 
@@ -171,8 +171,7 @@ async function fetchAndDraw() {
     const formation = document.getElementById("formation").value;
     const annee = document.getElementById("annee").value;
 
-    // Récupération des éléments d'interface (Loader, Chart)
-    const loader = document.getElementById("chart-loader");
+    // Récupération des éléments d'interface (Chart)
     const chartContainer = document.getElementById("sankey_chart");
 
     if (!formation || !annee) {
@@ -180,19 +179,13 @@ async function fetchAndDraw() {
         return;
     }
 
-    // Afficher le loader
-    if (loader) loader.style.display = 'flex';
-
     // 1. Afficher la section Jury (Juste le visuel, sans valeurs dynamiques)
     updateStatsDisplay(formation, annee);
 
     try {
-        const url = `api/get_flow_data.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}`; // Fixed path: was ../Backend/code_Mnémosyne/api/get_flow_data.php
+        const url = `api/get_flow_data.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}`;
         const response = await fetch(url);
         const data = await response.json();
-
-        // Cacher le loader
-        if (loader) loader.style.display = 'none';
 
         if (data.stats) {
             updateStatsUI(data.stats);
@@ -214,7 +207,6 @@ async function fetchAndDraw() {
 
     } catch (error) {
         console.error("Erreur récupération flux:", error);
-        if (loader) loader.style.display = 'none';
         chartContainer.innerHTML = `<div class="empty-state"><p class="error">Erreur technique lors de la récupération des données.</p></div>`;
     }
 }
@@ -265,7 +257,11 @@ function updateStatsDisplay(formation, annee) {
 
         // Mettre à jour uniquement le titre avec la formation choisie
         if (subtitle) {
-            subtitle.textContent = `Formation : ${formation} • Année : ${annee}`;
+            let displayFormation = formation;
+            if (formation === '__ALL__') {
+                displayFormation = "Tout l'IUT (Vue globale)";
+            }
+            subtitle.textContent = `Formation : ${displayFormation} • Année : ${annee}`;
         }
     }
 }
@@ -368,7 +364,7 @@ function drawSankey(data) {
 }
 
 // --- FONCTIONS MODALES (Conformité) ---
-let currentModalData = []; // Stockage pour l'export CSV
+// Note : La fonction d'export CSV a été retirée car non conforme au cahier des charges (V2)
 
 async function openStudentModal(source, target) {
     const modal = document.getElementById('student-modal');
@@ -380,8 +376,7 @@ async function openStudentModal(source, target) {
     if (!modal) return;
     modal.style.display = 'block';
 
-    // Reset data
-    currentModalData = [];
+    // Reset data (si nécessaire)
 
     // Fonction de sécurité anti-XSS
     const escapeHtml = (text) => {
@@ -420,9 +415,6 @@ async function openStudentModal(source, target) {
             listContainer.innerHTML = `<p style="text-align:center; color:#666;">Aucun étudiant trouvé pour ce flux.${debugMsg}<br><small>(Les données peuvent ne pas être disponibles pour cette année/semestre)</small></p>`;
             return;
         }
-
-        // Sauvegarder pour l'export
-        currentModalData = data.students;
 
         // Afficher le nombre total d'étudiants
         let html = `<p style="text-align:center; margin-bottom:1rem; font-weight:bold;">${data.students.length} étudiant(s) trouvé(s)</p>`;
@@ -472,42 +464,7 @@ async function openStudentModal(source, target) {
     }
 }
 
-// Fonction d'export CSV
-function exportToCSV() {
-    if (!currentModalData || currentModalData.length === 0) {
-        alert("Aucune donnée à exporter.");
-        return;
-    }
 
-    // En-têtes CSV
-    let csvContent = "Identifiant;Formation;Semestre;Decision;ScoDoc_ID\n";
-
-    currentModalData.forEach(row => {
-        // Nettoyage des données pour CSV (éviter les conflits de séparateurs)
-        const nip = `"${String(row.nip).replace(/"/g, '""')}"`;
-        const formation = `"${String(row.formation || '').replace(/"/g, '""')}"`;
-        const semestre = `"${String(row.semestre || '').replace(/"/g, '""')}"`;
-        const decision = `"${String(row.decision || '').replace(/"/g, '""')}"`;
-        const scodocId = `"${String(row.scodoc_id || '').replace(/"/g, '""')}"`;
-
-        csvContent += `${nip};${formation};${semestre};${decision};${scodocId}\n`;
-    });
-
-    // Création du Blob avec BOM pour UTF-8 (Excel)
-    const blob = new Blob(["\uFEFF" + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement("a");
-    const url = URL.createObjectURL(blob);
-
-    // Nom du fichier avec date
-    const date = new Date().toISOString().slice(0, 10);
-    link.setAttribute("href", url);
-    link.setAttribute("download", `etudiants_flux_${date}.csv`);
-    link.style.visibility = 'hidden';
-
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
 // Fermeture modale
 window.onclick = function (event) {

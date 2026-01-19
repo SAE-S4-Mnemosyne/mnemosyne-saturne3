@@ -10,26 +10,73 @@ try {
     // 1. Récupérer UNIQUEMENT les formations qui ont des inscriptions
     $stmt = $pdo->query("
         SELECT DISTINCT f.titre 
-        FROM formation f
-        JOIN semestre_instance si ON f.id_formation = si.id_formation
-        JOIN inscription i ON si.id_formsemestre = i.id_formsemestre
+        FROM Formation f
+        JOIN Semestre_Instance si ON f.id_formation = si.id_formation
+        JOIN Inscription i ON si.id_formsemestre = i.id_formsemestre
         WHERE f.titre IS NOT NULL AND f.titre != ''
         ORDER BY f.titre
     ");
     $formations = $stmt->fetchAll(PDO::FETCH_COLUMN);
     
     // Nettoyer les noms de formations (supprimer espaces multiples)
-    $formations = array_map(function($f) {
-        return trim(preg_replace('/\s+/', ' ', $f));
-    }, $formations);
-    $formations = array_unique($formations);
-    $formations = array_values($formations);
+    // Fonction de normalisation (identique à celle des autres fichiers)
+    // Fonction de normalisation (identique à celle des autres fichiers)
+    function normaliseFormation($titre) {
+        $titre = trim($titre);
+        
+        // 1. Remplacer le nom long par "BUT" pour simplifier
+        $titre = preg_replace('/Bachelor\s+Universitaire\s+de\s+Technologie/ui', 'BUT', $titre);
+        
+        // 3. Identification par mots-clés (Ordre IMPORTANT)
+        
+        // GEII : "Electrique" ou "Industrielle" ou "GEII"
+        if (preg_match('/(Electrique|Industrielle|GEII|G\.E\.I\.I)/ui', $titre)) return 'BUT GEII';
+        
+        // CJ : "Juridique" ou "CJ"
+        if (preg_match('/(Juridique|CJ)/ui', $titre)) return 'BUT CJ';
+        
+        // INFO : "Informatique" ou "INFO" (après GEII pour ne pas capter "Info Indus")
+        if (preg_match('/(Informatique|INFO)/ui', $titre)) return 'BUT INFO';
+        
+        // R&T : "Réseaux" ou "Télécom" ou "R&T"
+        if (preg_match('/(R[eé]seaux|T[eé]l[eé]com|R\&T|R\.T)/ui', $titre)) return 'BUT R&T';
+        
+        // GEA : "Gestion" ou "GEA"
+        if (preg_match('/(Gestion|GEA|G\.E\.A)/ui', $titre)) return 'BUT GEA';
+        
+        // SD : "Données" ou "Daniel" (si présent) ou "STID" ou "SD"
+        if (preg_match('/(Donn[ée]es|STID|SD)/ui', $titre)) return 'BUT SD';
+        
+        // TC : "Commercialisation" ou "TC"
+        if (preg_match('/(Commercialisation|TC)/ui', $titre)) return 'BUT TC';
+
+        // Si "BUT" tout seul ou vide, on ignore
+        if ($titre === 'BUT' || $titre === '') {
+            return null;
+        }
+        
+        return $titre;
+    }
+
+    // Nettoyer et dédoubler
+    $uniqueFormations = [];
+    foreach ($formations as $f) {
+        $clean = trim(preg_replace('/\s+/', ' ', $f));
+        $normalized = normaliseFormation($clean);
+        
+        // Si normalized est null (ex: le generic "Bachelor..."), on ne l'ajoute pas
+        if ($normalized && !in_array($normalized, $uniqueFormations)) {
+            $uniqueFormations[] = $normalized;
+        }
+    }
+    sort($uniqueFormations);
+    $formations = $uniqueFormations;
 
     // 2. Récupérer UNIQUEMENT les années qui ont des inscriptions
     $stmt = $pdo->query("
         SELECT DISTINCT si.annee_scolaire 
-        FROM semestre_instance si
-        JOIN inscription i ON si.id_formsemestre = i.id_formsemestre
+        FROM Semestre_Instance si
+        JOIN Inscription i ON si.id_formsemestre = i.id_formsemestre
         WHERE si.annee_scolaire IS NOT NULL
         ORDER BY si.annee_scolaire DESC
     ");

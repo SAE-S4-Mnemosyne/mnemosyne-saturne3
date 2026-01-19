@@ -95,10 +95,10 @@ try {
             f.titre as formation,
             si.annee_scolaire,
             si.numero_semestre
-        FROM inscription i
-        JOIN etudiant e ON i.code_nip = e.code_nip
-        JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
-        JOIN formation f ON si.id_formation = f.id_formation
+        FROM Inscription i
+        JOIN Etudiant e ON i.code_nip = e.code_nip
+        JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
+        JOIN Formation f ON si.id_formation = f.id_formation
         WHERE si.annee_scolaire LIKE :annee
         AND si.numero_semestre >= :semMin
         AND si.numero_semestre <= :semMax
@@ -133,8 +133,8 @@ try {
         $anneeN1 = $anneeBUT1 - 1;
         $sqlRedoublants = "
             SELECT DISTINCT i.code_nip
-            FROM inscription i
-            JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
+            FROM Inscription i
+            JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
             WHERE si.annee_scolaire LIKE ?
             AND (si.numero_semestre = 1 OR si.numero_semestre = 2)
         ";
@@ -158,8 +158,8 @@ try {
             // Récupérer les étudiants BUT1 de cette cohorte
             $sqlBUT1 = "
                 SELECT DISTINCT i.code_nip
-                FROM inscription i
-                JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
+                FROM Inscription i
+                JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
                 WHERE si.annee_scolaire LIKE ?
                 AND (si.numero_semestre = 1 OR si.numero_semestre = 2)
             ";
@@ -177,10 +177,10 @@ try {
                     f.titre as formation,
                     si.annee_scolaire,
                     si.numero_semestre
-                FROM inscription i
-                JOIN etudiant e ON i.code_nip = e.code_nip
-                JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
-                JOIN formation f ON si.id_formation = f.id_formation
+                FROM Inscription i
+                JOIN Etudiant e ON i.code_nip = e.code_nip
+                JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
+                JOIN Formation f ON si.id_formation = f.id_formation
                 WHERE si.annee_scolaire LIKE ?
                 AND (si.numero_semestre = 3 OR si.numero_semestre = 4)
             ";

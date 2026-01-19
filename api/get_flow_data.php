@@ -143,9 +143,9 @@ try {
             i.etat_inscription,
             si.numero_semestre,
             si.annee_scolaire
-        FROM inscription i
-        JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
-        JOIN formation f ON si.id_formation = f.id_formation
+        FROM Inscription i
+        JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
+        JOIN Formation f ON si.id_formation = f.id_formation
         WHERE si.annee_scolaire LIKE ?
         AND (si.numero_semestre = 1 OR si.numero_semestre = 2)
     ";
@@ -193,8 +193,8 @@ try {
     $anneeN1 = $anneeBUT1 - 1;
     $sqlRedoublantsBUT1 = "
         SELECT DISTINCT i.code_nip
-        FROM inscription i
-        JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
+        FROM Inscription i
+        JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
         WHERE si.annee_scolaire LIKE ?
         AND (si.numero_semestre = 1 OR si.numero_semestre = 2)
     ";
@@ -276,9 +276,9 @@ try {
             i.decision_jury,
             i.etat_inscription,
             si.numero_semestre
-        FROM inscription i
-        JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
-        JOIN formation f ON si.id_formation = f.id_formation
+        FROM Inscription i
+        JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
+        JOIN Formation f ON si.id_formation = f.id_formation
         WHERE si.annee_scolaire LIKE ?
         AND (si.numero_semestre = 3 OR si.numero_semestre = 4)
     ";
@@ -382,9 +382,9 @@ try {
                 i.decision_jury,
                 i.etat_inscription,
                 si.numero_semestre
-            FROM inscription i
-            JOIN semestre_instance si ON i.id_formsemestre = si.id_formsemestre
-            JOIN formation f ON si.id_formation = f.id_formation
+            FROM Inscription i
+            JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
+            JOIN Formation f ON si.id_formation = f.id_formation
             WHERE si.annee_scolaire LIKE ?
             AND (si.numero_semestre = 5 OR si.numero_semestre = 6)
         ";

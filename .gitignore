@@ -12,6 +12,7 @@ vendor/
 
 # Environment / Secrets
 Backend/code_Mnémosyne/config.php
+config.php
 
 # Logs
 *.log
