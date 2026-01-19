@@ -16,6 +16,8 @@ function runAllImports($pdo, $jsonFolder) {
     ob_start();
 
     try {
+        $pdo->beginTransaction(); // Début de la transaction
+
         // ETAPE 1: Import des départements (si le fichier existe)
         $deptFile = $jsonFolder . '/departements.json';
         if (file_exists($deptFile)) {
@@ -69,7 +71,10 @@ function runAllImports($pdo, $jsonFolder) {
             $results['success'] = false;
         }
 
+        $pdo->commit(); // Validation des changements uniquement si tout est OK
+
     } catch (Exception $e) {
+        $pdo->rollBack(); // Annulation en cas d'erreur
         $results['success'] = false;
         $results['errors'][] = $e->getMessage();
     }

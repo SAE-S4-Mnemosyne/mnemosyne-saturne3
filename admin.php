@@ -204,7 +204,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
     <title>Administration - MNEMOSYNE</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="/assets/logo.png?v=3">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="loader.css?v=2">
 
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <style>
@@ -247,6 +248,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
     </style>
 </head>
 <body>
+
+    <!-- Écran de chargement -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-logo">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+            </div>
+            <div class="loader-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
+            <div class="loader-text">Chargement de l'administration...</div>
+            <div class="loader-progress-bar">
+                <div class="loader-progress-fill"></div>
+            </div>
+        </div>
+    </div>
 
 
 
@@ -304,6 +326,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
             </div>
 
             <!-- Loader Inline (Juste au dessus du formulaire) -->
+            <div id="sync-loader" class="sync-loader" style="display: none;">
+                <div class="loader-content-inline">
+                    <div class="spinner-inline"></div>
+                    <p class="loader-text-inline">Synchronisation avec ScoDoc en cours...</p>
+                </div>
+            </div>
 
 
             <!-- ALERT DE FEEDBACK -->
@@ -644,7 +672,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
             <p class="footer-copyright">© 2025 Mnémosyne - Université Sorbonne Paris Nord</p>
         </div>
     </footer>
-    <script src="script.js"></script>
+    <script src="loader.js?v=2"></script>
+    <script src="script.js?v=2"></script>
 
 </body>
 </html>

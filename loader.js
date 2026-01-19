@@ -24,8 +24,18 @@
     }
 
     function showLoader(text = 'Chargement en cours...') {
-        // FUNCTION DISABLED BY USER REQUEST
-        return;
+        const loader = document.getElementById('page-loader');
+        if (!loader) return;
+
+        // Mettre à jour le texte si nécessaire
+        const textElement = loader.querySelector('.loader-text');
+        if (textElement) textElement.textContent = text;
+
+        loader.style.display = 'flex';
+        // Petit délai pour permettre au display:flex de prise en compte avant l'opacité
+        requestAnimationFrame(() => {
+            loader.classList.remove('fade-out');
+        });
     }
 
     function hideLoader() {
@@ -87,11 +97,19 @@
     }
 
     function handleButtonClicks() {
-        const syncButton = document.getElementById('btn-sync');
+        const syncButton = document.querySelector('.btn-sync-header');
         if (syncButton) {
             const originalOnClick = syncButton.onclick;
             syncButton.onclick = function (e) {
-                showLoader('Synchronisation en cours...');
+                // showLoader('Synchronisation en cours...'); // DISABLED: Full page loader
+
+                // ENABLE: Inline Loader
+                const inlineLoader = document.getElementById('sync-loader');
+                if (inlineLoader) inlineLoader.style.display = 'block';
+
+                // Masquer l'ancienne alerte s'il y en a une
+                const oldAlert = document.querySelector('.admin-alert');
+                if (oldAlert) oldAlert.style.display = 'none';
 
                 if (originalOnClick) {
                     return originalOnClick.call(this, e);

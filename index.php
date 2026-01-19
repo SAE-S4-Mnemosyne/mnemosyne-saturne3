@@ -11,7 +11,8 @@ require_once 'config.php';
     <title>MNEMOSYNE</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="assets/logo.png">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="loader.css?v=2">
 
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
@@ -19,6 +20,25 @@ require_once 'config.php';
 <body>
 
     <!-- Écran de chargement -->
+    <div id="page-loader" class="page-loader">
+        <div class="loader-content">
+            <div class="loader-logo">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+            </div>
+            <div class="loader-spinner">
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+                <div class="spinner-ring"></div>
+            </div>
+            <div class="loader-text">Chargement de Mnémosyne...</div>
+            <div class="loader-progress-bar">
+                <div class="loader-progress-fill"></div>
+            </div>
+        </div>
+    </div>
 
 
     <header class="header">
@@ -241,7 +261,7 @@ require_once 'config.php';
             <p class="footer-copyright">© 2025 Mnémosyne - Université Sorbonne Paris Nord</p>
         </div>
     </footer>
-    <script src="script.js"></script>
-
+    <script src="loader.js?v=2"></script>
+    <script src="script.js?v=2"></script>
 </body>
 </html>
