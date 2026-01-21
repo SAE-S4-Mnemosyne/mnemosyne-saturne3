@@ -190,9 +190,9 @@ require_once 'config.php';
                                 <div class="status-details">
                                     <div class="status-header-line">
                                         <span class="status-code">RED</span>
-                                        <span class="status-label">Redoublement</span>
+                                        <span class="status-label">Redoublants</span>
                                     </div>
-                                    <p class="status-description">Redoublement de l'année</p>
+                                    <p class="status-description">Redoublants entrants ou décision de redoublement</p>
                                 </div>
                             </div>
                             <div class="status-stats">

@@ -221,7 +221,7 @@ try {
         // Catégorisation des décisions
         if ($etat === 'D' || $decision === 'DEF' || $decision === 'NAR' || $decision === 'DEM') {
             $abandonBUT1++;
-        } elseif ($decision === 'RED' || $decision === 'AJ' || $decision === 'ATJ') {
+        } elseif ($decision === 'RED' || $decision === 'AJ' || $decision === 'ATJ' || strpos($decision, 'REDOUB') !== false) {
             $redoublementBUT1++;
         } elseif ($decision === 'ADM' || $decision === 'ADSUP' || $decision === 'PASD' || $decision === 'CMP' || $decision === 'ADJ') {
             $passageBUT2++;
@@ -313,10 +313,11 @@ try {
                 $etu = $but2ByNip[$nip];
                 $decision = strtoupper(trim($etu['decision_jury'] ?? ''));
                 $etat = strtoupper(trim($etu['etat_inscription'] ?? ''));
+                if (!empty($decision)) $codesRencontres[$decision] = true;
                 
                 if ($etat === 'D' || $decision === 'DEF' || $decision === 'NAR' || $decision === 'DEM') {
                     $abandonBUT2++;
-                } elseif ($decision === 'RED' || $decision === 'AJ' || $decision === 'ATJ') {
+                } elseif ($decision === 'RED' || $decision === 'AJ' || $decision === 'ATJ' || strpos($decision, 'REDOUB') !== false) {
                     $redoublementBUT2++;
                 } elseif ($decision === 'ADM' || $decision === 'ADSUP' || $decision === 'PASD' || $decision === 'CMP' || $decision === 'ADJ') {
                     $passageBUT3++;
@@ -412,7 +413,7 @@ try {
                 
                 if ($etat === 'D' || $decision === 'DEF' || $decision === 'NAR' || $decision === 'DEM') {
                     $abandonBUT3++;
-                } elseif ($decision === 'RED' || $decision === 'AJ' || $decision === 'ATJ') {
+                } elseif ($decision === 'RED' || $decision === 'AJ' || $decision === 'ATJ' || strpos($decision, 'REDOUB') !== false) {
                     $redoublementBUT3++;
                 } elseif ($decision === 'ADM' || $decision === 'ADSUP' || $decision === 'CMP' || $decision === 'ADJ') {
                     // Diplômé = uniquement ADM ou équivalent
@@ -537,7 +538,10 @@ try {
     $stats = [
         'valide' => $diplome,
         'partiel' => $totalEnCours,
-        'redoublement' => $totalRedoublement,
+        'valide' => $diplome,
+        'partiel' => $totalEnCours,
+        'redoublement' => $totalRedoublement + $nbRedoublantsEntrants,
+        'abandon' => $totalAbandon,
         'abandon' => $totalAbandon,
         'total' => $totalBUT1,
         'statutPromo' => $statutPromo,
