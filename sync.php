@@ -2,6 +2,12 @@
 session_start();
 require_once 'config.php';
 
+/**
+ * Script de synchronisation alternatif/manuel.
+ * Note : La synchronisation principale est gérée par admin.php via import/run_all_imports.php.
+ * Ce fichier est conservé comme point d'entrée supplémentaire si nécessaire.
+ */
+
 // Vérification authentification
 if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
     header('Location: login.html');

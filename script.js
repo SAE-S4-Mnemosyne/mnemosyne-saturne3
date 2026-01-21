@@ -72,35 +72,31 @@ function toggleMenu() {
 function initTheme() {
     const savedTheme = localStorage.getItem('theme');
     const body = document.body;
-    const btn = document.getElementById('theme-toggle');
+    // const btn = document.getElementById('theme-toggle'); // Les icônes sont gérées par CSS/SVG
 
     if (savedTheme === 'dark') {
         body.classList.add('dark-mode');
-        if (btn) btn.textContent = '☀️';
     } else {
         body.classList.remove('dark-mode');
-        if (btn) btn.textContent = '🌙';
     }
 }
 
 function toggleTheme() {
     const body = document.body;
-    const btn = document.getElementById('theme-toggle');
+    // const btn = document.getElementById('theme-toggle');
     body.classList.toggle('dark-mode');
 
     if (body.classList.contains('dark-mode')) {
         localStorage.setItem('theme', 'dark');
-        if (btn) btn.textContent = '☀️';
     } else {
         localStorage.setItem('theme', 'light');
-        if (btn) btn.textContent = '🌙';
     }
 }
 
 // Chargement des Options
 async function loadOptions() {
     try {
-        const response = await fetch('api/get_options.php'); // Chemin corrigé : anciennement ../Backend/code_Mnémosyne/api/get_options.php
+        const response = await fetch('api/recuperer_options.php');
         const data = await response.json();
         populateSelects(data);
 
@@ -209,6 +205,10 @@ async function fetchAndDraw() {
     const formation = document.getElementById("formation").value;
     const annee = document.getElementById("annee").value;
 
+    // Récupérer les filtres
+    const regime = document.querySelector('input[name="regime"]:checked').value;
+    const status = document.getElementById('filter-status').value;
+
     // Récupération des éléments d'interface (Chart)
     const chartContainer = document.getElementById("sankey_chart");
 
@@ -220,8 +220,13 @@ async function fetchAndDraw() {
     // 1. Afficher la section Jury (Juste le visuel, sans valeurs dynamiques)
     updateStatsDisplay(formation, annee);
 
+    updateStatsDisplay(formation, annee);
+
     try {
-        const url = `api/get_flow_data.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}`;
+        const timestamp = new Date().getTime();
+        const url = `api/recuperer_donnees_flux.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}&regime=${regime}&status=${status}&_t=${timestamp}`;
+        console.log("Fetching Flow Data:", url);
+
         const response = await fetch(url);
         const data = await response.json();
 
@@ -358,45 +363,38 @@ function drawSankey(data) {
         const selection = chart.getSelection();
         if (selection.length > 0) {
             const item = selection[0];
+            let nips = [];
+
             if (item.name) {
-                openStudentModal(item.name, null);
+                // Click on Node: Aggregate students from all connected links
+                const nodeName = item.name;
+                const connectedLinks = data.links.filter(l => l.source === nodeName || l.target === nodeName);
+                const nipSet = new Set();
+                connectedLinks.forEach(l => {
+                    if (l.students && Array.isArray(l.students)) {
+                        l.students.forEach(n => nipSet.add(n));
+                    }
+                });
+                nips = Array.from(nipSet);
+                openStudentModal(item.name, null, nips);
             } else if (item.row != null) {
+                // Click on Link
+                // Assuming data.links matches chartData rows order (It should if added sequentially)
+                // However, Google Charts might reorder? Usually simpler to look up by source/target
                 const source = chartData.getValue(item.row, 0);
                 const target = chartData.getValue(item.row, 1);
-                openStudentModal(source, target);
+
+                const linkObj = data.links.find(l => l.source === source && l.target === target);
+                if (linkObj && linkObj.students) {
+                    nips = linkObj.students;
+                }
+                openStudentModal(source, target, nips);
             }
         }
         chart.setSelection([]);
     });
 
-    // Alternative: Ajouter un écouteur de clic directement sur le conteneur SVG
-    google.visualization.events.addListener(chart, 'ready', function () {
-        // Ajouter des écouteurs de clic sur les liens (paths)
-        const paths = container.querySelectorAll('path');
-        paths.forEach((path, index) => {
-            path.style.cursor = 'pointer';
-            path.addEventListener('click', function (e) {
-                e.stopPropagation();
-                if (index < data.links.length) {
-                    const link = data.links[index];
-                    console.log("Clic direct sur lien:", link.source, "->", link.target);
-                    openStudentModal(link.source, link.target);
-                }
-            });
-        });
 
-        // Ajouter curseur pointer sur les rectangles (noeuds)
-        const rects = container.querySelectorAll('rect');
-        rects.forEach(rect => {
-            rect.style.cursor = 'pointer';
-        });
-
-        // Ajouter curseur pointer sur les textes (labels des noeuds)
-        const texts = container.querySelectorAll('text');
-        texts.forEach(text => {
-            text.style.cursor = 'pointer';
-        });
-    });
 
     chart.draw(chartData, options);
 }
@@ -404,12 +402,15 @@ function drawSankey(data) {
 // --- FONCTIONS MODALES (Conformité) ---
 // Note : La fonction d'export CSV a été retirée car non conforme au cahier des charges (V2)
 
-async function openStudentModal(source, target) {
+async function openStudentModal(source, target, nips = null) {
     const modal = document.getElementById('student-modal');
     const listContainer = document.getElementById('student-list-container');
     const modalTitle = document.getElementById('modal-title');
     const formation = document.getElementById("formation").value;
     const annee = document.getElementById("annee").value;
+    // const regime = document.querySelector('input[name="regime"]:checked').value;
+    // const status = document.getElementById('filter-status').value;
+    // Filters are implicit in the NIP list now, but we might pass them for context if needed.
 
     if (!modal) return;
     modal.style.display = 'flex'; // Centrage via Flexbox (voir styles injectés)
@@ -436,14 +437,18 @@ async function openStudentModal(source, target) {
     listContainer.innerHTML = '<p style="text-align:center;">Chargement...</p>';
 
     try {
-        const url = `api/get_students_by_flow.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}&source=${encodeURIComponent(source)}&target=${encodeURIComponent(target || '')}`;
-        const response = await fetch(url);
+        const response = await fetch('api/recuperer_etudiants_par_flux.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                nips: nips,
+                formation: formation,
+                annee: annee,
+                source: source,
+                target: target
+            })
+        });
         const data = await response.json();
-
-        if (data.error) {
-            listContainer.innerHTML = `<p class="error">Erreur: ${escapeHtml(data.error)}</p>`;
-            return;
-        }
 
         if (!data.students || data.students.length === 0) {
             let debugMsg = '';

@@ -296,7 +296,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 </div>
 
                 <nav class="nav-buttons">
-                    <button class="btn-theme-toggle" id="theme-toggle" aria-label="Toggle dark mode">
+                    <button class="btn-theme-toggle" id="theme-toggle" aria-label="Basculer thème sombre">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="currentColor"/>
                         </svg>
@@ -358,14 +358,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                 <form class="search-form" id="filter-form">
                     <div class="form-row">
                         <div class="form-group">
-                            <select id="formation" class="form-select">
+                            <select id="formation" class="form-select" aria-label="Sélectionner la formation">
                                 <option value="">Choisir une formation...</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <select id="annee" class="form-select">
+                            <select id="annee" class="form-select" aria-label="Sélectionner l'année scolaire">
                                 <option value="">Choisir une année...</option>
                             </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Filtres Avancés -->
+                    <div class="advanced-filters" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
+                        <div style="font-weight: bold; margin-bottom: 10px; color: #a0aec0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;">FILTRES AVANCÉS</div>
+                        
+                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                            <!-- Filtre Régime -->
+                            <div class="filter-group-start">
+                                <label style="font-size: 0.9rem; margin-right: 10px; font-weight:600;">Régime :</label>
+                                <div class="radio-group" style="display: inline-flex; gap: 10px;">
+                                    <label><input type="radio" name="regime" value="ALL" checked> Tous</label>
+                                    <label><input type="radio" name="regime" value="FI"> FI (Formation Initiale)</label>
+                                    <label><input type="radio" name="regime" value="FA"> FA (Alternance)</label>
+                                </div>
+                            </div>
+                            
+                            <!-- Filtre Statut -->
+                            <div class="filter-group-end">
+                                <label for="filter-status" style="font-size: 0.9rem; margin-right: 10px; font-weight:600;">Réussite :</label>
+                                <select id="filter-status" class="form-select-sm" style="padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: #1a202c; color: #e2e8f0; font-size: 0.9rem; cursor: pointer;">
+                                    <option value="ALL">Tout afficher</option>
+                                    <option value="PASS_OK">Validation (Sans dette)</option>
+                                    <option value="PASS_DEBT">Validation (Avec dette/jury)</option>
+                                    <option value="FAIL">Échecs / Redoublements</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
 
@@ -500,7 +528,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                     </button>
                 </form>
                 
-                <!-- Hint removed -->
+                <!-- Espacement -->
                 <div style="margin-top: 1rem;"></div>
                 
                 <!-- Liste des mappings existants -->
@@ -661,9 +689,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
             <div id="student-list-container" class="student-list">
                 <p>Chargement...</p>
             </div>
-            <div class="modal-footer">
-                <button class="btn-close-modal" onclick="document.getElementById('student-modal').style.display='none'">Fermer</button>
-            </div>
+
         </div>
     </div>
 

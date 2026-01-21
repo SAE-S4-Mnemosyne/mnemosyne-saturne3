@@ -20,7 +20,7 @@ try {
     
     // Nettoyer les noms de formations (supprimer espaces multiples)
     // Fonction de normalisation (identique à celle des autres fichiers)
-    // Fonction de normalisation (identique à celle des autres fichiers)
+
     function normaliseFormation($titre) {
         $titre = trim($titre);
         
@@ -72,12 +72,12 @@ try {
     sort($uniqueFormations);
     $formations = $uniqueFormations;
 
-    // 2. Récupérer UNIQUEMENT les années qui ont des inscriptions
+    // 2. Récupérer TOUTES les années définies (même sans inscriptions pour le moment)
     $stmt = $pdo->query("
         SELECT DISTINCT si.annee_scolaire 
         FROM Semestre_Instance si
-        JOIN Inscription i ON si.id_formsemestre = i.id_formsemestre
         WHERE si.annee_scolaire IS NOT NULL
+        AND si.annee_scolaire != '2020'
         ORDER BY si.annee_scolaire DESC
     ");
     $annees = $stmt->fetchAll(PDO::FETCH_COLUMN);

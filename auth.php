@@ -20,7 +20,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         // 1. Vérifier si la table admin (minuscule) contient des utilisateurs
         $check = $pdo->query("SELECT COUNT(*) FROM admin");
         if ($check->fetchColumn() == 0) {
-            // AUTO-FIX: Création d'un admin par défaut si aucun n'existe
+            // CORRECTION AUTOMATIQUE : Création d'un administrateur par défaut si aucun n'existe
             $defaultPass = password_hash('admin', PASSWORD_DEFAULT);
             $stmt = $pdo->prepare("INSERT INTO admin (identifiant, mot_de_passe) VALUES ('admin', ?)");
             $stmt->execute([$defaultPass]);

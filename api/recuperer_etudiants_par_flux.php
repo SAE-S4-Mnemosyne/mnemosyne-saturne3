@@ -9,72 +9,24 @@
  */
 header('Content-Type: application/json');
 require_once '../config.php';
+require_once 'utilitaires.php'; // Inclusion des fonctions utilitaires partagées
 
-$formationTitre = $_GET['formation'] ?? '';
-$anneeDebut = $_GET['annee'] ?? '';
-$source = $_GET['source'] ?? '';
-$target = $_GET['target'] ?? '';
+// Récupérer les données POST (JSON)
+$input = json_decode(file_get_contents('php://input'), true) ?? [];
+$filterNips = $input['nips'] ?? null;
+
+$formationTitre = $input['formation'] ?? $_GET['formation'] ?? '';
+$anneeDebut = $input['annee'] ?? $_GET['annee'] ?? '';
+$source = $input['source'] ?? $_GET['source'] ?? '';
+$target = $input['target'] ?? $_GET['target'] ?? '';
+// Les filtres ne sont utilisés que si pas de liste de NIPs fournie (fallback)
+$filterRegime = $input['regime'] ?? $_GET['regime'] ?? 'ALL';
+$filterStatus = $input['status'] ?? $_GET['status'] ?? 'ALL';
+
 
 if (!$formationTitre || !$anneeDebut || !$source) {
     echo json_encode(['error' => 'Paramètres manquants (formation, annee, source requis)']);
     exit;
-}
-
-/**
- * Fonction pour normaliser le nom de formation
- */
-// normaliseFormation modifiée pour accepter un contexte (formation filter)
-function normaliseFormation($titre, $formationContext = null) {
-    // 1. Pré-nettoyage : Remplacer "Bachelor..." par "BUT"
-    // (Utile pour uniformiser, même si on matche sur les mots-clés ensuite)
-    $titre = preg_replace('/Bachelor\s+Universitaire\s+de\s+Technologie/ui', 'BUT', $titre);
-    
-    // 3. Identification par mots-clés (Ordre IMPORTANT)
-    
-    // GEII : "Electrique" ou "Industrielle" ou "GEII"
-    // (Ajout G.E.I.I pour variantes)
-    if (preg_match('/(Electrique|Industrielle|GEII|G\.E\.I\.I)/ui', $titre)) return 'BUT GEII';
-    
-    // CJ : "Juridique" ou "CJ"
-    if (preg_match('/(Juridique|CJ)/ui', $titre)) return 'BUT CJ';
-    
-    // INFO : "Informatique" ou "INFO" (après GEII pour ne pas capter "Info Indus")
-    if (preg_match('/(Informatique|INFO)/ui', $titre)) return 'BUT INFO';
-    
-    // R&T : "Réseaux" ou "Télécom" ou "R&T"
-    if (preg_match('/(R[eé]seaux|T[eé]l[eé]com|R\&T|R\.T)/ui', $titre)) return 'BUT R&T';
-    
-    // GEA : "Gestion" ou "GEA"
-    if (preg_match('/(Gestion|GEA|G\.E\.A)/ui', $titre)) return 'BUT GEA';
-    
-    // SD : "Données" ou "Daniel" (si présent) ou "STID" ou "SD"
-    if (preg_match('/(Donn[ée]es|STID|SD)/ui', $titre)) return 'BUT SD';
-    
-    // TC : "Commercialisation" ou "TC"
-    if (preg_match('/(Commercialisation|TC|Tech.*Co)/ui', $titre)) return 'BUT TC';
-
-    // Si on arrive ici, le regex n'a rien trouvé de précis.
-    // Si le titre est juste "BUT" ou le générique, ET qu'on a un contexte de formation précis, on l'utilise.
-    if ($formationContext && $formationContext !== '__ALL__') {
-        // Normaliser le contexte pour récupérer "GEA" de "BUT GEA"
-        $contextNorm = normaliseFormation($formationContext); // Appel récursif sans contexte pour éviter boucle
-        if ($contextNorm && $contextNorm !== 'Bachelor Universitaire de Technologie' && $contextNorm !== 'BUT') {
-             return $contextNorm;
-        }
-    }
-    
-    return 'BUT'; // Fallback si vraiment rien trouvé
-}
-
-function matchFormation($titreDB, $formationRecherche) {
-    if ($formationRecherche === '__ALL__') return true;
-    
-    $typeDB = normaliseFormation($titreDB);
-    $typeRecherche = normaliseFormation($formationRecherche);
-    
-    return $typeDB === $typeRecherche || 
-           stripos($titreDB, $formationRecherche) !== false ||
-           stripos($formationRecherche, $typeDB) !== false;
 }
 
 try {
@@ -103,6 +55,17 @@ try {
             $str
         );
         return $str;
+    }
+
+    // Séparer le filtrage par NIP du filtrage logique
+    function isStudentSelected($etu, $filterNips, $regimeFilter, $statusFilter) {
+        if ($filterNips !== null && is_array($filterNips)) {
+            // Filtrage par liste de NIPs (prioritaire)
+            // Conversion en string par sécurité
+            return in_array((string)$etu['code_nip'], $filterNips);
+        }
+        // Sinon filtrage classique
+        return shouldKeepStudent($etu, $regimeFilter, $statusFilter);
     }
     
     $s_clean = sanitizeStr($source);
@@ -135,19 +98,12 @@ try {
         $anneeRecherche = $anneeBUT2;
     }
     
-    // Debug (invisible pour l'utilisateur mais utile si on inspecte)
-    // error_log("Source clean: $s_clean | Target clean: $t_clean | Niveau detecte: $niveau");
     
     $semMin = ($niveau - 1) * 2 + 1;
     $semMax = $niveau * 2;
     
-    // NOTE IMPORTANTE SUR LA LOGIQUE :
-    // Pour correspondre exactement aux chiffres du Sankey (qui filtre sur une Coherent stricte),
-    // idéalement nous devrions reproduire exactement la même logique séquentielle (BUT1->BUT2->BUT3).
-    // Cependant, pour simplifier et accélérer cette vue "Liste", nous allons filtrer sur l'année concernée
-    // en étant conscient que cela peut inclure quelques "pièces rapportées" (ex: redoublants d'autres promos).
-    // La différence (120 vs 115) expliquée est acceptable, mais nous allons corriger l'affichage "S1".
-
+    // NOTE : On filtre sur l'année concernée pour récupérer la liste.
+    
     // Requête pour récupérer les étudiants du niveau concerné
     $sql = "
         SELECT DISTINCT 
@@ -156,6 +112,7 @@ try {
             i.decision_jury,
             i.etat_inscription,
             f.titre as formation,
+            f.code_scodoc as code_formation,
             si.annee_scolaire,
             si.numero_semestre
         FROM Inscription i
@@ -185,9 +142,10 @@ try {
             $nip = $etu['code_nip'];
             $sem = (int)$etu['numero_semestre'];
             
-            // On veut le semestre le plus avancé de l'année (ex: S6 plutôt que S5 pour un diplômé)
             if (!isset($candidatesByNip[$nip]) || $sem > $candidatesByNip[$nip]['numero_semestre']) {
-                $candidatesByNip[$nip] = $etu;
+                if (isStudentSelected($etu, $filterNips, $filterRegime, $filterStatus)) {
+                    $candidatesByNip[$nip] = $etu;
+                }
             }
         }
     }
@@ -212,8 +170,7 @@ try {
     
     // Logique de filtrage spécifique selon le noeud cliqué
     if (stripos($source, 'Redoublant') !== false || stripos($source, 'Nouveaux inscrits') !== false || stripos($source, 'Passerelle') !== false) {
-        // ... (Logique inchangée pour les sources spécifiques BUT1/Entrées) ...
-        // Simplification pour ce correctif : on utilise la logique standard
+        // Logique simplifiée : on utilise la sélection standard
         foreach ($candidatesByNip as $nip => $etu) {
             $students[] = formatStudent($etu, $formationTitre);
         }
@@ -276,7 +233,15 @@ try {
                 $filterTerm = $t_clean;
             }
 
-            if (!$shouldFilter) {
+            if ($filterNips) {
+                // Si on a une liste explicite de NIPs (venant du Sankey), on fait confiance à 100%
+                $isMatch = true;
+                
+                // Override statut si c'est le flux Diplômé
+                if (strpos($filterTerm, 'diplome') !== false) {
+                    $etu['decision_jury_override'] = 'Diplômé';
+                }
+            } elseif (!$shouldFilter) {
                 // Clic sur un noeud "conteneur" (ex: BUT2) -> Tous les étudiants présents
                 $isMatch = true;
             } else {
@@ -311,6 +276,7 @@ try {
                 }
             }
 
+
             if ($isMatch) {
                 // IMPORTANT : Si la personne est diplômée, on force l'affichage 'Diplômé'
                 if (strpos($filterTerm, 'diplome') !== false && $isAdmisFinal) {
@@ -333,21 +299,11 @@ try {
         return $a['ordre'] - $b['ordre'];
     });
 
-    echo json_encode([
-        'students' => $students,
-        'debug' => [
-            'niveau' => "BUT$niveau",
-            'annee_recherchee' => $anneeRecherche,
-            'semestres' => "S$semMin - S$semMax",
-            'target_recu' => $target, // Pour vérifier l'encodage
-            'nb_trouves' => count($students)
-        ]
-    ]);
+    echo json_encode(['students' => $students]);
 
 } catch (PDOException $e) {
     echo json_encode(['error' => $e->getMessage()]);
 }
-
 
     
 /**
