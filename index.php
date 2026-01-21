@@ -250,9 +250,7 @@ require_once 'config.php';
             <div id="student-list-container" class="student-list">
                 <p>Chargement...</p>
             </div>
-            <div class="modal-footer">
-                <button class="btn-close-modal" onclick="document.getElementById('student-modal').style.display='none'">Fermer</button>
-            </div>
+
         </div>
     </div>
 

@@ -22,7 +22,45 @@ document.addEventListener("DOMContentLoaded", () => {
     if (themeBtn) {
         themeBtn.addEventListener('click', toggleTheme);
     }
+
+    // 5. Injection des styles dynamiques (Centrage Modale + Couleurs)
+    injectGlobalStyles();
 });
+
+function injectGlobalStyles() {
+    const styleId = 'global-styles-fix';
+    if (!document.getElementById(styleId)) {
+        const style = document.createElement('style');
+        style.id = styleId;
+        style.textContent = `
+            /* Centrage Modale via Flexbox */
+            #student-modal {
+                display: none; /* JS bascule en Flex */
+                align-items: center;
+                justify-content: center;
+                padding-top: 0 !important; /* Override styles existants */
+            }
+
+            .modal-content {
+                max-height: 90vh;
+                overflow-y: auto;
+                margin: 0 !important; /* Centré par le parent Flex */
+                position: relative;
+                top: auto;
+                left: auto;
+                transform: none;
+            }
+
+            /* Styles classes pour compatibilité (si inline échoue) */
+            .decision-success { background-color: #28a745 !important; color: #fff !important; }
+            .decision-warning { background-color: #ffc107 !important; color: #1f2d3d !important; }
+            .decision-danger { background-color: #dc3545 !important; color: #fff !important; }
+            .decision-secondary { background-color: #6c757d !important; color: #fff !important; }
+            .decision-info { background-color: #17a2b8 !important; color: #fff !important; }
+        `;
+        document.head.appendChild(style);
+    }
+}
 
 // Gestion du Menu Hamburger
 function toggleMenu() {
@@ -374,7 +412,7 @@ async function openStudentModal(source, target) {
     const annee = document.getElementById("annee").value;
 
     if (!modal) return;
-    modal.style.display = 'block';
+    modal.style.display = 'flex'; // Centrage via Flexbox (voir styles injectés)
 
     // Reset data (si nécessaire)
 
@@ -429,12 +467,34 @@ async function openStudentModal(source, target) {
             <span style="min-width:80px;">Action</span>
         </div>`;
 
+        // Helper pour le style inline (Couleurs identiques au Bilan)
+        const getDecisionStyle = (decision) => {
+            const d = (decision || '').toUpperCase();
+
+            // Vert Prononcé : Diplômé, Admis (#28a745 - Vert du Bilan)
+            if (d.includes('DIPL') || d === 'ADM' || d === 'ADSUP' || d === 'CMP') {
+                return 'background-color: #28a745 !important; color: #ffffff !important; border: 1px solid #28a745;';
+            }
+            // Jaune Orangé : En cours (#ffc107 - Jaune du Bilan) - Texte noir
+            if (d.includes('EN COURS') || !d) {
+                return 'background-color: #ffc107 !important; color: #1f2d3d !important; border: 1px solid #ffc107;';
+            }
+            // Rouge : Redoublement, Ajourné (#dc3545 - Rouge du Bilan)
+            if (d === 'RED' || d === 'AJ' || d === 'ATJ' || d.includes('REDOUB')) {
+                return 'background-color: #dc3545 !important; color: #ffffff !important; border: 1px solid #dc3545;';
+            }
+            // Gris : Abandon, Défaillant (#6c757d - Gris du Bilan)
+            if (d === 'DEF' || d === 'DEM' || d === 'NAR' || d.includes('ABAND')) {
+                return 'background-color: #6c757d !important; color: #ffffff !important; border: 1px solid #6c757d;';
+            }
+            // Bleu (Défaut)
+            return 'background-color: #17a2b8 !important; color: #ffffff !important; border: 1px solid #17a2b8;';
+        };
+
         data.students.forEach((etu, index) => {
             const safeDecision = escapeHtml(etu.decision || 'N/A');
-            const decisionClass = etu.decision ? `decision-${escapeHtml(etu.decision.substr(0, 3))}` : '';
-
-            const rawShortNip = etu.nip.length > 16 ? etu.nip.substr(0, 6) + '...' + etu.nip.substr(-6) : etu.nip;
             const safeNip = escapeHtml(etu.nip);
+            const rawShortNip = etu.nip.length > 16 ? etu.nip.substr(0, 6) + '...' + etu.nip.substr(-6) : etu.nip;
             const safeShortNip = escapeHtml(rawShortNip);
 
             const rawShortFormation = etu.formation ? (etu.formation.length > 20 ? etu.formation.substr(0, 18) + '...' : etu.formation) : 'N/A';
@@ -448,12 +508,16 @@ async function openStudentModal(source, target) {
                 ? `<a href="#" onclick="alert('Fiche ScoDoc ID: ${safeScodocId}'); return false;" class="scodoc-link">Fiche</a>`
                 : '<span style="color:#999;">-</span>';
 
+            const styleColor = getDecisionStyle(etu.decision);
+            // Style de base (padding, radius) + Couleur Vives
+            const finalStyle = `padding: 4px 8px; border-radius: 4px; font-weight: 600; display: inline-block; min-width: 90px; text-align: center; font-size: 0.85rem; ${styleColor}`;
+
             html += `<div class="student-item">
                 <span style="color:#888; min-width:30px;">${index + 1}.</span>
                 <span class="student-nip" title="${safeNip}" style="flex:2;">${safeShortNip}</span>
                 <span style="flex:1; font-size:0.8rem; color:#666;" title="${safeFormation}">${safeShortFormation}</span>
                 <span style="min-width:50px; font-size:0.8rem; color:#888;">${safeSemestre}</span>
-                <span class="student-decision ${decisionClass}" style="min-width:80px;">${safeDecision}</span>
+                <span class="student-decision" style="${finalStyle}">${safeDecision}</span>
                 <span style="min-width:80px;">${linkHtml}</span>
             </div>`;
         });
