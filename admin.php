@@ -206,6 +206,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
     <link rel="icon" type="image/png" href="/assets/logo.png?v=3">
     <link rel="stylesheet" href="styles.css?v=2">
     <link rel="stylesheet" href="loader.css?v=2">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
     <style>
@@ -429,9 +430,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
             </div>
 
             <div class="results-section" id="results-section" style="display:none; margin-top: 3rem;">
-                <div class="results-header">
-                    <h3 class="results-title">Bilan des compétences & Décisions de jury</h3>
-                    <p class="results-subtitle" id="stats-subtitle">Formation : - • Année : -</p>
+                <div class="results-header" style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3 class="results-title">Bilan des compétences & Décisions de jury</h3>
+                        <p class="results-subtitle" id="stats-subtitle">Formation : - • Année : -</p>
+                    </div>
+                    <button type="button" class="btn-submit" id="btn-pdf" onclick="exportPDF()" style="padding: 0.5rem 1rem; margin-left: auto;">
+                        Exporter en PDF
+                    </button>
                 </div>
                 
                 <!-- Status Cards -->
@@ -482,9 +488,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
                     </div>
                 </div>
 
-                <div class="total-section">
-                    <span class="total-label">Total des étudiants</span>
-                    <span class="total-number" id="total-students">0</span>
+                <div class="total-section" style="justify-content: flex-start; gap: 0.5rem; font-size: 1.1rem;">
+                    <span class="total-label" style="font-weight: 600;">Total des étudiants :</span>
+                    <span class="total-number" id="total-students" style="font-weight: bold; font-size: inherit;">0</span>
                 </div>
 
                 <div class="info-section">
@@ -701,5 +707,124 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run_sync'])) {
     <script src="loader.js?v=2"></script>
     <script src="script.js?v=2"></script>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script>
+    function exportPDF() {
+        const formation = document.getElementById('formation').value;
+        const annee = document.getElementById('annee').value;
+
+        if (!formation || !annee) {
+            alert("Veuillez d'abord visualiser un diagramme.");
+            return;
+        }
+
+        // Feedback utilisateur
+        const btn = document.getElementById('btn-pdf');
+        const originalText = btn.textContent;
+        btn.textContent = "⏳ Génération...";
+        btn.disabled = true;
+
+        // Récupérer les stats
+        const getVal = (id) => document.getElementById(id) ? document.getElementById(id).textContent : '0';
+
+        const stats = {
+            valide: getVal('count-valide'),
+            validePct: getVal('percent-valide'),
+            partiel: getVal('count-partiel'),
+            partielPct: getVal('percent-partiel'),
+            red: getVal('count-red'),
+            redPct: getVal('percent-red'),
+            abd: getVal('count-abd'),
+            abdPct: getVal('percent-abd'),
+            total: getVal('total-students')
+        };
+
+        // Créer le PDF avec jsPDF
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4'); // Portrait, millimètres, A4
+
+        // Titre principal
+        doc.setFontSize(22);
+        doc.setTextColor(30, 58, 95); // #1e3a5f
+        doc.text('Bilan de Cohorte', 105, 25, { align: 'center' });
+
+        // Ligne sous le titre
+        doc.setDrawColor(45, 90, 140); // #2d5a8c
+        doc.setLineWidth(0.5);
+        doc.line(20, 30, 190, 30);
+
+        // Sous-titre (Formation et Année)
+        doc.setFontSize(14);
+        doc.setTextColor(85, 85, 85);
+        doc.text(`Formation : ${formation}`, 105, 40, { align: 'center' });
+        doc.text(`Année : ${annee}`, 105, 48, { align: 'center' });
+
+        // Section 1 : Synthèse des Résultats
+        doc.setFontSize(16);
+        doc.setTextColor(45, 90, 140);
+        doc.text('1. Synthèse des Résultats', 20, 65);
+
+        // Tableau avec autoTable
+        doc.autoTable({
+            startY: 70,
+            head: [['Catégorie', 'Nombre', 'Pourcentage']],
+            body: [
+                ['Diplômé / Admis', stats.valide, stats.validePct],
+                ['En cours', stats.partiel, stats.partielPct],
+                ['Redoublement', stats.red, stats.redPct],
+                ['Abandon / Réorientation', stats.abd, stats.abdPct],
+                ['TOTAL', stats.total, '100%']
+            ],
+            headStyles: { 
+                fillColor: [240, 244, 248], 
+                textColor: [30, 58, 95],
+                fontStyle: 'bold'
+            },
+            bodyStyles: { 
+                textColor: [51, 51, 51]
+            },
+            alternateRowStyles: { 
+                fillColor: [249, 249, 249] 
+            },
+            footStyles: {
+                fillColor: [233, 236, 239],
+                textColor: [0, 0, 0],
+                fontStyle: 'bold'
+            },
+            styles: {
+                halign: 'center',
+                cellPadding: 4
+            },
+            columnStyles: {
+                0: { halign: 'left' }
+            },
+            margin: { left: 20, right: 20 }
+        });
+
+        // Section 2 : Note sur le diagramme
+        const finalY = doc.lastAutoTable.finalY + 15;
+        doc.setFontSize(16);
+        doc.setTextColor(45, 90, 140);
+        doc.text('2. Visualisation des Flux', 20, finalY);
+
+        doc.setFontSize(11);
+        doc.setTextColor(100, 100, 100);
+        doc.text('Le diagramme Sankey est disponible dans l\'interface web.', 20, finalY + 10);
+        doc.text('Consultez l\'application pour une visualisation interactive des flux étudiants.', 20, finalY + 18);
+
+        // Pied de page
+        doc.setFontSize(10);
+        doc.setTextColor(150, 150, 150);
+        doc.text(`Généré le ${new Date().toLocaleDateString()} via Mnémosyne`, 105, 285, { align: 'center' });
+
+        // Sauvegarder
+        doc.save(`Rapport_${formation.replace(/[^a-zA-Z0-9]/g, '_')}_${annee}.pdf`);
+
+        // Restaurer le bouton
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+    </script>
 </body>
 </html>
