@@ -6,6 +6,7 @@ Application web de visualisation des parcours étudiants de l'IUT de Villetaneus
 
 - **Diagramme Sankey** : Visualisation des flux étudiants BUT1 → BUT2 → BUT3 → Diplômé
 - **Filtres** : Par formation (6 BUT + Tout l'IUT) et par année de promotion
+- **Export PDF** : Génération d'un rapport PDF incluant une synthèse chiffrée et le contexte (formation, année). <!-- Fonctionnalité ajoutée -->
 - **Interactivité** : Clic sur un flux pour voir la liste des étudiants
 - **Administration** : Synchronisation, mapping des codes, scénarios de flux
 
@@ -60,16 +61,23 @@ define('DB_PASS', 'password');
 ## Structure du Projet
 
 ```
-├── api/                    # APIs JSON
-│   ├── get_flow_data.php   # Données Sankey
-│   ├── get_students_by_flow.php  # Liste étudiants
-│   └── get_options.php     # Formations/années
-├── admin.php               # Interface administration
-├── index.php               # Interface consultation
-├── script.js               # Logique frontend
-├── styles.css              # Styles CSS
-├── config.php              # Configuration BDD (non versionné)
-└── full_schema.sql         # Schéma base de données
+├── api/                            # APIs JSON (Données)
+│   ├── recuperer_donnees_flux.php  # Données pour le Sankey (noeuds/liens)
+│   ├── recuperer_etudiants_par_flux.php # Liste détaillée des étudiants
+│   ├── recuperer_options.php       # Options des filtres (Formations/Années)
+│   └── utilitaires.php             # Fonctions partagées
+├── import/                         # Scripts d'importation (Excel/CSV)
+├── uploads/                        # Stockage des fichiers JSON ScoDoc
+├── admin.php                       # Tableau de bord administration
+├── auth.php                        # Gestion session/authentification
+├── config.php                      # Configuration BDD
+├── index.php                       # Page d'accueil (Consultation)
+├── login.html                      # Page de connexion
+├── mnemosyne-projet_bdd.sql        # Schéma Base de Données
+├── script.js                       # Logique JS principale (Graphiques)
+├── styles.css                      # Styles globaux
+├── loader.js / loader.css          # Animation de chargement
+└── sync.php                        # Script de synchronisation
 ```
 
 ## Sécurité
