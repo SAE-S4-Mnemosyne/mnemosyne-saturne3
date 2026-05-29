@@ -1,117 +1,74 @@
 <?php
-// import_resultat_competence.php
+require_once __DIR__ . '/../config/database.php';
 
-require_once __DIR__ . '/connectDB_alwaysdata.php';
-
-// Dossier des decisions_jury_*.json
-$decisionsDir = __DIR__ . '/SAE_json';
-$pattern = $decisionsDir . '/decisions_jury_*.json';
-$files = glob($pattern);
+$files = glob(__DIR__ . '/../json/decisions_jury_*.json');
 
 if (empty($files)) {
-    die("Aucun fichier JSON trouvé avec le pattern : $pattern\n");
+    die("Aucun fichier decisions_jury_*.json trouvé");
 }
 
-echo "Nombre de fichiers decisions_jury trouvés : " . count($files) . "\n";
+$find = $pdo->prepare(
+    "SELECT id_inscription
+     FROM inscription
+     WHERE code_nip = :code_nip
+     AND id_formsemestre = :id_formsemestre
+     LIMIT 1"
+);
 
-// Requête pour retrouver l'id_inscription à partir de (code_nip, id_formsemestre)
-$sqlFindInsc = "SELECT id_inscription
-                FROM Inscription
-                WHERE code_nip = :code_nip
-                  AND id_formsemestre = :id_formsemestre
-                LIMIT 1";
-$stmtFindInsc = $pdo->prepare($sqlFindInsc);
+$insert = $pdo->prepare(
+    "INSERT INTO resultat_competence
+     (id_inscription, numero_competence, code_decision, moyenne)
+     VALUES
+     (:id_inscription, :numero_competence, :code_decision, :moyenne)
+     ON DUPLICATE KEY UPDATE
+     code_decision = VALUES(code_decision),
+     moyenne = VALUES(moyenne)"
+);
 
-// Requête d'INSERT dans Resultat_Competence
-// id_resultat est AUTO_INCREMENT
-$sqlInsertRes = "INSERT IGNORE INTO Resultat_Competence (
-                     id_inscription,
-                     numero_competence,
-                     code_decision,
-                     moyenne
-                 ) VALUES (
-                     :id_inscription,
-                     :numero_competence,
-                     :code_decision,
-                     :moyenne
-                 )";
-$stmtInsertRes = $pdo->prepare($sqlInsertRes);
+$nb = 0;
 
-$totalFichiers   = 0;
-$totalEtudiants  = 0;
-$totalResultats  = 0;
-$totalSansInsc   = 0;
+foreach ($files as $file) {
+    $filename = basename($file);
 
-foreach ($files as $filepath) {
-    $totalFichiers++;
-    $filename = basename($filepath);
-    echo "Traitement du fichier : $filename\n";
-
-    // Récupérer id_formsemestre à partir du nom de fichier
-    // ex: decisions_jury_2021_fs_1041_BUT_INFO.json
-    if (!preg_match('/^decisions_jury_(\d{4})_fs_(\d+)_/i', $filename, $matches)) {
-        echo "  -> Nom de fichier inattendu, ignoré.\n";
+    if (!preg_match('/fs_(\d+)/i', $filename, $matches)) {
         continue;
     }
 
-    $anneeFichier   = (int) $matches[1];
-    $idFormsemestre = (int) $matches[2];
+    $idFormsemestre = (int) $matches[1];
+    $data = json_decode(file_get_contents($file), true);
 
-    // Lire le JSON
-    $jsonContent = file_get_contents($filepath);
-    $data = json_decode($jsonContent, true);
+    foreach ($data as $etu) {
+        $codeNip = $etu['code_nip'] ?? null;
 
-    if ($data === null) {
-        echo "  -> Erreur JSON : " . json_last_error_msg() . "\n";
-        continue;
-    }
-
-    foreach ($data as $etudiant) {
-        $totalEtudiants++;
-
-        $codeNip = $etudiant['code_nip'] ?? null;
-        if (empty($codeNip)) {
+        if (!$codeNip || empty($etu['rcues'])) {
             continue;
         }
 
-        // Retrouver l'id_inscription correspondant
-        $stmtFindInsc->execute([
-            ':code_nip'        => $codeNip,
-            ':id_formsemestre' => $idFormsemestre,
+        $find->execute([
+            ':code_nip' => $codeNip,
+            ':id_formsemestre' => $idFormsemestre
         ]);
-        $idInscription = $stmtFindInsc->fetchColumn();
 
-        if ($idInscription === false) {
-            // Si pour une raison quelconque l'inscription n'existe pas (import pas fait, etc.)
-            $totalSansInsc++;
-            continue;
-        }
+        $idInscription = $find->fetchColumn();
 
-        // Vérifier qu'on a bien un tableau rcues
-        if (empty($etudiant['rcues']) || !is_array($etudiant['rcues'])) {
+        if (!$idInscription) {
             continue;
         }
 
         $numero = 1;
-        foreach ($etudiant['rcues'] as $rcue) {
-            $codeDecision = $rcue['code'] ?? null;
-            $moyenne      = $rcue['moy']  ?? null;
 
-            $stmtInsertRes->execute([
-                ':id_inscription'   => $idInscription,
+        foreach ($etu['rcues'] as $rcue) {
+            $insert->execute([
+                ':id_inscription' => $idInscription,
                 ':numero_competence' => $numero,
-                ':code_decision'    => $codeDecision,
-                ':moyenne'          => $moyenne,
+                ':code_decision' => $rcue['code'] ?? null,
+                ':moyenne' => $rcue['moy'] ?? null
             ]);
 
-            $totalResultats++;
             $numero++;
+            $nb++;
         }
     }
 }
 
-echo "\nImport Resultat_Competence terminé.\n";
-echo "Fichiers traités : $totalFichiers\n";
-echo "Étudiants lus : $totalEtudiants\n";
-echo "Résultats insérés : $totalResultats\n";
-echo "Étudiants sans inscription trouvée : $totalSansInsc\n";
+echo "Import résultats compétences terminé : $nb";
