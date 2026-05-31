@@ -13,12 +13,18 @@ vendor/
 # Environment / Secrets
 Backend/code_Mnémosyne/config.php
 config.php
+docker-compose.yml
 
 # Logs
 *.log
 
 # Excluded Data
-PDF/
-# Inclure les données JSON mais pas les autres uploads
 uploads/*
 !uploads/SAE_json/
+
+# Fichiers personnels de contexte (NE JAMAIS COMMIT)
+PDF/
+*.md
+!README.md
+*.txt
+extract_pdf.py
