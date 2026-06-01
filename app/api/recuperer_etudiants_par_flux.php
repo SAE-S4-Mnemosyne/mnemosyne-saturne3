@@ -8,8 +8,8 @@
  * - Cohérence avec get_flow_data.php
  */
 header('Content-Type: application/json');
-require_once '../config.php';
-require_once 'utilitaires.php'; // Inclusion des fonctions utilitaires partagées
+require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/utilitaires.php';
 
 // Récupérer les données POST (JSON)
 $input = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -30,9 +30,7 @@ if (!$formationTitre || !$anneeDebut || !$source) {
 }
 
 try {
-    $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-    $pdo = new PDO($dsn, DB_USER, DB_PASS);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $pdo = Database::getInstance();
 
     $isAllFormations = ($formationTitre === '__ALL__');
     $students = [];
@@ -150,7 +148,7 @@ try {
         }
     }
     
-    // --- CALCUL DU NIVEAU ACTUEL (Pour synchroniser logique avec get_flow_data) ---
+    // --- CALCUL DU NIVEAU ACTUEL (Pour synchroniser logique avec recuperer_donnees_flux.php) ---
     // Année actuelle pour déterminer si la promo est "en cours"
     $anneeActuelle = (int)date('Y');
     $moisActuel = (int)date('m');
