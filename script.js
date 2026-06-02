@@ -96,7 +96,7 @@ function toggleTheme() {
 // Chargement des Options
 async function loadOptions() {
     try {
-        const response = await fetch('api/recuperer_options.php');
+        const response = await fetch('app/api/recuperer_options.php');
         const data = await response.json();
         populateSelects(data);
 
@@ -224,7 +224,7 @@ async function fetchAndDraw() {
 
     try {
         const timestamp = new Date().getTime();
-        const url = `api/recuperer_donnees_flux.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}&regime=${regime}&status=${status}&_t=${timestamp}`;
+        const url = `app/api/recuperer_donnees_flux.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}&regime=${regime}&status=${status}&_t=${timestamp}`;
         console.log("Fetching Flow Data:", url);
 
         const response = await fetch(url);
@@ -437,7 +437,7 @@ async function openStudentModal(source, target, nips = null) {
     listContainer.innerHTML = '<p style="text-align:center;">Chargement...</p>';
 
     try {
-        const response = await fetch('api/recuperer_etudiants_par_flux.php', {
+        const response = await fetch('app/api/recuperer_etudiants_par_flux.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

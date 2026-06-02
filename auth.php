@@ -1,9 +1,9 @@
 <?php
 session_start();
-require_once 'config.php';
+require_once __DIR__ . '/app/core/Database.php';
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $username = $_POST['username'] ?? '';
+    $username = trim($_POST['username'] ?? '');
     $password = $_POST['password'] ?? '';
 
     if (empty($username) || empty($password)) {
@@ -12,21 +12,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
-        // $pdo vient de config.php désormais
-        if (!isset($pdo)) {
-            die("Erreur de configuration : connexion BDD manquante.");
-        }
+        $pdo = Database::getInstance();
 
-        // 1. Vérifier si la table admin (minuscule) contient des utilisateurs
-        $check = $pdo->query("SELECT COUNT(*) FROM admin");
-        if ($check->fetchColumn() == 0) {
-            // CORRECTION AUTOMATIQUE : Création d'un administrateur par défaut si aucun n'existe
-            $defaultPass = password_hash('admin', PASSWORD_DEFAULT);
-            $stmt = $pdo->prepare("INSERT INTO admin (identifiant, mot_de_passe) VALUES ('admin', ?)");
-            $stmt->execute([$defaultPass]);
-        }
-
-        // 2. Vérification des identifiants (Table admin minuscule)
+        // Vérification des identifiants (Table admin minuscule)
         $stmt = $pdo->prepare("SELECT * FROM admin WHERE identifiant = ?");
         $stmt->execute([$username]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -44,7 +32,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
 
     } catch (PDOException $e) {
-        die("Erreur BDD : " . $e->getMessage());
+        error_log("Erreur authentification BDD : " . $e->getMessage());
+        header("Location: login.html?error=tech");
+        exit;
     }
 } else {
     header("Location: login.html");

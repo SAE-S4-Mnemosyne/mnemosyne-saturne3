@@ -60,24 +60,30 @@ define('DB_PASS', 'password');
 
 ## Structure du Projet
 
+L'application utilise une architecture MVC (Modèle-Vue-Contrôleur) pour faciliter la maintenance :
+
 ```
-├── api/                            # APIs JSON (Données)
-│   ├── recuperer_donnees_flux.php  # Données pour le Sankey (noeuds/liens)
-│   ├── recuperer_etudiants_par_flux.php # Liste détaillée des étudiants
-│   ├── recuperer_options.php       # Options des filtres (Formations/Années)
-│   └── utilitaires.php             # Fonctions partagées
-├── import/                         # Scripts d'importation (Excel/CSV)
-├── uploads/                        # Stockage des fichiers JSON ScoDoc
-├── admin.php                       # Tableau de bord administration
+├── api/                            # APIs JSON (Données pour le diagramme Sankey)
+├── controllers/                    # Contrôleurs MVC
+│   ├── AdminController.php         # Logique du tableau de bord
+│   └── ConsultController.php       # Logique de consultation
+├── core/                           # Cœur de l'application
+│   └── Database.php                # Classe Singleton PDO
+├── import/                         # Scripts d'importation ScoDoc
+├── models/                         # Modèles de données (Accès BDD)
+├── views/                          # Vues HTML
+│   ├── admin/                      # Vues administration
+│   └── consult/                    # Vues consultation publique
+├── SAE_json/                       # Stockage des fichiers JSON ScoDoc
+├── admin.php                       # Routeur administration
 ├── auth.php                        # Gestion session/authentification
-├── config.php                      # Configuration BDD
-├── index.php                       # Page d'accueil (Consultation)
+├── config.php                      # Fichier de configuration (Constantes)
+├── index.php                       # Routeur page d'accueil (Consultation)
 ├── login.html                      # Page de connexion
 ├── mnemosyne-projet_bdd.sql        # Schéma Base de Données
 ├── script.js                       # Logique JS principale (Graphiques)
 ├── styles.css                      # Styles globaux
-├── loader.js / loader.css          # Animation de chargement
-└── sync.php                        # Script de synchronisation
+└── loader.js / loader.css          # Animation de chargement
 ```
 
 ## Sécurité
