@@ -549,13 +549,16 @@ try {
         }
 
         // Filtre Statut
-        if ($keep && !empty($filterStatus)) {
+        if ($keep && !empty($filterStatus) && $filterStatus !== 'ALL') {
             if ($filterStatus === 'PASS_DEBT') {
                 if (!in_array('PASS_DEBT', $hist['decisions'])) $keep = false;
             } elseif ($filterStatus === 'FAIL') {
                 if (!in_array('FAIL', $hist['decisions'])) $keep = false;
             } elseif ($filterStatus === 'PASS_OK') {
-                if (in_array('PASS_DEBT', $hist['decisions']) || in_array('FAIL', $hist['decisions'])) $keep = false;
+                // Validation propre : au moins un ADM/ADSUP et aucun echec
+                $hasCleanPass = in_array('PASS_OK', $hist['decisions']);
+                $hasFail = in_array('FAIL', $hist['decisions']);
+                if (!$hasCleanPass || $hasFail) $keep = false;
             }
         }
 
