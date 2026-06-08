@@ -196,7 +196,7 @@
 
                     <button type="submit" class="btn-submit">
                         Voir les parcours
-                        <span class="arrow">-></span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 8px; vertical-align: middle;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </button>
                 </form>
             </div>
@@ -288,6 +288,7 @@
                     <p class="info-text"><strong>Flux (Centre) :</strong> Parcours BUT1 => BUT2 => BUT3. L'epaisseur represente le nombre d'etudiants.</p>
                     <p class="info-text"><strong>Sorties (Droite) :</strong> Diplomes, Abandons, Reorientations.</p>
                     <p class="info-note"><strong>Astuce :</strong> Survolez les flux pour voir le nombre exact d'etudiants.</p>
+                </div>
                 </div>
             </div>
 

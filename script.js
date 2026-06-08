@@ -220,8 +220,6 @@ async function fetchAndDraw() {
     // 1. Afficher la section Jury (Juste le visuel, sans valeurs dynamiques)
     updateStatsDisplay(formation, annee);
 
-    updateStatsDisplay(formation, annee);
-
     try {
         const timestamp = new Date().getTime();
         const url = `app/api/recuperer_donnees_flux.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}&regime=${regime}&status=${status}&_t=${timestamp}`;
@@ -366,11 +364,16 @@ function drawSankey(data) {
             let nips = [];
 
             if (item.name) {
-                // Click on Node: Aggregate students from all connected links
+                // Clic sur un noeud : recuperer les etudiants des flux entrants
                 const nodeName = item.name;
-                const connectedLinks = data.links.filter(l => l.source === nodeName || l.target === nodeName);
+                const inboundLinks = data.links.filter(l => l.target === nodeName);
+                const outboundLinks = data.links.filter(l => l.source === nodeName);
+                
+                // Fallback sur les sortants si pas de flux entrants
+                const relevantLinks = inboundLinks.length > 0 ? inboundLinks : outboundLinks;
+                
                 const nipSet = new Set();
-                connectedLinks.forEach(l => {
+                relevantLinks.forEach(l => {
                     if (l.students && Array.isArray(l.students)) {
                         l.students.forEach(n => nipSet.add(n));
                     }
