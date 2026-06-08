@@ -122,22 +122,15 @@ class AdminController {
     }
 
     private function addScenario() {
-        $source = trim($_POST['scenario_source'] ?? '');
-        $target = trim($_POST['scenario_target'] ?? '');
+        $source = (int)($_POST['scenario_source'] ?? 0);
+        $target = (int)($_POST['scenario_target'] ?? 0);
         $type = trim($_POST['scenario_type'] ?? '');
-        if ($source && $target && $type) {
+        if ($source > 0 && $target > 0 && $type) {
             try {
-                $this->pdo->exec("CREATE TABLE IF NOT EXISTS scenario_correspondance (
-                    id_scenario INT AUTO_INCREMENT PRIMARY KEY,
-                    formation_source VARCHAR(255),
-                    formation_cible VARCHAR(255),
-                    type_flux VARCHAR(50),
-                    UNIQUE KEY unique_scenario (formation_source, formation_cible)
-                )");
-                $stmt = $this->pdo->prepare("INSERT INTO scenario_correspondance (formation_source, formation_cible, type_flux) VALUES (?, ?, ?)
+                $stmt = $this->pdo->prepare("INSERT INTO scenario_correspondance (id_formation_source, id_formation_cible, type_flux) VALUES (?, ?, ?)
                     ON DUPLICATE KEY UPDATE type_flux = VALUES(type_flux)");
                 $stmt->execute([$source, $target, $type]);
-                $this->message = "Scenario ajoute : $source -> $target [$type]";
+                $this->message = "Scenario ajoute avec succes.";
                 $this->messageType = "success";
             } catch (Exception $e) {
                 error_log("Erreur ajout scenario : " . $e->getMessage());
@@ -246,6 +239,7 @@ class AdminController {
     private function getViewData() {
         $mappings = [];
         $scenarios = [];
+        $formations = [];
 
         try {
             $stmt = $this->pdo->query("SELECT id, code_scodoc, libelle_graphique FROM mapping_codes ORDER BY code_scodoc");
@@ -255,8 +249,22 @@ class AdminController {
         }
 
         try {
-            $stmt = $this->pdo->query("SELECT id_scenario, formation_source, formation_cible, type_flux FROM scenario_correspondance ORDER BY formation_source");
+            $stmt = $this->pdo->query("
+                SELECT sc.id_scenario, sc.type_flux,
+                       fs.titre AS formation_source, fc.titre AS formation_cible
+                FROM scenario_correspondance sc
+                JOIN Formation fs ON sc.id_formation_source = fs.id_formation
+                JOIN Formation fc ON sc.id_formation_cible = fc.id_formation
+                ORDER BY fs.titre
+            ");
             $scenarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            // Table n'existe pas encore
+        }
+
+        try {
+            $stmt = $this->pdo->query("SELECT id_formation, titre FROM Formation ORDER BY titre");
+            $formations = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             // Table n'existe pas encore
         }
@@ -264,6 +272,7 @@ class AdminController {
         return [
             'mappings' => $mappings,
             'scenarios' => $scenarios,
+            'formations' => $formations,
             'csrfToken' => self::generateCSRF()
         ];
     }

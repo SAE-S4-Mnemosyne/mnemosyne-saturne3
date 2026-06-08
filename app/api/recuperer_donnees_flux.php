@@ -88,7 +88,12 @@ try {
     
     try {
         // Charger les scénarios (table scenario_correspondance)
-        $stmtScenario = $pdo->query("SELECT formation_source, formation_cible, type_flux FROM scenario_correspondance");
+        $stmtScenario = $pdo->query("
+            SELECT fs.titre AS formation_source, fc.titre AS formation_cible, sc.type_flux
+            FROM scenario_correspondance sc
+            JOIN Formation fs ON sc.id_formation_source = fs.id_formation
+            JOIN Formation fc ON sc.id_formation_cible = fc.id_formation
+        ");
         while ($row = $stmtScenario->fetch(PDO::FETCH_ASSOC)) {
             $key = $row['formation_source'] . '||' . $row['formation_cible'];
             $scenarios[$key] = $row['type_flux'];

@@ -357,35 +357,21 @@
                 <form method="POST" style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr 1fr auto;">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Noeud Source</label>
+                        <label style="font-weight: 600; color: var(--text-color, #333);">Formation Source</label>
                         <select name="scenario_source" class="config-input">
                             <option value="">Selectionner...</option>
-                            <option value="Nouveaux inscrits">Nouveaux inscrits</option>
-                            <option value="Redoublant">Redoublant</option>
-                            <option value="Passerelle">Passerelle</option>
-                            <option value="BUT1">BUT1</option>
-                            <option value="BUT2">BUT2</option>
-                            <option value="BUT3">BUT3</option>
+                            <?php foreach ($formations as $f): ?>
+                                <option value="<?php echo $f['id_formation']; ?>"><?php echo htmlspecialchars($f['titre']); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Noeud Cible</label>
+                        <label style="font-weight: 600; color: var(--text-color, #333);">Formation Cible</label>
                         <select name="scenario_target" class="config-input">
                             <option value="">Selectionner...</option>
-                            <option value="BUT1">BUT1</option>
-                            <option value="BUT2">BUT2</option>
-                            <option value="BUT3">BUT3</option>
-                            <option value="Diplome">Diplome</option>
-                            <option value="Abandon BUT1">Abandon BUT1</option>
-                            <option value="Abandon BUT2">Abandon BUT2</option>
-                            <option value="Abandon BUT3">Abandon BUT3</option>
-                            <option value="Redoublement BUT1">Redoublement BUT1</option>
-                            <option value="Redoublement BUT2">Redoublement BUT2</option>
-                            <option value="Redoublement BUT3">Redoublement BUT3</option>
-                            <option value="En cours BUT1">En cours BUT1</option>
-                            <option value="En cours BUT2">En cours BUT2</option>
-                            <option value="En cours BUT3">En cours BUT3</option>
-                            <option value="Reorientation">Reorientation</option>
+                            <?php foreach ($formations as $f): ?>
+                                <option value="<?php echo $f['id_formation']; ?>"><?php echo htmlspecialchars($f['titre']); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
                     <div>
