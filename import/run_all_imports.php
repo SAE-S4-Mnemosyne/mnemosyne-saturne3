@@ -59,6 +59,10 @@ function runAllImports($pdo, $jsonFolder) {
             $result = importEtudiants($pdo, $decisionFiles);
             $results['steps'][] = "Étudiants: " . $result['count'] . " traités";
 
+            // Import des décisions annuelles (table dédiée Decision_Annuelle)
+            $result = importDecisionsAnnuelles($pdo, $decisionFiles);
+            $results['steps'][] = "Décisions annuelles: " . $result['count'] . " traitées";
+
             // Import des inscriptions
             $result = importInscriptions($pdo, $decisionFiles);
             $results['steps'][] = "Inscriptions: " . $result['count'] . " traitées";
@@ -427,15 +431,12 @@ function importEtudiants($pdo, $files) {
  */
 function importInscriptions($pdo, $files) {
     $sql = "INSERT IGNORE INTO Inscription (
-                code_nip, id_formsemestre, decision_jury, decision_annee,
-                etat_inscription, pct_competences, is_apc, date_maj
+                code_nip, id_formsemestre, decision_jury, etat_inscription
             ) VALUES (
-                :code_nip, :id_formsemestre, :decision_jury, :decision_annee,
-                :etat_inscription, :pct_competences, :is_apc, :date_maj
+                :code_nip, :id_formsemestre, :decision_jury, :etat_inscription
             )";
 
     $stmt = $pdo->prepare($sql);
-    $dateMaj = date('Y-m-d H:i:s');
     $count = 0;
 
     foreach ($files as $filepath) {
@@ -466,11 +467,61 @@ function importInscriptions($pdo, $files) {
                 ':code_nip'        => $codeNip,
                 ':id_formsemestre' => $formsemestreId,
                 ':decision_jury'   => $decisionJury,
-                ':decision_annee'  => $etudiant['annee']['ordre'] ?? null,
                 ':etat_inscription' => $etudiant['etat'] ?? null,
-                ':pct_competences' => $etudiant['nb_competences'] ?? null,
-                ':is_apc'          => isset($etudiant['is_apc']) ? ($etudiant['is_apc'] ? 1 : 0) : null,
-                ':date_maj'        => $dateMaj,
+            ]);
+            $count++;
+        }
+    }
+
+    return ['count' => $count];
+}
+
+/**
+ * Import des décisions annuelles (table Decision_Annuelle)
+ * Clé primaire : (code_nip, annee_scolaire). La décision provient de annee.code.
+ */
+function importDecisionsAnnuelles($pdo, $files) {
+    $sql = "INSERT INTO Decision_Annuelle (code_nip, annee_scolaire, decision)
+            VALUES (:code_nip, :annee_scolaire, :decision)
+            ON DUPLICATE KEY UPDATE decision = VALUES(decision)";
+
+    $stmt = $pdo->prepare($sql);
+    $count = 0;
+
+    foreach ($files as $filepath) {
+        $filename = basename($filepath);
+
+        $jsonContent = file_get_contents($filepath);
+        $data = json_decode($jsonContent, true);
+
+        if ($data === null || !is_array($data)) continue;
+
+        // Année scolaire de repli, extraite du nom de fichier (decisions_jury_2022_fs_...)
+        $anneeFichier = null;
+        if (preg_match('/decisions_jury_(\d{4})_/', $filename, $matchAnnee)) {
+            $anneeFichier = $matchAnnee[1];
+        }
+
+        // Une seule décision annuelle par étudiant et par année dans un même fichier
+        $seen = [];
+
+        foreach ($data as $etudiant) {
+            $codeNip = $etudiant['code_nip'] ?? null;
+            if (empty($codeNip)) continue;
+
+            $anneeScolaire = $etudiant['annee']['annee_scolaire'] ?? $anneeFichier;
+            if (empty($anneeScolaire)) continue; // composant obligatoire de la clé primaire
+
+            $cle = $codeNip . '|' . $anneeScolaire;
+            if (isset($seen[$cle])) continue;
+            $seen[$cle] = true;
+
+            $decision = $etudiant['annee']['code'] ?? null;
+
+            $stmt->execute([
+                ':code_nip'       => $codeNip,
+                ':annee_scolaire' => $anneeScolaire,
+                ':decision'       => $decision,
             ]);
             $count++;
         }
