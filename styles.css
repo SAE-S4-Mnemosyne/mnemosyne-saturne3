@@ -4,11 +4,31 @@
     box-sizing: border-box;
 }
 
+/* couleurs du site */
+:root {
+    /* palette principale */
+    --bleu-fonce: #1e3a5f;
+    --bleu-moyen: #2d5a8c;
+    /* textes */
+    --texte: #333;
+    --texte-secondaire: #5a6c7d;
+    /* fonds et bordures */
+    --fond-page: #f8f9fa;
+    --bordure: #e1e8ed;
+    /* mode sombre */
+    --fond-sombre: #1a1d29;
+    --fond-sombre-2: #24272f;
+    --gris-sombre: #2a2d3a;
+    --gris-sombre-2: #3a3d4a;
+    --texte-clair: #e0e0e0;
+    --texte-clair-2: #b0b8c1;
+}
+
 body {
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     line-height: 1.6;
-    color: #333;
-    background-color: #f8f9fa;
+    color: var(--texte);
+    background-color: var(--fond-page);
 }
 
 .container {
@@ -17,11 +37,11 @@ body {
     padding: 0 20px;
 }
 
-/* Header */
+/* header */
 .header {
-    background: linear-gradient(135deg, #1a2942 0%, #2d5a8c 50%, #1e3a5f 100%);
+    background: linear-gradient(135deg, #1a2942 0%, var(--bleu-moyen) 50%, var(--bleu-fonce) 100%);
     color: white;
-    padding: 1.25rem 0;
+    padding: 1rem 0;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     position: relative;
     z-index: 1000;
@@ -31,6 +51,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: relative;
 }
 
 .logo-section {
@@ -94,7 +115,7 @@ body {
 
 .btn-primary {
     background: white;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     border: none;
     font-weight: 600;
 }
@@ -147,23 +168,6 @@ body {
     border-radius: 3px;
 }
 
-/* Header */
-.header {
-    background: linear-gradient(135deg, #1a2942 0%, #2d5a8c 50%, #1e3a5f 100%);
-    color: white;
-    padding: 1rem 0;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
-    position: relative;
-    z-index: 1000;
-}
-
-.header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    position: relative;
-}
-
 .header-center {
     position: absolute;
     left: 50%;
@@ -196,14 +200,14 @@ body {
 
 .btn-sync-header:hover {
     background: white;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     transform: scale(1.05);
 }
 
 .sync-msg {
     font-size: 0.8rem;
     color: #a5d6a7;
-    /* Light green */
+    /* vert clair */
     white-space: nowrap;
     animation: fadeIn 0.5s ease;
 }
@@ -220,20 +224,6 @@ body {
     }
 }
 
-.logo-section {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-/* ... existing styles ... */
-.nav-buttons {
-    display: flex;
-    gap: 0.75rem;
-    align-items: center;
-}
-
-/* ... existing styles ... */
 .btn-logout {
     background: transparent !important;
     border: 1px solid rgba(255, 255, 255, 0.5) !important;
@@ -246,7 +236,7 @@ body {
     border-color: white !important;
 }
 
-/* Responsive adjustments */
+/* responsive */
 @media (max-width: 900px) {
     .header-center {
         position: static;
@@ -274,7 +264,7 @@ body {
 .hero-icon {
     width: 100px;
     height: 100px;
-    background: linear-gradient(135deg, #2d5a8c 0%, #1e3a5f 100%);
+    background: linear-gradient(135deg, var(--bleu-moyen) 0%, var(--bleu-fonce) 100%);
     color: white;
     border-radius: 50%;
     display: flex;
@@ -286,14 +276,14 @@ body {
 
 .hero-title {
     font-size: 2.5rem;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     margin-bottom: 0.5rem;
     font-weight: 700;
 }
 
 .hero-subtitle {
     font-size: 1.25rem;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     margin-bottom: 1rem;
 }
 
@@ -303,10 +293,10 @@ body {
     font-size: 1rem;
 }
 
-/* Forms */
+/* formulaires */
 .form-container {
     background: white;
-    border: 2px solid #e1e8ed;
+    border: 2px solid var(--bordure);
     border-radius: 12px;
     padding: 2.5rem;
     margin-bottom: 2rem;
@@ -316,7 +306,7 @@ body {
 .form-title {
     text-align: center;
     font-size: 1.25rem;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     margin-bottom: 2rem;
 }
 
@@ -330,7 +320,7 @@ body {
 .form-group label {
     display: block;
     margin-bottom: 0.5rem;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     font-size: 0.9rem;
     font-weight: 500;
 }
@@ -348,7 +338,7 @@ body {
 
 .form-select:focus {
     outline: none;
-    border-color: #2d5a8c;
+    border-color: var(--bleu-moyen);
     box-shadow: 0 0 0 3px rgba(45, 90, 140, 0.1);
 }
 
@@ -361,7 +351,7 @@ body {
     max-width: 300px;
     margin: 0 auto;
     padding: 1rem 2rem;
-    background: #1e3a5f;
+    background: var(--bleu-fonce);
     color: white;
     border: none;
     border-radius: 8px;
@@ -372,7 +362,7 @@ body {
 }
 
 .btn-submit:hover {
-    background: #2d5a8c;
+    background: var(--bleu-moyen);
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(30, 58, 95, 0.3);
 }
@@ -386,7 +376,7 @@ body {
     transform: translateX(5px);
 }
 
-/* OPTIMISATIONS UX (Chips, ChartBox, Loader) */
+/* chips, chartbox et loader */
 .quick-filters {
     display: flex;
     justify-content: center;
@@ -398,7 +388,7 @@ body {
 
 .quick-label {
     font-size: 0.85rem;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     font-weight: 500;
 }
 
@@ -408,7 +398,7 @@ body {
     border-radius: 20px;
     padding: 0.4rem 1rem;
     font-size: 0.85rem;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     cursor: pointer;
     transition: all 0.2s ease;
     font-weight: 500;
@@ -416,7 +406,7 @@ body {
 
 .chip:hover {
     background: #e3f2fd;
-    border-color: #2d5a8c;
+    border-color: var(--bleu-moyen);
     color: #0d47a1;
     transform: translateY(-1px);
 }
@@ -441,7 +431,7 @@ body {
 
 .empty-state h4 {
     margin-top: 1rem;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     font-weight: 600;
 }
 
@@ -462,15 +452,15 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    color: #2d5a8c;
+    color: var(--bleu-moyen);
     font-weight: 500;
 }
 
 .spinner {
     width: 40px;
     height: 40px;
-    border: 4px solid #e1e8ed;
-    border-top: 4px solid #2d5a8c;
+    border: 4px solid var(--bordure);
+    border-top: 4px solid var(--bleu-moyen);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 1rem;
@@ -486,7 +476,7 @@ body {
     }
 }
 
-/* --- CURSEUR SANKEY CLIQUABLE --- */
+/* curseur main sur le sankey */
 #sankey_chart path,
 #sankey_chart rect,
 #sankey_chart text {
@@ -497,7 +487,7 @@ body {
     opacity: 0.8;
 }
 
-/* --- MODALE ETUDIANTS (Conformité) --- */
+/* modale étudiants */
 .modal {
     display: none;
     position: fixed;
@@ -519,7 +509,7 @@ body {
     max-width: 900px;
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-    color: var(--text-color, #333);
+    color: var(--text-color, var(--texte));
 }
 
 .close-modal {
@@ -596,7 +586,7 @@ body {
 
 .scodoc-link {
     padding: 0.4rem 0.8rem;
-    background: var(--secondary-color, #2d5a8c);
+    background: var(--secondary-color, var(--bleu-moyen));
     color: white;
     text-decoration: none;
     border-radius: 4px;
@@ -631,7 +621,7 @@ body {
     background: #5a6268;
 }
 
-/* Features */
+/* features */
 .features {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -644,7 +634,7 @@ body {
     border-radius: 12px;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
     transition: all 0.3s ease;
-    border: 1px solid #e1e8ed;
+    border: 1px solid var(--bordure);
 }
 
 .feature-card:hover {
@@ -654,17 +644,17 @@ body {
 
 .feature-title {
     font-size: 1.25rem;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     margin-bottom: 1rem;
     font-weight: 600;
 }
 
 .feature-text {
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     line-height: 1.6;
 }
 
-/* Footer */
+/* footer */
 .footer {
     background: #2c3e50;
     color: white;
@@ -703,10 +693,10 @@ body {
     opacity: 1;
 }
 
-/* Results Section */
+/* section résultats */
 .results-section {
     background: white;
-    border: 2px solid #e1e8ed;
+    border: 2px solid var(--bordure);
     border-radius: 12px;
     padding: 2.5rem;
     margin-top: 3rem;
@@ -716,19 +706,19 @@ body {
 .results-header {
     margin-bottom: 2rem;
     padding-bottom: 1.5rem;
-    border-bottom: 2px solid #e1e8ed;
+    border-bottom: 2px solid var(--bordure);
 }
 
 .results-title {
     font-size: 1.5rem;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     font-weight: 600;
     margin-bottom: 0.5rem;
 }
 
 .results-subtitle {
     font-size: 0.95rem;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
 }
 
 .status-cards {
@@ -764,7 +754,7 @@ body {
     flex: 1;
 }
 
-/* Status Colors (Light Mode) */
+/* couleurs des statuts */
 .status-validé .status-content {
     border-left-color: #4caf50;
     background: linear-gradient(to right, rgba(76, 175, 80, 0.02), white 15%);
@@ -856,25 +846,25 @@ body {
 .status-label {
     font-weight: 600;
     font-size: 1rem;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
 }
 
 .status-description {
     font-size: 0.9rem;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     margin-bottom: 0.5rem;
 }
 
 .status-link {
     font-size: 0.875rem;
-    color: #2d5a8c;
+    color: var(--bleu-moyen);
     text-decoration: none;
     transition: color 0.3s ease;
     display: inline-block;
 }
 
 .status-link:hover {
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     text-decoration: underline;
 }
 
@@ -886,14 +876,14 @@ body {
 .status-number {
     font-size: 2.5rem;
     font-weight: 700;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     line-height: 1;
     margin-bottom: 0.25rem;
 }
 
 .status-percent {
     font-size: 1rem;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     font-weight: 500;
 }
 
@@ -902,60 +892,60 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 1.5rem;
-    background: #f8f9fa;
+    background: var(--fond-page);
     border-radius: 8px;
     margin-bottom: 2rem;
-    border: 2px solid #e1e8ed;
+    border: 2px solid var(--bordure);
 }
 
 .total-label {
     font-size: 1rem;
     font-weight: 600;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
 }
 
 .total-number {
     font-size: 1.75rem;
     font-weight: 700;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
 }
 
 .info-section {
-    background: #f8f9fa;
+    background: var(--fond-page);
     border-radius: 8px;
     padding: 1.5rem;
-    border-left: 4px solid #2d5a8c;
+    border-left: 4px solid var(--bleu-moyen);
 }
 
 .info-title {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     margin-bottom: 1rem;
 }
 
 .info-text {
     font-size: 0.9rem;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     margin-bottom: 0.75rem;
     line-height: 1.6;
 }
 
 .info-text strong {
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     font-weight: 600;
 }
 
 .info-note {
     font-size: 0.9rem;
-    color: #2d5a8c;
+    color: var(--bleu-moyen);
     background: rgba(45, 90, 140, 0.05);
     padding: 0.75rem;
     border-radius: 6px;
     margin-top: 1rem;
 }
 
-/* Responsive */
+/* responsive */
 @media (max-width: 768px) {
     .menu-toggle {
         display: flex;
@@ -966,7 +956,7 @@ body {
         top: 100%;
         left: 0;
         right: 0;
-        background: linear-gradient(135deg, #1a2942 0%, #1e3a5f 100%);
+        background: linear-gradient(135deg, #1a2942 0%, var(--bleu-fonce) 100%);
         flex-direction: column;
         align-items: stretch;
         padding: 1rem;
@@ -990,14 +980,14 @@ body {
         justify-content: space-between;
         align-items: center;
         padding-top: 1rem;
-        border-top: 1px solid #e1e8ed;
+        border-top: 1px solid var(--bordure);
     }
 }
 
-/* Base Dark Mode */
+/* dark mode */
 body.dark-mode {
     background-color: #0f1419;
-    color: #e0e0e0;
+    color: var(--texte-clair);
 }
 
 body.dark-mode .header {
@@ -1007,15 +997,15 @@ body.dark-mode .header {
 
 body.dark-mode .form-container,
 body.dark-mode .feature-card {
-    background-color: #1a1d29;
-    border-color: #2a2d3a;
-    color: #e0e0e0;
+    background-color: var(--fond-sombre);
+    border-color: var(--gris-sombre);
+    color: var(--texte-clair);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode #sankey_chart {
-    background-color: #1a1d29 !important;
-    border: 1px solid #2a2d3a;
+    background-color: var(--fond-sombre) !important;
+    border: 1px solid var(--gris-sombre);
 }
 
 body.dark-mode .form-title,
@@ -1027,12 +1017,12 @@ body.dark-mode .hero-title {
 body.dark-mode .feature-text,
 body.dark-mode .form-group label,
 body.dark-mode .hero-subtitle {
-    color: #b0b8c1;
+    color: var(--texte-clair-2);
 }
 
 body.dark-mode .form-select {
-    background-color: #24272f;
-    border-color: #3a3d4a;
+    background-color: var(--fond-sombre-2);
+    border-color: var(--gris-sombre-2);
     color: white;
 }
 
@@ -1048,45 +1038,45 @@ body.dark-mode .btn-theme-toggle {
 
 body.dark-mode .footer {
     background-color: #000000;
-    border-top: 1px solid #2a2d3a;
+    border-top: 1px solid var(--gris-sombre);
 }
 
-/* Dark Mode UX Optimizations */
+/* ajustements dark mode */
 body.dark-mode .chip {
-    background: #24272f;
-    border-color: #3a3d4a;
-    color: #e0e0e0;
+    background: var(--fond-sombre-2);
+    border-color: var(--gris-sombre-2);
+    color: var(--texte-clair);
 }
 
 body.dark-mode .chip:hover {
-    background: #2d5a8c;
-    border-color: #2d5a8c;
+    background: var(--bleu-moyen);
+    border-color: var(--bleu-moyen);
     color: white;
 }
 
 body.dark-mode .chart-box {
-    background: #1a1d29;
+    background: var(--fond-sombre);
 }
 
 body.dark-mode .empty-state svg {
-    stroke: #3a3d4a;
+    stroke: var(--gris-sombre-2);
 }
 
 body.dark-mode .chart-loader {
     background: rgba(26, 29, 41, 0.9);
-    color: #e0e0e0;
+    color: var(--texte-clair);
 }
 
 body.dark-mode .spinner {
-    border-color: #3a3d4a;
+    border-color: var(--gris-sombre-2);
     border-top-color: #64b5f6;
 }
 
-/* --- DARK MODE SPÉCIFIQUE POUR LE JURY (Selection du jury) --- */
+/* dark mode du select jury */
 body.dark-mode .results-section {
-    background-color: #1a1d29;
-    border-color: #2a2d3a;
-    color: #e0e0e0;
+    background-color: var(--fond-sombre);
+    border-color: var(--gris-sombre);
+    color: var(--texte-clair);
 }
 
 body.dark-mode .results-title {
@@ -1094,33 +1084,33 @@ body.dark-mode .results-title {
 }
 
 body.dark-mode .results-subtitle {
-    color: #b0b8c1;
+    color: var(--texte-clair-2);
 }
 
-/* Adaptation des dégradés de cartes en mode sombre */
+/* dégradés des cartes en sombre */
 body.dark-mode .status-validé .status-content {
-    background: linear-gradient(to right, rgba(76, 175, 80, 0.1), #1a1d29 15%);
+    background: linear-gradient(to right, rgba(76, 175, 80, 0.1), var(--fond-sombre) 15%);
 }
 
 body.dark-mode .status-partiel .status-content {
-    background: linear-gradient(to right, rgba(255, 152, 0, 0.1), #1a1d29 15%);
+    background: linear-gradient(to right, rgba(255, 152, 0, 0.1), var(--fond-sombre) 15%);
 }
 
 body.dark-mode .status-redoublement .status-content {
-    background: linear-gradient(to right, rgba(244, 67, 54, 0.1), #1a1d29 15%);
+    background: linear-gradient(to right, rgba(244, 67, 54, 0.1), var(--fond-sombre) 15%);
 }
 
 body.dark-mode .status-abandon .status-content {
-    background: linear-gradient(to right, rgba(117, 117, 117, 0.1), #1a1d29 15%);
+    background: linear-gradient(to right, rgba(117, 117, 117, 0.1), var(--fond-sombre) 15%);
 }
 
-/* Textes dans les cartes */
+/* textes des cartes */
 body.dark-mode .status-label {
     color: #ffffff;
 }
 
 body.dark-mode .status-description {
-    color: #b0b8c1;
+    color: var(--texte-clair-2);
 }
 
 body.dark-mode .status-number {
@@ -1131,12 +1121,12 @@ body.dark-mode .status-link {
     color: #64b5f6;
 }
 
-/* Bleu plus clair */
+/* bleu plus clair */
 
-/* Sections Total et Info en bas */
+/* sections total et info en bas */
 body.dark-mode .total-section {
-    background-color: #24272f;
-    border-color: #2a2d3a;
+    background-color: var(--fond-sombre-2);
+    border-color: var(--gris-sombre);
 }
 
 body.dark-mode .total-label,
@@ -1145,8 +1135,8 @@ body.dark-mode .total-number {
 }
 
 body.dark-mode .info-section {
-    background-color: #24272f;
-    border-color: #2d5a8c;
+    background-color: var(--fond-sombre-2);
+    border-color: var(--bleu-moyen);
 }
 
 body.dark-mode .info-title {
@@ -1154,7 +1144,7 @@ body.dark-mode .info-title {
 }
 
 body.dark-mode .info-text {
-    color: #b0b8c1;
+    color: var(--texte-clair-2);
 }
 
 body.dark-mode .info-text strong {
@@ -1166,8 +1156,7 @@ body.dark-mode .info-note {
     color: #90caf9;
 }
 
-/* Fix CSS Page Connexion */
-/* Fix CSS Page Connexion */
+/* fix page connexion */
 .login-page .login-wrapper {
     max-width: 400px !important;
     margin: 5vh auto;
@@ -1178,53 +1167,11 @@ body.dark-mode .info-note {
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-.login-page {
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding-top: 10vh;
-    min-height: 100vh;
-    background-color: #f0f2f5;
-    /* Fond légèrement grisé pour contraste */
-}
+/* config avancée */
 
-/* ===============================================
-   CONFIGURATION AVANCEE - Theme Support
-   =============================================== */
-
-/* Light mode */
-.config-card {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e0e0e0;
-}
-
-.config-input {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    margin-top: 0.5rem;
-    background: #ffffff;
-    color: #333;
-}
-
-.config-input:focus {
-    border-color: #2d5a8c;
-    outline: none;
-}
-
-/* Dark mode - using body.dark-mode class */
-body.dark-mode .config-card {
-    background: #2a3a4a;
-    border-color: #4a5a6a;
-}
-
+/* dark mode */
 body.dark-mode .config-card h3 {
-    color: #e0e0e0 !important;
+    color: var(--texte-clair) !important;
 }
 
 body.dark-mode .config-card p {
@@ -1233,16 +1180,6 @@ body.dark-mode .config-card p {
 
 body.dark-mode .config-card label {
     color: #d0d0d0 !important;
-}
-
-body.dark-mode .config-input {
-    background: #3a4a5a;
-    color: #e0e0e0;
-    border-color: #5a6a7a;
-}
-
-body.dark-mode .config-input::placeholder {
-    color: #888;
 }
 
 body.dark-mode .config-hint {
@@ -1255,14 +1192,14 @@ body.dark-mode .config-hint p {
 
 body.dark-mode .config-example {
     background: #2a4a6a;
-    color: #e0e0e0;
+    color: var(--texte-clair);
 }
 
-/* Hint and Example base styles */
+/* encarts hint + exemple */
 .config-hint {
     margin-top: 1.5rem;
     padding: 1rem;
-    background: #f8f9fa;
+    background: var(--fond-page);
     border-radius: 8px;
 }
 
@@ -1278,14 +1215,14 @@ body.dark-mode .config-example {
     background: #e3f2fd;
     border-radius: 8px;
     border-left: 4px solid #2196f3;
-    color: #333;
+    color: var(--texte);
 }
 
-/* --- DARK MODE MODALE ETUDIANTS --- */
+/* dark mode de la modale étudiants */
 body.dark-mode .modal-content {
-    background-color: #1a1d29;
-    border-color: #3a3d4a;
-    color: #e0e0e0;
+    background-color: var(--fond-sombre);
+    border-color: var(--gris-sombre-2);
+    color: var(--texte-clair);
 }
 
 body.dark-mode #modal-title {
@@ -1293,16 +1230,16 @@ body.dark-mode #modal-title {
 }
 
 body.dark-mode #modal-subtitle {
-    color: #b0b8c1 !important;
+    color: var(--texte-clair-2) !important;
 }
 
 body.dark-mode .student-list {
-    background: #24272f;
-    border-color: #3a3d4a;
+    background: var(--fond-sombre-2);
+    border-color: var(--gris-sombre-2);
 }
 
 body.dark-mode .student-item {
-    border-bottom-color: #3a3d4a;
+    border-bottom-color: var(--gris-sombre-2);
 }
 
 body.dark-mode .student-item:hover {
@@ -1314,8 +1251,8 @@ body.dark-mode .student-nip {
 }
 
 body.dark-mode .student-decision {
-    background: #3a3d4a;
-    color: #e0e0e0;
+    background: var(--gris-sombre-2);
+    color: var(--texte-clair);
 }
 
 body.dark-mode .decision-RED {
@@ -1334,12 +1271,12 @@ body.dark-mode .decision-NAR {
 }
 
 body.dark-mode .modal-footer {
-    border-top-color: #3a3d4a;
+    border-top-color: var(--gris-sombre-2);
 }
 
 body.dark-mode .btn-close-modal {
-    background: #3a3d4a;
-    color: #e0e0e0;
+    background: var(--gris-sombre-2);
+    color: var(--texte-clair);
 }
 
 body.dark-mode .btn-close-modal:hover {
@@ -1347,18 +1284,20 @@ body.dark-mode .btn-close-modal:hover {
 }
 
 body.dark-mode .close-modal {
-    color: #b0b8c1;
+    color: var(--texte-clair-2);
 }
 
 body.dark-mode .close-modal:hover {
     color: #64b5f6;
 }
 
-/* En-tête tableau dans la modale - dark mode */
+/* en-tête du tableau de la modale en sombre */
 body.dark-mode .student-item[style*="background:#f0f0f0"] {
-    background: #2a2d3a !important;
-    color: #e0e0e0;
-}/* --- Login Page Specifics --- */
+    background: var(--gris-sombre) !important;
+    color: var(--texte-clair);
+}
+
+/* page de connexion */
 .login-page {
     min-height: 100vh;
     background: #f0f2f5;
@@ -1372,7 +1311,7 @@ body.dark-mode.login-page {
     background: #0a0a0a;
 }
 
-/* Container principal split en 2 colonnes */
+/* container principal en 2 colonnes */
 .login-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1390,9 +1329,9 @@ body.dark-mode .login-container {
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
 }
 
-/* Panneau d'information (gauche) */
+/* panneau d'info (gauche) */
 .login-info-panel {
-    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
+    background: linear-gradient(135deg, var(--bleu-fonce) 0%, var(--bleu-moyen) 100%);
     color: white;
     padding: 3rem;
     display: flex;
@@ -1442,7 +1381,7 @@ body.dark-mode .login-info-panel {
     font-size: 0.95rem;
 }
 
-/* Features list */
+/* liste des features */
 .login-features {
     flex: 1;
     display: flex;
@@ -1490,7 +1429,7 @@ body.dark-mode .login-info-panel {
     margin: 0.3rem 0;
 }
 
-/* Panneau formulaire (droite) */
+/* panneau formulaire (droite) */
 .login-form-panel {
     padding: 3rem;
     display: flex;
@@ -1522,27 +1461,27 @@ body.dark-mode .login-form-panel {
     align-items: center;
     justify-content: center;
     margin: 0 auto 1.5rem;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
 }
 
 body.dark-mode .lock-icon {
-    background: linear-gradient(135deg, #1a3a5c 0%, #2d5a8c 100%);
+    background: linear-gradient(135deg, #1a3a5c 0%, var(--bleu-moyen) 100%);
     color: #90caf9;
 }
 
 .login-form-title {
     font-size: 1.8rem;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     margin-bottom: 0.5rem;
     font-weight: 700;
 }
 
 body.dark-mode .login-form-title {
-    color: #e0e0e0;
+    color: var(--texte-clair);
 }
 
 .login-form-subtitle {
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     font-size: 0.95rem;
 }
 
@@ -1550,7 +1489,7 @@ body.dark-mode .login-form-subtitle {
     color: #b0b0b0;
 }
 
-/* Messages d'erreur */
+/* messages d'erreur */
 .error-message {
     display: flex;
     align-items: center;
@@ -1573,7 +1512,7 @@ body.dark-mode .error-message {
     flex-shrink: 0;
 }
 
-/* Formulaire */
+/* formulaire */
 .login-form {
     margin-top: 1.5rem;
 }
@@ -1588,34 +1527,34 @@ body.dark-mode .error-message {
     gap: 0.5rem;
     font-size: 0.9rem;
     font-weight: 600;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     margin-bottom: 0.5rem;
 }
 
 body.dark-mode .input-label {
-    color: #e0e0e0;
+    color: var(--texte-clair);
 }
 
 .form-input {
     width: 100%;
     padding: 0.9rem 1rem;
-    border: 2px solid #e1e8ed;
+    border: 2px solid var(--bordure);
     border-radius: 10px;
     font-size: 1rem;
     transition: all 0.3s ease;
     background: white;
-    color: #333;
+    color: var(--texte);
 }
 
 body.dark-mode .form-input {
     background: #2c2c2c;
     border-color: #444;
-    color: #e0e0e0;
+    color: var(--texte-clair);
 }
 
 .form-input:focus {
     outline: none;
-    border-color: #2d5a8c;
+    border-color: var(--bleu-moyen);
     box-shadow: 0 0 0 4px rgba(45, 90, 140, 0.1);
 }
 
@@ -1628,7 +1567,7 @@ body.dark-mode .form-input:focus {
     color: #aaa;
 }
 
-/* Password input avec toggle */
+/* input mot de passe avec toggle */
 .password-input-wrapper {
     position: relative;
 }
@@ -1644,7 +1583,7 @@ body.dark-mode .form-input:focus {
     transform: translateY(-50%);
     background: none;
     border: none;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     cursor: pointer;
     padding: 0.5rem;
     display: flex;
@@ -1653,7 +1592,7 @@ body.dark-mode .form-input:focus {
 }
 
 .toggle-password:hover {
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
 }
 
 body.dark-mode .toggle-password {
@@ -1661,14 +1600,14 @@ body.dark-mode .toggle-password {
 }
 
 body.dark-mode .toggle-password:hover {
-    color: #e0e0e0;
+    color: var(--texte-clair);
 }
 
-/* Bouton de connexion */
+/* bouton de connexion */
 .btn-login {
     width: 100%;
     padding: 1rem 2rem;
-    background: linear-gradient(135deg, #1e3a5f 0%, #2d5a8c 100%);
+    background: linear-gradient(135deg, var(--bleu-fonce) 0%, var(--bleu-moyen) 100%);
     color: white;
     border: none;
     border-radius: 10px;
@@ -1692,7 +1631,7 @@ body.dark-mode .toggle-password:hover {
     transform: translateY(0);
 }
 
-/* Divider */
+/* séparateur */
 .login-divider {
     position: relative;
     text-align: center;
@@ -1706,7 +1645,7 @@ body.dark-mode .toggle-password:hover {
     right: 0;
     top: 50%;
     height: 1px;
-    background: #e1e8ed;
+    background: var(--bordure);
 }
 
 body.dark-mode .login-divider::before {
@@ -1717,7 +1656,7 @@ body.dark-mode .login-divider::before {
     position: relative;
     background: white;
     padding: 0 1rem;
-    color: #5a6c7d;
+    color: var(--texte-secondaire);
     font-size: 0.9rem;
 }
 
@@ -1726,7 +1665,7 @@ body.dark-mode .login-divider span {
     color: #b0b0b0;
 }
 
-/* Bouton retour accueil */
+/* bouton retour accueil */
 .btn-back-home {
     display: flex;
     align-items: center;
@@ -1734,9 +1673,9 @@ body.dark-mode .login-divider span {
     gap: 0.75rem;
     width: 100%;
     padding: 0.9rem 2rem;
-    background: #f8f9fa;
-    color: #1e3a5f;
-    border: 2px solid #e1e8ed;
+    background: var(--fond-page);
+    color: var(--bleu-fonce);
+    border: 2px solid var(--bordure);
     border-radius: 10px;
     font-size: 1rem;
     font-weight: 500;
@@ -1746,7 +1685,7 @@ body.dark-mode .login-divider span {
 
 body.dark-mode .btn-back-home {
     background: #2c2c2c;
-    color: #e0e0e0;
+    color: var(--texte-clair);
     border-color: #444;
 }
 
@@ -1759,7 +1698,7 @@ body.dark-mode .btn-back-home:hover {
     background: #3a3a3a;
 }
 
-/* Responsive */
+/* responsive */
 @media (max-width: 968px) {
     .login-container {
         grid-template-columns: 1fr;
@@ -1792,7 +1731,7 @@ body.dark-mode .btn-back-home:hover {
     }
 }
 
-/* Anciens styles à conserver */
+/* anciens styles à garder */
 .login-wrapper {
     margin: 0 auto;
     width: 100%;
@@ -1803,14 +1742,14 @@ body.dark-mode .btn-back-home:hover {
     margin-top: 2rem;
 }
 
-/* Espacement Sankey */
+/* espacement sankey */
 #sankey_chart {
     margin-bottom: 3rem;
 }
 
-/* Toggle Login Page Visibility */
+/* affichage/masquage de la page login */
 .login-page .btn-theme-toggle {
-    color: #333;
+    color: var(--texte);
     background: rgba(0,0,0,0.1);
     border-color: rgba(0,0,0,0.2);
 }
@@ -1820,7 +1759,7 @@ body.dark-mode .login-page .btn-theme-toggle {
     border-color: rgba(255,255,255,0.25);
 }
 
-/* Bouton fermeture alerte */
+/* bouton fermeture alerte */
 .close-alert {
     background: none;
     border: none;
@@ -1839,14 +1778,12 @@ body.dark-mode .login-page .btn-theme-toggle {
     background: rgba(0,0,0,0.05);
 }
 
-/* ===============================================
-   REFONTE VISUELLE CONFIGURATION AVANCEE (Override)
-   =============================================== */
+/* config avancée - version refaite, écrase les styles au-dessus */
 
-/* Light mode */
+/* mode clair */
 .config-card {
     background: white;
-    border: 2px solid #e1e8ed;
+    border: 2px solid var(--bordure);
     border-radius: 12px;
     padding: 2.5rem;
     margin-bottom: 2rem;
@@ -1860,28 +1797,28 @@ body.dark-mode .login-page .btn-theme-toggle {
     border-radius: 8px;
     margin-top: 0.5rem;
     background: white;
-    color: #333;
+    color: var(--texte);
     font-size: 1rem;
     transition: all 0.3s ease;
 }
 
 .config-input:focus {
     outline: none;
-    border-color: #2d5a8c;
+    border-color: var(--bleu-moyen);
     box-shadow: 0 0 0 3px rgba(45, 90, 140, 0.1);
 }
 
-/* Dark mode */
+/* dark mode */
 body.dark-mode .config-card {
-    background-color: #1a1d29;
-    border-color: #2a2d3a;
-    color: #e0e0e0;
+    background-color: var(--fond-sombre);
+    border-color: var(--gris-sombre);
+    color: var(--texte-clair);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
 body.dark-mode .config-input {
-    background-color: #24272f;
-    border-color: #3a3d4a;
+    background-color: var(--fond-sombre-2);
+    border-color: var(--gris-sombre-2);
     color: white;
 }
 
@@ -1894,13 +1831,10 @@ body.dark-mode .config-input::placeholder {
     color: #888;
 }
 
-
-/* ===============================================
-   TABLEAUX CONFIGURATION AVANCEE (Refonte)
-   =============================================== */
+/* tableaux config avancée */
 
 .config-subtitle {
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     margin-bottom: 1rem;
     font-size: 1.1rem;
     font-weight: 600;
@@ -1912,23 +1846,23 @@ body.dark-mode .config-input::placeholder {
     border-spacing: 0;
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid #e1e8ed;
+    border: 1px solid var(--bordure);
 }
 
 .config-table th {
-    background: #f8f9fa;
-    color: #5a6c7d;
+    background: var(--fond-page);
+    color: var(--texte-secondaire);
     font-weight: 600;
     padding: 0.75rem 1rem;
     text-align: left;
-    border-bottom: 1px solid #e1e8ed;
+    border-bottom: 1px solid var(--bordure);
 }
 
 .config-table td {
     background: white;
     padding: 0.75rem 1rem;
     border-bottom: 1px solid #eee;
-    color: #333;
+    color: var(--texte);
 }
 
 .config-table tr:last-child td {
@@ -1957,28 +1891,28 @@ body.dark-mode .config-input::placeholder {
     font-size: 0.85rem;
     font-weight: 500;
     background: #e3f2fd;
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
 }
 
-/* --- DARK MODE CONFIG TABLES --- */
+/* dark mode des tableaux config */
 body.dark-mode .config-subtitle {
-    color: #ffffff !important; /* TITRE BLANC DEMAND� */
+    color: #ffffff !important; /* TITRE BLANC DEMANDÉ */
 }
 
 body.dark-mode .config-table {
-    border-color: #3a3d4a;
+    border-color: var(--gris-sombre-2);
 }
 
 body.dark-mode .config-table th {
-    background: #24272f;
-    color: #b0b8c1;
-    border-bottom-color: #3a3d4a;
+    background: var(--fond-sombre-2);
+    color: var(--texte-clair-2);
+    border-bottom-color: var(--gris-sombre-2);
 }
 
 body.dark-mode .config-table td {
-    background: #1a1d29;
-    border-bottom-color: #3a3d4a;
-    color: #e0e0e0;
+    background: var(--fond-sombre);
+    border-bottom-color: var(--gris-sombre-2);
+    color: var(--texte-clair);
 }
 
 body.dark-mode .btn-delete-item {
@@ -1992,7 +1926,7 @@ body.dark-mode .btn-delete-item:hover {
 }
 
 body.dark-mode .chip-scenario {
-    background: #2d5a8c;
+    background: var(--bleu-moyen);
     color: white;
 }
 
@@ -2001,12 +1935,11 @@ body.dark-mode .config-empty {
     font-style: italic;
 }
 
-
-/* Titre Section Configuration */
+/* titre de la section config */
 .config-main-title {
-    color: #1e3a5f;
+    color: var(--bleu-fonce);
     margin-bottom: 2rem;
-    border-bottom: 2px solid #2d5a8c;
+    border-bottom: 2px solid var(--bleu-moyen);
     padding-bottom: 0.5rem;
 }
 
@@ -2015,7 +1948,7 @@ body.dark-mode .config-main-title {
     border-bottom-color: #64b5f6;
 }
 
-/* Shiny Button Style */
+/* bouton shiny */
 .btn-shiny {
   position: relative;
   transition: all 0.3s ease-in-out;
@@ -2074,7 +2007,7 @@ body.dark-mode .config-main-title {
   to { left: 100%; }
 }
 
-/* Couleurs des D�cisions (Ajout dynamique) */
+/* couleurs des décisions (classes posées par le js) */
 .decision-Dip {
     background-color: #d4edda;
     color: #155724;
@@ -2104,8 +2037,7 @@ body.dark-mode .config-main-title {
     border-radius: 4px;
 }
 
-
-/* Correctifs Couleurs D�cisions (S�mantique) */
+/* fix couleurs des décisions */
 .decision-success {
     background-color: #d4edda;
     color: #155724;
