@@ -548,22 +548,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeBtn) closeBtn.onclick = () => document.getElementById('student-modal').style.display = "none";
 });
 
-// --- FONCTION D'EXPORT PDF (Conformité) --- (amel)
-function générerPDF() {
-    const elementSankey = document.querySelector("#sankey-charts"); // Ton sélecteur de graphique
 
-    html2canvas(elementSankey, {
-        scale: 2,          // Multiplie la densité de pixels par 2 (Rendu super net !)
-        useCORS: true,     // Évite les bugs d'images ou de polices externes
-        logging: false     // Désactive les logs dans la console
-    }).then(canvas => {
-        const imgData = canvas.toDataURL('image/jpeg', 1.0);
-        
-        // C'est ici qu'on configure jsPDF pour un format A4 paysage et qu'on ajoute l'image
-        construireLayoutPDF(imgData);
-    });
-}
-// --- FONCTION DE CONSTRUCTION DU PDF (Conformité) ---
+// --- FONCTION DE CONSTRUCTION DU PDF (Conformité) ---(amel)
 function générerPDF() {
     const elementSankey = document.querySelector("#sankey-charts");
 
