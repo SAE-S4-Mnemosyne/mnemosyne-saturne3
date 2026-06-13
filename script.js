@@ -547,3 +547,98 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.querySelector('.close-modal');
     if (closeBtn) closeBtn.onclick = () => document.getElementById('student-modal').style.display = "none";
 });
+
+
+// --- FONCTION DE CONSTRUCTION DU PDF (Conformité) ---(amel)
+function générerPDF() {
+    const elementSankey = document.querySelector("#sankey-charts");
+
+    // 1. On capture le diagramme Sankey avec une haute résolution (Scale 2)
+    html2canvas(elementSankey, {
+        scale: 2,
+        useCORS: true,
+        logging: false
+    }).then(canvas => {
+        const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
+        
+        // 2. On charge le logo Mnémosyne en mémoire
+        const logo = new Image();
+        logo.src = 'assets/logo.png';
+        
+        logo.onload = function() {
+            // Le logo est chargé, on peut construire le PDF
+            construireLayoutPDF(imgSankey, logo);
+        };
+        
+        logo.onerror = function() {
+            console.warn("Impossible de charger le logo depuis assets/logo.png, génération sans logo.");
+            construireLayoutPDF(imgSankey, null);
+        };
+    });
+}
+
+function construireLayoutPDF(imgSankey, logoImg) {
+    const doc = new jspdf.jsPDF('p', 'mm', 'a4');
+    
+    // --- 1. EN-TÊTE (HEADER) ---
+    // Si le logo a bien été chargé, on l'affiche à gauche (x=15, y=10, largeur=22, hauteur=22)
+    if (logoImg) {
+        doc.addImage(logoImg, 'PNG', 15, 10, 22, 22);
+    }
+
+    // Textes de l'en-tête (Décalés à x=42 pour laisser la place au logo)
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(18);
+    doc.setTextColor(41, 128, 185); // Joli bleu qui respecte la charte graphique de Mnémosyne
+    doc.text("MNÉMOSYNE", 42, 18);
+    
+    doc.setFont("Helvetica", "normal");
+    doc.setFontSize(10);
+    doc.setTextColor(100, 100, 100); // Gris pour les sous-titres
+    doc.text("IUT de Villetaneuse - BUT Informatique", 42, 24);
+    doc.text("Suivi des flux de progression", 42, 29);
+
+    // Ligne de séparation sous l'en-tête
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.line(15, 36, 195, 36);
+
+    // --- 2. TITRE DU RAPPORT ---
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text("Rapport d'Analyse des Flux d'Étudiants", 15, 46);
+
+    // --- 3. DIAGRAMME SANKEY ---
+    // On positionne le Sankey à la coordonnée y=52
+    doc.addImage(imgSankey, 'JPEG', 15, 52, 180, 90);
+
+    // --- 4. TABLEAU DES EFFECTIFS (jsPDF-AutoTable) ---
+    const colonnesTableau = ["Semestre", "Effectif Initial", "Admis", "Redoublants", "Réorientations / Abandons"];
+    const donneesTableau = [
+        ["Semestre 1", "120", "85", "25", "10"],
+        ["Semestre 2", "110", "78", "22", "10"],
+        ["Semestre 3", "88", "65", "15", "8"]
+    ];
+
+    doc.autoTable({
+        startY: 150,                  // Démarre juste en dessous du diagramme Sankey
+        head: [colonnesTableau],
+        body: donneesTableau,
+        theme: 'striped',
+        headStyles: { fillColor: [41, 128, 185] }, // Match avec la couleur du titre
+        styles: { font: "Helvetica", fontSize: 9, cellPadding: 3 }
+    });
+
+    // --- 5. PIED DE PAGE (FOOTER) ---
+    const dateAujourdhui = new Date().toLocaleDateString('fr-FR');
+    doc.setFont("Helvetica", "italic");
+    doc.setFontSize(9);
+    doc.setTextColor(150, 150, 150);
+    
+    doc.text(`Généré le ${dateAujourdhui} | Projet Saturne C`, 15, 287);
+    doc.text("Page 1 sur 1", 175, 287);
+
+    // Téléchargement du fichier
+    doc.save("Rapport_Mnemosyne.pdf");
+}

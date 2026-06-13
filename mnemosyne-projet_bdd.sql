@@ -312,8 +312,9 @@ ALTER TABLE `Semestre_Instance`
 --
 ALTER TABLE `Inscription`
   ADD CONSTRAINT `fk_inscription_etudiant` FOREIGN KEY (`code_nip`) REFERENCES `Etudiant` (`code_nip`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_inscription_semestre` FOREIGN KEY (`id_formsemestre`) REFERENCES `Semestre_Instance` (`id_formsemestre`);
-
+  ADD CONSTRAINT `fk_inscription_semestre` FOREIGN KEY (`id_formsemestre`) REFERENCES `Semestre_Instance` (`id_formsemestre`),
+  -- ajout de la contrainte d'unicité pour éviter les doublons d'inscription d'un même étudiant au même semestre
+  ADD CONSTRAINT `unique_etudiant_semestre` UNIQUE (`code_nip`, `id_formsemestre`);
 --
 -- Constraints for table `Decision_Annuelle`
 --
@@ -324,8 +325,9 @@ ALTER TABLE `Decision_Annuelle`
 -- Constraints for table `Resultat_Competence`
 --
 ALTER TABLE `Resultat_Competence`
-  ADD CONSTRAINT `fk_resultat_inscription` FOREIGN KEY (`id_inscription`) REFERENCES `Inscription` (`id_inscription`) ON DELETE CASCADE;
-
+  ADD CONSTRAINT `fk_resultat_inscription` FOREIGN KEY (`id_inscription`) REFERENCES `Inscription` (`id_inscription`) ON DELETE CASCADE,
+  -- Ajout de la contrainte d'unicité pour éviter les doublons de résultat pour une même compétence d'une même inscription
+  ADD CONSTRAINT `unique_inscription_competence` UNIQUE (`id_inscription`, `numero_competence`);
 --
 -- Constraints for table `scenario_correspondance`
 --
