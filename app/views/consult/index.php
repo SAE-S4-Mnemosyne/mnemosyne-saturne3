@@ -97,20 +97,20 @@
                     </div>
 
                     <!-- Filtres avances -->
-                    <div class="advanced-filters" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="font-weight: bold; margin-bottom: 10px; color: #a0aec0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;">FILTRES AVANCES</div>
-                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div class="advanced-filters">
+                        <div class="filters-title">FILTRES AVANCES</div>
+                        <div class="filters-row">
                             <div class="filter-group-start">
-                                <label style="font-size: 0.9rem; margin-right: 10px; font-weight:600;">Regime :</label>
-                                <div class="radio-group" style="display: inline-flex; gap: 10px;">
+                                <label class="filter-label">Regime :</label>
+                                <div class="radio-group">
                                     <label><input type="radio" name="regime" value="ALL" checked> Tous</label>
                                     <label><input type="radio" name="regime" value="FI"> FI (Formation Initiale)</label>
                                     <label><input type="radio" name="regime" value="FA"> FA (Alternance)</label>
                                 </div>
                             </div>
                             <div class="filter-group-end">
-                                <label for="filter-status" style="font-size: 0.9rem; margin-right: 10px; font-weight:600;">Reussite :</label>
-                                <select id="filter-status" class="form-select-sm" style="padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: #1a202c; color: #e2e8f0; font-size: 0.9rem; cursor: pointer;">
+                                <label for="filter-status" class="filter-label">Reussite :</label>
+                                <select id="filter-status" class="form-select-sm">
                                     <option value="ALL">Tout afficher</option>
                                     <option value="PASS_OK">Validation (Sans dette)</option>
                                     <option value="PASS_DEBT">Validation (Avec dette/jury)</option>
@@ -129,15 +129,15 @@
 
                     <button type="submit" class="btn-submit">
                         Voir les parcours
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 8px; vertical-align: middle;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </button>
                 </form>
             </div>
 
-            <div id="chart-wrapper" style="position: relative;">
+            <div id="chart-wrapper">
                 <div id="sankey_chart" class="chart-box">
                     <div class="empty-state">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1dce5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1dce5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
                             <path d="M2 12h20M2 12l5-5m-5 5l5 5"/>
                             <circle cx="12" cy="12" r="10"/>
                         </svg>
@@ -148,38 +148,7 @@
             </div>
 
             <div class="results-section" id="results-section" style="display:none; margin-top: 3rem;">
-                <div class="results-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
-    <div>
-        <h3 class="results-title">Bilan des competences & Decisions de jury</h3>
-        <p class="results-subtitle" id="stats-subtitle">Formation : - -- Annee : -</p>
-        <p id="statut-promo" style="display:none; font-weight: bold; margin-top: 0.5rem;"></p>
-    </div>
-
-    <button type="button" id="btn-export-pdf" onclick="générerPDF()" style="
-        background-color: #2980b9; 
-        color: white; 
-        border: none; 
-        padding: 10px 18px; 
-        font-size: 14px; 
-        font-weight: bold;
-        border-radius: 4px; 
-        cursor: pointer; 
-        display: inline-flex; 
-        align-items: center; 
-        gap: 8px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        transition: background 0.2s;">
-        
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-            <polyline points="14 2 14 8 20 8"></polyline>
-            <line x1="16" y1="13" x2="8" y2="13"></line>
-            <line x1="16" y1="17" x2="8" y2="17"></line>
-            <polyline points="10 9 9 9 8 9"></polyline>
-        </svg>
-        Exporter en PDF
-    </button>
-</div>
+                <div class="results-header">
                     <h3 class="results-title">Bilan des competences & Decisions de jury</h3>
                     <p class="results-subtitle" id="stats-subtitle">Formation : - -- Annee : -</p>
                     <p id="statut-promo" style="display:none; font-weight: bold; margin-top: 0.5rem;"></p>
@@ -232,7 +201,7 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <h3 id="modal-title">Etudiants du flux</h3>
-            <p id="modal-subtitle" style="color: #666; margin-bottom: 1rem;">Liste des etudiants concernes par ce parcours.</p>
+            <p id="modal-subtitle" class="modal-subtitle">Liste des etudiants concernes par ce parcours.</p>
             <div id="student-list-container" class="student-list">
                 <p>Chargement...</p>
             </div>
