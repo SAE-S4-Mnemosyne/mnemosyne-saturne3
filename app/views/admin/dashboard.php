@@ -79,7 +79,7 @@
                     </div>
                 </div>
 
-                <div class="header-center" style="display: flex; gap: 0.5rem;">
+                <div class="header-center">
                     <form method="POST" class="sync-form-header" id="sync-form">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                         <button type="submit" name="run_sync" class="btn-sync-header">
@@ -122,7 +122,7 @@
             </div>
 
             <!-- Loader sync inline -->
-            <div id="sync-loader" class="sync-loader" style="display: none;">
+            <div id="sync-loader" class="sync-loader is-hidden">
                 <div class="loader-content-inline">
                     <div class="spinner-inline"></div>
                     <p class="loader-text-inline">Synchronisation avec ScoDoc en cours...</p>
@@ -131,13 +131,13 @@
 
             <!-- Alert feedback -->
             <?php if (!empty($message)): ?>
-                <div class="admin-alert <?php echo ($messageType === 'success') ? 'alert-success' : 'alert-error'; ?>" style="position: relative;">
+                <div class="admin-alert admin-alert--relative <?php echo ($messageType === 'success') ? 'alert-success' : 'alert-error'; ?>">
                     <?php if($messageType === 'success'): ?>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                     <?php else: ?>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                     <?php endif; ?>
-                    <div style="flex: 1;"><?php echo $message; ?></div>
+                    <div class="alert-message"><?php echo $message; ?></div>
                     <button type="button" class="close-alert" onclick="this.parentElement.style.display='none'">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
@@ -164,20 +164,20 @@
                     </div>
 
                     <!-- Filtres avances -->
-                    <div class="advanced-filters" style="background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1);">
-                        <div style="font-weight: bold; margin-bottom: 10px; color: #a0aec0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;">FILTRES AVANCES</div>
-                        <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div class="advanced-filters">
+                        <div class="filters-title">FILTRES AVANCES</div>
+                        <div class="filters-row">
                             <div class="filter-group-start">
-                                <label style="font-size: 0.9rem; margin-right: 10px; font-weight:600;">Regime :</label>
-                                <div class="radio-group" style="display: inline-flex; gap: 10px;">
+                                <label class="filter-label">Regime :</label>
+                                <div class="radio-group">
                                     <label><input type="radio" name="regime" value="ALL" checked> Tous</label>
                                     <label><input type="radio" name="regime" value="FI"> FI (Formation Initiale)</label>
                                     <label><input type="radio" name="regime" value="FA"> FA (Alternance)</label>
                                 </div>
                             </div>
                             <div class="filter-group-end">
-                                <label for="filter-status" style="font-size: 0.9rem; margin-right: 10px; font-weight:600;">Reussite :</label>
-                                <select id="filter-status" class="form-select-sm" style="padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); background: #1a202c; color: #e2e8f0; font-size: 0.9rem; cursor: pointer;">
+                                <label for="filter-status" class="filter-label">Reussite :</label>
+                                <select id="filter-status" class="form-select-sm">
                                     <option value="ALL">Tout afficher</option>
                                     <option value="PASS_OK">Validation (Sans dette)</option>
                                     <option value="PASS_DEBT">Validation (Avec dette/jury)</option>
@@ -196,19 +196,19 @@
 
                     <button type="submit" class="btn-submit">
                         Voir les parcours
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 8px; vertical-align: middle;"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </button>
                 </form>
             </div>
 
-            <div id="chart-wrapper" style="position: relative;">
-                <div id="chart-loader" class="chart-loader" style="display: none;">
+            <div id="chart-wrapper" class="chart-wrapper">
+                <div id="chart-loader" class="chart-loader is-hidden">
                     <div class="spinner"></div>
                     <p>Chargement des donnees...</p>
                 </div>
                 <div id="sankey_chart" class="chart-box">
                     <div class="empty-state">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1dce5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom: 1rem;">
+                        <svg class="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1dce5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M2 12h20M2 12l5-5m-5 5l5 5"/>
                             <circle cx="12" cy="12" r="10"/>
                         </svg>
@@ -218,13 +218,13 @@
                 </div>
             </div>
 
-            <div class="results-section" id="results-section" style="display:none; margin-top: 3rem;">
-                <div class="results-header" style="display: flex; justify-content: space-between; align-items: center;">
+            <div class="results-section is-hidden" id="results-section">
+                <div class="results-header results-header--admin">
                     <div>
                         <h3 class="results-title">Bilan des competences & Decisions de jury</h3>
                         <p class="results-subtitle" id="stats-subtitle">Formation : - -- Annee : -</p>
                     </div>
-                    <button type="button" class="btn-submit" id="btn-pdf" onclick="exportPDF()" style="padding: 0.5rem 1rem; margin-left: auto;">
+                    <button type="button" class="btn-submit btn-pdf-admin" id="btn-pdf" onclick="exportPDF()">
                         Exporter en PDF
                     </button>
                 </div>
@@ -277,9 +277,9 @@
                     </div>
                 </div>
 
-                <div class="total-section" style="justify-content: flex-start; gap: 0.5rem; font-size: 1.1rem;">
-                    <span class="total-label" style="font-weight: 600;">Total des etudiants :</span>
-                    <span class="total-number" id="total-students" style="font-weight: bold; font-size: inherit;">0</span>
+                <div class="total-section total-section--admin">
+                    <span class="total-label total-label--bold">Total des etudiants :</span>
+                    <span class="total-number total-number--inherit" id="total-students">0</span>
                 </div>
 
                 <div class="info-section">
@@ -295,25 +295,25 @@
         </div>
 
         <!-- Section administration avancee -->
-        <div class="container" style="margin-top: 3rem;">
+        <div class="container config-section">
             <h2 class="config-main-title">Configuration Avancee</h2>
 
             <!-- Interface Mapping -->
             <div class="config-card">
-                <h3 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Mapping des Codes ScoDoc</h3>
-                <p style="color: var(--text-muted, #666); margin-bottom: 1.5rem;">Associez les codes techniques ScoDoc a des libelles lisibles pour les graphiques.</p>
+                <h3 class="config-card-title">Mapping des Codes ScoDoc</h3>
+                <p class="config-card-desc">Associez les codes techniques ScoDoc a des libelles lisibles pour les graphiques.</p>
 
-                <form method="POST" style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr auto;">
+                <form method="POST" class="config-form config-form--2col">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Code ScoDoc</label>
+                        <label class="config-label">Code ScoDoc</label>
                         <input type="text" name="mapping_code" placeholder="Ex: B1-INFO-FI" class="config-input">
                     </div>
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Libelle Affiche</label>
+                        <label class="config-label">Libelle Affiche</label>
                         <input type="text" name="mapping_label" placeholder="Ex: BUT1 Informatique FI" class="config-input">
                     </div>
-                    <button type="submit" name="add_mapping" class="btn-shiny" style="align-self: end;">
+                    <button type="submit" name="add_mapping" class="btn-shiny config-submit">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -322,18 +322,18 @@
                     </button>
                 </form>
 
-                <div style="margin-top: 1.5rem;">
+                <div class="config-list">
                     <h4 class="config-subtitle">Mappings existants</h4>
                     <?php if (count($mappings) > 0): ?>
                         <table class="config-table">
-                            <thead><tr><th>Code ScoDoc</th><th>Libelle Affiche</th><th style="text-align: center;">Action</th></tr></thead>
+                            <thead><tr><th>Code ScoDoc</th><th>Libelle Affiche</th><th class="cell-center">Action</th></tr></thead>
                             <tbody>
                                 <?php foreach ($mappings as $m): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($m['code_scodoc']); ?></td>
                                     <td><?php echo htmlspecialchars($m['libelle_graphique']); ?></td>
-                                    <td style="text-align: center;">
-                                        <form method="POST" style="display: inline;">
+                                    <td class="cell-center">
+                                        <form method="POST" class="form-inline">
                                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                                             <input type="hidden" name="delete_mapping_id" value="<?php echo $m['id']; ?>">
                                             <button type="submit" name="delete_mapping" class="btn-delete-item">X</button>
@@ -351,13 +351,13 @@
 
             <!-- Interface Scenarios -->
             <div class="config-card">
-                <h3 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Regles de Scenarios (Flux)</h3>
-                <p style="color: var(--text-muted, #666); margin-bottom: 1.5rem;">Definissez comment les transitions sont classifiees dans le Sankey.</p>
+                <h3 class="config-card-title">Regles de Scenarios (Flux)</h3>
+                <p class="config-card-desc">Definissez comment les transitions sont classifiees dans le Sankey.</p>
 
-                <form method="POST" style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr 1fr auto;">
+                <form method="POST" class="config-form config-form--3col">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Formation Source</label>
+                        <label class="config-label">Formation Source</label>
                         <select name="scenario_source" class="config-input">
                             <option value="">Selectionner...</option>
                             <?php foreach ($formations as $f): ?>
@@ -366,7 +366,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Formation Cible</label>
+                        <label class="config-label">Formation Cible</label>
                         <select name="scenario_target" class="config-input">
                             <option value="">Selectionner...</option>
                             <?php foreach ($formations as $f): ?>
@@ -375,7 +375,7 @@
                         </select>
                     </div>
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Type de Flux</label>
+                        <label class="config-label">Type de Flux</label>
                         <select name="scenario_type" class="config-input">
                             <option value="passage">Passage Normal</option>
                             <option value="redoublement">Redoublement</option>
@@ -384,7 +384,7 @@
                             <option value="abandon">Abandon</option>
                         </select>
                     </div>
-                    <button type="submit" name="add_scenario" class="btn-shiny" style="align-self: end;">
+                    <button type="submit" name="add_scenario" class="btn-shiny config-submit">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <line x1="12" y1="5" x2="12" y2="19"></line>
                             <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -393,19 +393,19 @@
                     </button>
                 </form>
 
-                <div style="margin-top: 1.5rem;">
+                <div class="config-list">
                     <h4 class="config-subtitle">Scenarios existants</h4>
                     <?php if (count($scenarios) > 0): ?>
                         <table class="config-table">
-                            <thead><tr><th>Source</th><th>Cible</th><th>Type</th><th style="text-align: center;">Action</th></tr></thead>
+                            <thead><tr><th>Source</th><th>Cible</th><th>Type</th><th class="cell-center">Action</th></tr></thead>
                             <tbody>
                                 <?php foreach ($scenarios as $s): ?>
                                 <tr>
                                     <td><?php echo htmlspecialchars($s['formation_source']); ?></td>
                                     <td><?php echo htmlspecialchars($s['formation_cible']); ?></td>
                                     <td><span class="chip-scenario <?php echo htmlspecialchars($s['type_flux']); ?>"><?php echo htmlspecialchars($s['type_flux']); ?></span></td>
-                                    <td style="text-align: center;">
-                                        <form method="POST" style="display: inline;">
+                                    <td class="cell-center">
+                                        <form method="POST" class="form-inline">
                                             <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                                             <input type="hidden" name="delete_scenario_id" value="<?php echo $s['id_scenario']; ?>">
                                             <button type="submit" name="delete_scenario" class="btn-delete-item">X</button>
@@ -423,24 +423,24 @@
 
             <!-- Securite du compte -->
             <div class="config-card">
-                <h3 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Securite du compte</h3>
-                <p style="color: var(--text-muted, #666); margin-bottom: 1.5rem;">Modifier le mot de passe administrateur. Le mot de passe doit contenir au moins 8 caracteres.</p>
+                <h3 class="config-card-title">Securite du compte</h3>
+                <p class="config-card-desc">Modifier le mot de passe administrateur. Le mot de passe doit contenir au moins 8 caracteres.</p>
 
-                <form method="POST" style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr 1fr auto;">
+                <form method="POST" class="config-form config-form--3col">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Ancien mot de passe</label>
+                        <label class="config-label">Ancien mot de passe</label>
                         <input type="password" name="old_password" class="config-input" placeholder="Mot de passe actuel" required>
                     </div>
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Nouveau mot de passe</label>
+                        <label class="config-label">Nouveau mot de passe</label>
                         <input type="password" name="new_password" class="config-input" placeholder="Minimum 8 caracteres" required minlength="8">
                     </div>
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Confirmer</label>
+                        <label class="config-label">Confirmer</label>
                         <input type="password" name="confirm_password" class="config-input" placeholder="Confirmer le nouveau" required minlength="8">
                     </div>
-                    <button type="submit" name="update_password" class="btn-shiny" style="align-self: end;">
+                    <button type="submit" name="update_password" class="btn-shiny config-submit">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -457,7 +457,7 @@
         <div class="modal-content">
             <span class="close-modal">&times;</span>
             <h3 id="modal-title">Etudiants du flux</h3>
-            <p id="modal-subtitle" style="color: #666; margin-bottom: 1rem;">Liste des etudiants concernes par ce parcours.</p>
+            <p id="modal-subtitle" class="modal-subtitle">Liste des etudiants concernes par ce parcours.</p>
             <div id="student-list-container" class="student-list">
                 <p>Chargement...</p>
             </div>
