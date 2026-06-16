@@ -2,19 +2,23 @@
 /**
  * AdminController -- Logique metier de la page admin.
  * Gere la synchronisation, les mappings et les scenarios.
+ * Delegue les requetes SQL aux Models (AdminModel, FormationModel).
  */
 session_start();
 require_once __DIR__ . '/../core/Database.php';
+require_once __DIR__ . '/../models/AdminModel.php';
+require_once __DIR__ . '/../models/FormationModel.php';
 
 class AdminController {
-    private $pdo;
+    private $adminModel;
+    private $formationModel;
     private $message = '';
     private $messageType = '';
 
     public function __construct() {
         // Verifier l'authentification
         if (!isset($_SESSION['admin_logged_in']) || $_SESSION['admin_logged_in'] !== true) {
-            header('Location: login.html');
+            header('Location: login.php');
             exit;
         }
 
@@ -25,7 +29,8 @@ class AdminController {
             exit;
         }
 
-        $this->pdo = Database::getInstance();
+        $this->adminModel = new AdminModel();
+        $this->formationModel = new FormationModel();
 
         // Recuperer le message de la session (POST-Redirect-GET)
         if (isset($_SESSION['sync_message'])) {
@@ -74,6 +79,8 @@ class AdminController {
             $this->deleteScenario();
         } elseif (isset($_POST['run_sync'])) {
             $this->runSync();
+        } elseif (isset($_POST['update_password'])) {
+            $this->updatePassword();
         }
     }
 
@@ -103,14 +110,7 @@ class AdminController {
         $label = trim($_POST['mapping_label'] ?? '');
         if ($code && $label) {
             try {
-                $this->pdo->exec("CREATE TABLE IF NOT EXISTS mapping_codes (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    code_scodoc VARCHAR(100) UNIQUE,
-                    libelle_graphique VARCHAR(255)
-                )");
-                $stmt = $this->pdo->prepare("INSERT INTO mapping_codes (code_scodoc, libelle_graphique) VALUES (?, ?)
-                    ON DUPLICATE KEY UPDATE libelle_graphique = VALUES(libelle_graphique)");
-                $stmt->execute([$code, $label]);
+                $this->adminModel->ajouterMapping($code, $label);
                 $this->message = "Mapping ajoute : $code -> $label";
                 $this->messageType = "success";
             } catch (Exception $e) {
@@ -127,9 +127,7 @@ class AdminController {
         $type = trim($_POST['scenario_type'] ?? '');
         if ($source > 0 && $target > 0 && $type) {
             try {
-                $stmt = $this->pdo->prepare("INSERT INTO scenario_correspondance (id_formation_source, id_formation_cible, type_flux) VALUES (?, ?, ?)
-                    ON DUPLICATE KEY UPDATE type_flux = VALUES(type_flux)");
-                $stmt->execute([$source, $target, $type]);
+                $this->adminModel->ajouterScenario($source, $target, $type);
                 $this->message = "Scenario ajoute avec succes.";
                 $this->messageType = "success";
             } catch (Exception $e) {
@@ -144,8 +142,7 @@ class AdminController {
         $id = (int)($_POST['delete_mapping_id'] ?? 0);
         if ($id > 0) {
             try {
-                $stmt = $this->pdo->prepare("DELETE FROM mapping_codes WHERE id = ?");
-                $stmt->execute([$id]);
+                $this->adminModel->supprimerMapping($id);
                 $this->message = "Mapping supprime.";
                 $this->messageType = "success";
             } catch (Exception $e) {
@@ -160,8 +157,7 @@ class AdminController {
         $id = (int)($_POST['delete_scenario_id'] ?? 0);
         if ($id > 0) {
             try {
-                $stmt = $this->pdo->prepare("DELETE FROM scenario_correspondance WHERE id_scenario = ?");
-                $stmt->execute([$id]);
+                $this->adminModel->supprimerScenario($id);
                 $this->message = "Scenario supprime.";
                 $this->messageType = "success";
             } catch (Exception $e) {
@@ -212,7 +208,8 @@ class AdminController {
             }
 
             require_once __DIR__ . '/../../import/run_all_imports.php';
-            $results = runAllImports($this->pdo, $folder);
+            $pdo = Database::getInstance();
+            $results = runAllImports($pdo, $folder);
 
             if ($results['success']) {
                 $stepsMsg = implode(" | ", $results['steps']);
@@ -234,45 +231,75 @@ class AdminController {
     }
 
     /**
-     * Recuperer les donnees pour la vue.
+     * Modifier le mot de passe administrateur.
+     * Verifie l'ancien mot de passe, valide la confirmation
+     * et hache le nouveau via password_hash (Argon2id).
+     */
+    private function updatePassword() {
+        $ancien   = $_POST['old_password']     ?? '';
+        $nouveau  = $_POST['new_password']     ?? '';
+        $confirme = $_POST['confirm_password'] ?? '';
+
+        // Verifier que tous les champs sont remplis
+        if (empty($ancien) || empty($nouveau) || empty($confirme)) {
+            $this->message = "Tous les champs sont obligatoires.";
+            $this->messageType = "error";
+            return;
+        }
+
+        // Verifier que le nouveau mot de passe et la confirmation correspondent
+        if ($nouveau !== $confirme) {
+            $this->message = "Le nouveau mot de passe et la confirmation ne correspondent pas.";
+            $this->messageType = "error";
+            return;
+        }
+
+        // Verifier la longueur minimale
+        if (strlen($nouveau) < 8) {
+            $this->message = "Le mot de passe doit contenir au moins 8 caracteres.";
+            $this->messageType = "error";
+            return;
+        }
+
+        try {
+            $adminId = $_SESSION['admin_id'] ?? null;
+            if (!$adminId) {
+                $this->message = "Session invalide, veuillez vous reconnecter.";
+                $this->messageType = "error";
+                return;
+            }
+
+            // Recuperer le hash actuel via le Model
+            $hashActuel = $this->adminModel->getMotDePasseAdmin($adminId);
+
+            if (!$hashActuel || !password_verify($ancien, $hashActuel)) {
+                $this->message = "L'ancien mot de passe est incorrect.";
+                $this->messageType = "error";
+                return;
+            }
+
+            // Hacher le nouveau mot de passe et mettre a jour via le Model
+            $hash = password_hash($nouveau, PASSWORD_ARGON2ID);
+            $this->adminModel->mettreAJourMotDePasse($adminId, $hash);
+
+            $this->message = "Mot de passe modifie avec succes.";
+            $this->messageType = "success";
+
+        } catch (Exception $e) {
+            error_log("Erreur changement mot de passe : " . $e->getMessage());
+            $this->message = "Erreur technique lors du changement de mot de passe.";
+            $this->messageType = "error";
+        }
+    }
+
+    /**
+     * Recuperer les donnees pour la vue via les Models.
      */
     private function getViewData() {
-        $mappings = [];
-        $scenarios = [];
-        $formations = [];
-
-        try {
-            $stmt = $this->pdo->query("SELECT id, code_scodoc, libelle_graphique FROM mapping_codes ORDER BY code_scodoc");
-            $mappings = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            // Table n'existe pas encore
-        }
-
-        try {
-            $stmt = $this->pdo->query("
-                SELECT sc.id_scenario, sc.type_flux,
-                       fs.titre AS formation_source, fc.titre AS formation_cible
-                FROM scenario_correspondance sc
-                JOIN Formation fs ON sc.id_formation_source = fs.id_formation
-                JOIN Formation fc ON sc.id_formation_cible = fc.id_formation
-                ORDER BY fs.titre
-            ");
-            $scenarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            // Table n'existe pas encore
-        }
-
-        try {
-            $stmt = $this->pdo->query("SELECT id_formation, titre FROM Formation ORDER BY titre");
-            $formations = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (Exception $e) {
-            // Table n'existe pas encore
-        }
-
         return [
-            'mappings' => $mappings,
-            'scenarios' => $scenarios,
-            'formations' => $formations,
+            'mappings' => $this->adminModel->getMappings(),
+            'scenarios' => $this->adminModel->getScenarios(),
+            'formations' => $this->formationModel->getAll(),
             'csrfToken' => self::generateCSRF()
         ];
     }

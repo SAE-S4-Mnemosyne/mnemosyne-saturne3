@@ -128,7 +128,8 @@
                     <span id="error-text"></span>
                 </div>
 
-                <form action="auth.php" method="POST" class="login-form">
+                <form action="login.php" method="POST" class="login-form">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken ?? ''); ?>">
                     <div class="form-input-group">
                         <label for="username" class="input-label">
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
