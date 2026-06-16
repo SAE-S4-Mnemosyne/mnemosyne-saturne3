@@ -10,7 +10,40 @@
     <link rel="stylesheet" href="loader.css?v=2">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-
+    <style>
+        .btn-sync-header {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 0.6rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        .btn-sync-header:hover {
+            background: white;
+            color: #1e3a5f;
+            transform: scale(1.05);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+        .admin-alert {
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .alert-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
 </head>
 <body>
 
@@ -89,7 +122,7 @@
             </div>
 
             <!-- Loader sync inline -->
-            <div id="sync-loader" class="sync-loader" style="display: none;">
+            <div id="sync-loader" class="sync-loader is-hidden">
                 <div class="loader-content-inline">
                     <div class="spinner-inline"></div>
                     <p class="loader-text-inline">Synchronisation avec ScoDoc en cours...</p>
@@ -98,7 +131,7 @@
 
             <!-- Alert feedback -->
             <?php if (!empty($message)): ?>
-                <div class="admin-alert <?php echo ($messageType === 'success') ? 'alert-success' : 'alert-error'; ?>">
+                <div class="admin-alert admin-alert--relative <?php echo ($messageType === 'success') ? 'alert-success' : 'alert-error'; ?>">
                     <?php if($messageType === 'success'): ?>
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                     <?php else: ?>
@@ -163,19 +196,19 @@
 
                     <button type="submit" class="btn-submit">
                         Voir les parcours
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </button>
                 </form>
             </div>
 
-            <div id="chart-wrapper">
-                <div id="chart-loader" class="chart-loader" style="display: none;">
+            <div id="chart-wrapper" class="chart-wrapper">
+                <div id="chart-loader" class="chart-loader is-hidden">
                     <div class="spinner"></div>
                     <p>Chargement des donnees...</p>
                 </div>
                 <div id="sankey_chart" class="chart-box">
                     <div class="empty-state">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1dce5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+                        <svg class="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1dce5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M2 12h20M2 12l5-5m-5 5l5 5"/>
                             <circle cx="12" cy="12" r="10"/>
                         </svg>
@@ -185,13 +218,13 @@
                 </div>
             </div>
 
-            <div class="results-section" id="results-section" style="display:none; margin-top: 3rem;">
+            <div class="results-section is-hidden" id="results-section">
                 <div class="results-header results-header--admin">
                     <div>
                         <h3 class="results-title">Bilan des competences & Decisions de jury</h3>
                         <p class="results-subtitle" id="stats-subtitle">Formation : - -- Annee : -</p>
                     </div>
-                    <button type="button" class="btn-submit btn-pdf-export" id="btn-pdf" onclick="exportPDF()">
+                    <button type="button" class="btn-submit btn-pdf-admin" id="btn-pdf" onclick="exportPDF()">
                         Exporter en PDF
                     </button>
                 </div>
@@ -245,8 +278,8 @@
                 </div>
 
                 <div class="total-section total-section--admin">
-                    <span class="total-label">Total des etudiants :</span>
-                    <span class="total-number" id="total-students">0</span>
+                    <span class="total-label total-label--bold">Total des etudiants :</span>
+                    <span class="total-number total-number--inherit" id="total-students">0</span>
                 </div>
 
                 <div class="info-section">
@@ -270,7 +303,7 @@
                 <h3 class="config-card-title">Mapping des Codes ScoDoc</h3>
                 <p class="config-card-desc">Associez les codes techniques ScoDoc a des libelles lisibles pour les graphiques.</p>
 
-                <form method="POST" class="config-form config-form--3col">
+                <form method="POST" class="config-form config-form--2col">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                     <div>
                         <label class="config-label">Code ScoDoc</label>
@@ -289,7 +322,7 @@
                     </button>
                 </form>
 
-                <div class="config-existing">
+                <div class="config-list">
                     <h4 class="config-subtitle">Mappings existants</h4>
                     <?php if (count($mappings) > 0): ?>
                         <table class="config-table">
@@ -321,7 +354,7 @@
                 <h3 class="config-card-title">Regles de Scenarios (Flux)</h3>
                 <p class="config-card-desc">Definissez comment les transitions sont classifiees dans le Sankey.</p>
 
-                <form method="POST" class="config-form config-form--4col">
+                <form method="POST" class="config-form config-form--3col">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                     <div>
                         <label class="config-label">Formation Source</label>
@@ -360,7 +393,7 @@
                     </button>
                 </form>
 
-                <div class="config-existing">
+                <div class="config-list">
                     <h4 class="config-subtitle">Scenarios existants</h4>
                     <?php if (count($scenarios) > 0): ?>
                         <table class="config-table">
@@ -390,24 +423,24 @@
 
             <!-- Securite du compte -->
             <div class="config-card">
-                <h3 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Securite du compte</h3>
-                <p style="color: var(--text-muted, #666); margin-bottom: 1.5rem;">Modifier le mot de passe administrateur. Le mot de passe doit contenir au moins 8 caracteres.</p>
+                <h3 class="config-card-title">Securite du compte</h3>
+                <p class="config-card-desc">Modifier le mot de passe administrateur. Le mot de passe doit contenir au moins 8 caracteres.</p>
 
-                <form method="POST" style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr 1fr auto;">
+                <form method="POST" class="config-form config-form--3col">
                     <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Ancien mot de passe</label>
+                        <label class="config-label">Ancien mot de passe</label>
                         <input type="password" name="old_password" class="config-input" placeholder="Mot de passe actuel" required>
                     </div>
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Nouveau mot de passe</label>
+                        <label class="config-label">Nouveau mot de passe</label>
                         <input type="password" name="new_password" class="config-input" placeholder="Minimum 8 caracteres" required minlength="8">
                     </div>
                     <div>
-                        <label style="font-weight: 600; color: var(--text-color, #333);">Confirmer</label>
+                        <label class="config-label">Confirmer</label>
                         <input type="password" name="confirm_password" class="config-input" placeholder="Confirmer le nouveau" required minlength="8">
                     </div>
-                    <button type="submit" name="update_password" class="btn-shiny" style="align-self: end;">
+                    <button type="submit" name="update_password" class="btn-shiny config-submit">
                         <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                             <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
@@ -497,5 +530,13 @@
         btn.disabled = false;
     }
     </script>
+    <!-- Script pour capturer l'écran (Sankey) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- Script pour générer le PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- Script pour dessiner le tableau proprement -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 </body>
 </html>

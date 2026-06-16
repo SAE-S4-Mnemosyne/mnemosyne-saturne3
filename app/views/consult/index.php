@@ -129,15 +129,15 @@
 
                     <button type="submit" class="btn-submit">
                         Voir les parcours
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="btn-arrow"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                        <svg class="btn-arrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
                     </button>
                 </form>
             </div>
 
-            <div id="chart-wrapper">
+            <div id="chart-wrapper" class="chart-wrapper">
                 <div id="sankey_chart" class="chart-box">
                     <div class="empty-state">
-                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1dce5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+                        <svg class="empty-icon" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#d1dce5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M2 12h20M2 12l5-5m-5 5l5 5"/>
                             <circle cx="12" cy="12" r="10"/>
                         </svg>
@@ -147,11 +147,29 @@
                 </div>
             </div>
 
-            <div class="results-section" id="results-section" style="display:none; margin-top: 3rem;">
-                <div class="results-header">
+            <div class="results-section is-hidden" id="results-section">
+                <div class="results-header results-header--flex">
+    <div>
+        <h3 class="results-title">Bilan des competences & Decisions de jury</h3>
+        <p class="results-subtitle" id="stats-subtitle">Formation : - -- Annee : -</p>
+        <p id="statut-promo" class="statut-promo is-hidden"></p>
+    </div>
+
+    <button type="button" id="btn-export-pdf" class="btn-pdf-export" onclick="générerPDF()">
+        
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="16" y1="13" x2="8" y2="13"></line>
+            <line x1="16" y1="17" x2="8" y2="17"></line>
+            <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+        Exporter en PDF
+    </button>
+</div>
                     <h3 class="results-title">Bilan des competences & Decisions de jury</h3>
                     <p class="results-subtitle" id="stats-subtitle">Formation : - -- Annee : -</p>
-                    <p id="statut-promo" style="display:none; font-weight: bold; margin-top: 0.5rem;"></p>
+                    <p id="statut-promo" class="statut-promo is-hidden"></p>
                 </div>
 
                 <div class="status-cards">
