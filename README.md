@@ -79,7 +79,7 @@ L'application utilise une architecture MVC (Modèle-Vue-Contrôleur) pour facili
 ├── auth.php                        # Gestion session/authentification
 ├── config.php                      # Fichier de configuration (Constantes)
 ├── index.php                       # Routeur page d'accueil (Consultation)
-├── login.html                      # Page de connexion
+├── login.php                       # Point d'entree de connexion
 ├── mnemosyne-projet_bdd.sql        # Schéma Base de Données
 ├── script.js                       # Logique JS principale (Graphiques)
 ├── styles.css                      # Styles globaux

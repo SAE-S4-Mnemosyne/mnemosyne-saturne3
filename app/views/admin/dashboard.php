@@ -387,6 +387,35 @@
                     <?php endif; ?>
                 </div>
             </div>
+
+            <!-- Securite du compte -->
+            <div class="config-card">
+                <h3 style="color: var(--heading-color, #1a3a5c); margin-bottom: 1rem;">Securite du compte</h3>
+                <p style="color: var(--text-muted, #666); margin-bottom: 1.5rem;">Modifier le mot de passe administrateur. Le mot de passe doit contenir au moins 8 caracteres.</p>
+
+                <form method="POST" style="display: grid; gap: 1rem; grid-template-columns: 1fr 1fr 1fr auto;">
+                    <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
+                    <div>
+                        <label style="font-weight: 600; color: var(--text-color, #333);">Ancien mot de passe</label>
+                        <input type="password" name="old_password" class="config-input" placeholder="Mot de passe actuel" required>
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: var(--text-color, #333);">Nouveau mot de passe</label>
+                        <input type="password" name="new_password" class="config-input" placeholder="Minimum 8 caracteres" required minlength="8">
+                    </div>
+                    <div>
+                        <label style="font-weight: 600; color: var(--text-color, #333);">Confirmer</label>
+                        <input type="password" name="confirm_password" class="config-input" placeholder="Confirmer le nouveau" required minlength="8">
+                    </div>
+                    <button type="submit" name="update_password" class="btn-shiny" style="align-self: end;">
+                        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        Modifier
+                    </button>
+                </form>
+            </div>
         </div>
     </main>
 
