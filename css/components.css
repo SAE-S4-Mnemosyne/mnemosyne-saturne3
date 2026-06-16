@@ -1,4 +1,4 @@
-/* composants : formulaires, boutons, cartes, modale, diagramme (dans l'ordre) */
+/* composants : formulaires, boutons, cartes, modale, diagramme */
 
 /* formulaires */
 .form-container {
@@ -774,6 +774,11 @@ body.dark-mode .btn-theme-toggle {
 body.dark-mode .footer {
     background-color: #161d38;
     border-top: 1px solid var(--gris-sombre);
+    color: var(--texte-clair);
+}
+
+body.dark-mode .footer-links a {
+    color: var(--texte-clair);
 }
 
 /* ajustements dark mode */
