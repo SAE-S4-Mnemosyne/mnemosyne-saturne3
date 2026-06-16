@@ -23,7 +23,43 @@ document.addEventListener("DOMContentLoaded", () => {
         themeBtn.addEventListener('click', toggleTheme);
     }
 
-    // 5. Injection des styles dynamiques (Centrage Modale + Couleurs)
+    // 5. Menu burger (accessible : aria-expanded + clavier)
+    const menuToggle = document.querySelector('.menu-toggle');
+    const navMenu = document.getElementById('nav-menu');
+    if (menuToggle && navMenu) {
+        menuToggle.addEventListener('click', () => {
+            const ouvert = navMenu.classList.toggle('active');
+            menuToggle.setAttribute('aria-expanded', ouvert ? 'true' : 'false');
+            menuToggle.setAttribute('aria-label', ouvert ? 'Fermer le menu' : 'Ouvrir le menu');
+        });
+        // fermeture avec la touche Echap
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && navMenu.classList.contains('active')) {
+                navMenu.classList.remove('active');
+                menuToggle.setAttribute('aria-expanded', 'false');
+                menuToggle.setAttribute('aria-label', 'Ouvrir le menu');
+                menuToggle.focus();
+            }
+        });
+    }
+
+    // 6. Chips de selection rapide (data-search au lieu de onclick)
+    document.querySelectorAll('.chip[data-search]').forEach((chip) => {
+        chip.addEventListener('click', () => {
+            quickSelect(chip.getAttribute('data-search'));
+        });
+    });
+
+    // 7. Fermeture de l'alerte admin
+    const closeAlert = document.querySelector('.close-alert');
+    if (closeAlert) {
+        closeAlert.addEventListener('click', () => {
+            const alerte = closeAlert.closest('.admin-alert');
+            if (alerte) { alerte.classList.add('is-hidden'); }
+        });
+    }
+
+    // 8. Injection des styles dynamiques (Centrage Modale + Couleurs)
     injectGlobalStyles();
 });
 
@@ -63,10 +99,7 @@ function injectGlobalStyles() {
 }
 
 // Gestion du Menu Hamburger
-function toggleMenu() {
-    const nav = document.getElementById('nav-menu');
-    nav.classList.toggle('active');
-}
+// (le menu burger est gere par addEventListener dans le DOMContentLoaded ci-dessus)
 
 // Gestion du Thème (Dark/Light)
 function initTheme() {
@@ -90,6 +123,11 @@ function toggleTheme() {
         localStorage.setItem('theme', 'dark');
     } else {
         localStorage.setItem('theme', 'light');
+    }
+
+    // Redessiner le diagramme pour reappliquer les couleurs du theme
+    if (window.currentSankeyData && document.getElementById('sankey_chart')) {
+        drawSankey(window.currentSankeyData);
     }
 }
 
@@ -281,9 +319,9 @@ function updateStatsUI(stats) {
             statutEl.textContent = `Promotion ${stats.statutPromo}`;
             statutEl.style.color = '#17a2b8';
         }
-        statutEl.style.display = 'block';
+        statutEl.classList.remove('is-hidden');
     } else if (statutEl) {
-        statutEl.style.display = 'none';
+        statutEl.classList.add('is-hidden');
     }
 }
 
@@ -293,8 +331,8 @@ function updateStatsDisplay(formation, annee) {
     const subtitle = document.getElementById('stats-subtitle');
 
     if (section) {
-        // Rendre la section visible
-        section.style.display = 'block';
+        // Rendre la section visible (on retire la classe qui la masque)
+        section.classList.remove('is-hidden');
 
         // Mettre à jour uniquement le titre avec la formation choisie
         if (subtitle) {
@@ -322,9 +360,9 @@ function drawSankey(data) {
     // Stocker les données pour l'accès au clic
     window.currentSankeyData = data;
 
-    // Adaptation Chart Colors (Dark Mode)
-    const isDarkMode = document.body.classList.contains('dark-mode');
-    const textColor = isDarkMode ? '#e0e0e0' : '#333';
+    // Le fond du diagramme est marine dans les deux themes : labels toujours clairs
+    const textColor = '#edeae2';
+    const nodeColors = ['#7cb342', '#fb8c00', '#039be5', '#e53935'];
 
     // Options du graphique avec interactivité activée
     // Hauteur calculée dynamiquement selon le nombre de liens
@@ -345,7 +383,7 @@ function drawSankey(data) {
                 },
                 nodePadding: 25,
                 width: 12,
-                colors: isDarkMode ? ['#7cb342', '#fb8c00', '#039be5', '#e53935'] : undefined
+                colors: nodeColors
             },
             link: {
                 colorMode: 'gradient'
@@ -547,98 +585,3 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeBtn = document.querySelector('.close-modal');
     if (closeBtn) closeBtn.onclick = () => document.getElementById('student-modal').style.display = "none";
 });
-
-
-// --- FONCTION DE CONSTRUCTION DU PDF (Conformité) ---(amel)
-function générerPDF() {
-    const elementSankey = document.querySelector("#sankey-charts");
-
-    // 1. On capture le diagramme Sankey avec une haute résolution (Scale 2)
-    html2canvas(elementSankey, {
-        scale: 2,
-        useCORS: true,
-        logging: false
-    }).then(canvas => {
-        const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
-        
-        // 2. On charge le logo Mnémosyne en mémoire
-        const logo = new Image();
-        logo.src = 'assets/logo.png';
-        
-        logo.onload = function() {
-            // Le logo est chargé, on peut construire le PDF
-            construireLayoutPDF(imgSankey, logo);
-        };
-        
-        logo.onerror = function() {
-            console.warn("Impossible de charger le logo depuis assets/logo.png, génération sans logo.");
-            construireLayoutPDF(imgSankey, null);
-        };
-    });
-}
-
-function construireLayoutPDF(imgSankey, logoImg) {
-    const doc = new jspdf.jsPDF('p', 'mm', 'a4');
-    
-    // --- 1. EN-TÊTE (HEADER) ---
-    // Si le logo a bien été chargé, on l'affiche à gauche (x=15, y=10, largeur=22, hauteur=22)
-    if (logoImg) {
-        doc.addImage(logoImg, 'PNG', 15, 10, 22, 22);
-    }
-
-    // Textes de l'en-tête (Décalés à x=42 pour laisser la place au logo)
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(18);
-    doc.setTextColor(41, 128, 185); // Joli bleu qui respecte la charte graphique de Mnémosyne
-    doc.text("MNÉMOSYNE", 42, 18);
-    
-    doc.setFont("Helvetica", "normal");
-    doc.setFontSize(10);
-    doc.setTextColor(100, 100, 100); // Gris pour les sous-titres
-    doc.text("IUT de Villetaneuse - BUT Informatique", 42, 24);
-    doc.text("Suivi des flux de progression", 42, 29);
-
-    // Ligne de séparation sous l'en-tête
-    doc.setDrawColor(200, 200, 200);
-    doc.setLineWidth(0.5);
-    doc.line(15, 36, 195, 36);
-
-    // --- 2. TITRE DU RAPPORT ---
-    doc.setFont("Helvetica", "bold");
-    doc.setFontSize(14);
-    doc.setTextColor(0, 0, 0);
-    doc.text("Rapport d'Analyse des Flux d'Étudiants", 15, 46);
-
-    // --- 3. DIAGRAMME SANKEY ---
-    // On positionne le Sankey à la coordonnée y=52
-    doc.addImage(imgSankey, 'JPEG', 15, 52, 180, 90);
-
-    // --- 4. TABLEAU DES EFFECTIFS (jsPDF-AutoTable) ---
-    const colonnesTableau = ["Semestre", "Effectif Initial", "Admis", "Redoublants", "Réorientations / Abandons"];
-    const donneesTableau = [
-        ["Semestre 1", "120", "85", "25", "10"],
-        ["Semestre 2", "110", "78", "22", "10"],
-        ["Semestre 3", "88", "65", "15", "8"]
-    ];
-
-    doc.autoTable({
-        startY: 150,                  // Démarre juste en dessous du diagramme Sankey
-        head: [colonnesTableau],
-        body: donneesTableau,
-        theme: 'striped',
-        headStyles: { fillColor: [41, 128, 185] }, // Match avec la couleur du titre
-        styles: { font: "Helvetica", fontSize: 9, cellPadding: 3 }
-    });
-
-    // --- 5. PIED DE PAGE (FOOTER) ---
-    const dateAujourdhui = new Date().toLocaleDateString('fr-FR');
-    doc.setFont("Helvetica", "italic");
-    doc.setFontSize(9);
-    doc.setTextColor(150, 150, 150);
-    
-    doc.text(`Généré le ${dateAujourdhui} | Projet Saturne C`, 15, 287);
-    doc.text("Page 1 sur 1", 175, 287);
-
-    // Téléchargement du fichier
-    doc.save("Rapport_Mnemosyne.pdf");
-}

@@ -1,9 +1,40 @@
-/* variables, reset et structure de page */
+/* base : variables, reset et structure de page */
 
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+/* anti-debordement global : aucun element ne depasse en largeur */
+html {
+    overflow-x: hidden;
+}
+
+img,
+svg,
+video,
+canvas {
+    max-width: 100%;
+    height: auto;
+}
+
+/* les textes longs ne forcent pas de defilement horizontal */
+p,
+h1,
+h2,
+h3,
+h4,
+span,
+a,
+label {
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+/* utilitaire : masquer un element (ex. fermeture d'alerte) */
+.is-hidden {
+    display: none !important;
 }
 
 /* couleurs du site, reprises de la charte de l'université */
@@ -34,6 +65,7 @@ body {
     line-height: 1.6;
     color: var(--texte);
     background-color: var(--fond-page);
+    overflow-x: hidden;
 }
 
 .container {

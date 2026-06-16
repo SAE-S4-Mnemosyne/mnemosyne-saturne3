@@ -1,4 +1,4 @@
-/* mise en page : header, navigation, hero, footer  (plus lisible comme ça)*/
+/* mise en page : header, navigation, hero, footer */
 
 /* header */
 .header {
@@ -38,7 +38,7 @@
 }
 
 .logo-title {
-    font-size: 1.3rem;
+    font-size: clamp(1.1rem, 3vw, 1.4rem);
     font-weight: 600;
     letter-spacing: 3px;
     text-transform: uppercase;
@@ -203,17 +203,13 @@
 }
 
 /* responsive */
-@media (max-width: 900px) {
-    .header-center {
-        position: static;
-        transform: none;
-        order: 3;
-        width: 100%;
-        margin-top: 1rem;
-    }
-
+@media (max-width: 768px) {
     .header-content {
         flex-wrap: wrap;
+    }
+
+    .logo-title {
+        font-size: 1.1rem;
     }
 }
 
@@ -243,7 +239,7 @@
 }
 
 .hero-title {
-    font-size: 1.5rem;
+    font-size: clamp(1.5rem, 4vw, 2.25rem);
     color: var(--beige-clair);
     margin-bottom: 0.25rem;
     font-weight: 600;
