@@ -1,0 +1,43 @@
+/* variables, reset et structure de page */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* couleurs du site, reprises de la charte de l'université */
+:root {
+    /* palette principale */
+    --bleu-fonce: #1e2a4a;
+    --bleu-moyen: #3a4a7c;
+    --beige: #b3a183;
+    --beige-clair: #cdbd9c;
+    /* textes */
+    --texte: #edeae2;
+    --texte-secondaire: #b9b29f;
+    /* fonds et bordures (ambiance marine de l'ent) */
+    --fond-page: #39456f;
+    --fond-carte: #2a3357;
+    --bordure: #46538a;
+    /* mode sombre */
+    --fond-sombre: #1d2547;
+    --fond-sombre-2: #1a2244;
+    --gris-sombre: #2e3a66;
+    --gris-sombre-2: #46538a;
+    --texte-clair: #edeae2;
+    --texte-clair-2: #b9b29f;
+}
+
+body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.6;
+    color: var(--texte);
+    background-color: var(--fond-page);
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}

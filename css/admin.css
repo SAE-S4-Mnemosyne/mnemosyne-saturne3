@@ -1,0 +1,130 @@
+/* administration configuration avancee */
+
+
+/* dark mode */
+body.dark-mode .config-card h3 {
+    color: var(--texte-clair) !important;
+}
+
+body.dark-mode .config-card p {
+    color: #b0b0b0 !important;
+}
+
+body.dark-mode .config-card label {
+    color: #d0d0d0 !important;
+}
+
+body.dark-mode .config-hint {
+    background: #3a4a5a;
+}
+
+body.dark-mode .config-hint p {
+    color: #c0c0c0;
+}
+
+body.dark-mode .config-example {
+    background: #2a4a6a;
+    color: var(--texte-clair);
+}
+
+/* encarts hint + exemple */
+.config-hint {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: var(--fond-page);
+    border-radius: 6px;
+}
+
+.config-hint p {
+    color: #666;
+    font-style: italic;
+    margin: 0;
+}
+
+.config-example {
+    margin-top: 1.5rem;
+    padding: 1rem;
+    background: #efe8da;
+    border-radius: 6px;
+    border-left: 4px solid #2196f3;
+    color: var(--texte);
+}
+
+/* dark mode de la modale étudiants */
+body.dark-mode .modal-content {
+    background-color: var(--fond-sombre);
+    border-color: var(--gris-sombre-2);
+    color: var(--texte-clair);
+}
+
+body.dark-mode #modal-title {
+    color: #ffffff;
+}
+
+body.dark-mode #modal-subtitle {
+    color: var(--texte-clair-2) !important;
+}
+
+body.dark-mode .student-list {
+    background: var(--fond-sombre-2);
+    border-color: var(--gris-sombre-2);
+}
+
+body.dark-mode .student-item {
+    border-bottom-color: var(--gris-sombre-2);
+}
+
+body.dark-mode .student-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-mode .student-nip {
+    color: var(--beige);
+}
+
+body.dark-mode .student-decision {
+    background: var(--gris-sombre-2);
+    color: var(--texte-clair);
+}
+
+body.dark-mode .decision-RED {
+    background: rgba(244, 67, 54, 0.2);
+    color: #ef9a9a;
+}
+
+body.dark-mode .decision-ADM {
+    background: rgba(76, 175, 80, 0.2);
+    color: #a5d6a7;
+}
+
+body.dark-mode .decision-NAR {
+    background: rgba(156, 39, 176, 0.2);
+    color: #ce93d8;
+}
+
+body.dark-mode .modal-footer {
+    border-top-color: var(--gris-sombre-2);
+}
+
+body.dark-mode .btn-close-modal {
+    background: var(--gris-sombre-2);
+    color: var(--texte-clair);
+}
+
+body.dark-mode .btn-close-modal:hover {
+    background: var(--gris-sombre-2);
+}
+
+body.dark-mode .close-modal {
+    color: var(--texte-clair-2);
+}
+
+body.dark-mode .close-modal:hover {
+    color: var(--beige);
+}
+
+/* en-tête du tableau de la modale en sombre */
+body.dark-mode .student-item[style*="background:#f0f0f0"] {
+    background: var(--gris-sombre) !important;
+    color: var(--texte-clair);
+}
