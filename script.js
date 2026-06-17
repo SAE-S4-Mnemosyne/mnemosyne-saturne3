@@ -551,7 +551,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- FONCTION DE CONSTRUCTION DU PDF (Conformité) ---(amel)
 function générerPDF() {
-    const elementSankey = document.querySelector("#sankey-charts");
+    const elementSankey = document.querySelector("#sankey_chart");
 
     // 1. On capture le diagramme Sankey avec une haute résolution (Scale 2)
     html2canvas(elementSankey, {

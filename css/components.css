@@ -48,6 +48,11 @@
 
 .advanced-filters {
     flex-basis: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .form-group label {
@@ -689,18 +694,26 @@
     .nav-buttons {
         position: absolute;
         top: 100%;
-        left: 0;
         right: 0;
-        background: linear-gradient(135deg, #1a2942 0%, var(--bleu-fonce) 100%);
+        background: var(--bleu-fonce);
         flex-direction: column;
-        align-items: stretch;
+        align-items: flex-end;
+        gap: 0.5rem;
         padding: 1rem;
         display: none;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        border-radius: 0 0 8px 8px;
     }
 
     .nav-buttons.active {
         display: flex;
+    }
+
+    /* les boutons gardent leur taille naturelle (pas etires) */
+    .nav-buttons .btn-nav,
+    .nav-buttons .btn-theme-toggle {
+        width: auto;
+        white-space: nowrap;
     }
 
     .status-content {
@@ -905,4 +918,106 @@ body.dark-mode .info-note {
     background: var(--fond-carte);
     border-radius: 8px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== classes issues de la suppression des styles inline (page consult) ===== */
+
+/* titre du bloc filtres avances */
+.filters-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #a0aec0;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ligne contenant les groupes de filtres */
+.filters-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* libelle d'un filtre (Regime, Reussite) */
+.filter-label {
+    font-size: 0.9rem;
+    margin-right: 10px;
+    font-weight: 600;
+}
+
+/* groupe de boutons radio en ligne */
+.radio-group {
+    display: inline-flex;
+    gap: 10px;
+}
+
+/* petit select (filtre reussite) */
+.form-select-sm {
+    padding: 6px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: #1a202c;
+    color: #e2e8f0;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+/* fleche a droite du bouton "Voir les parcours" */
+.btn-arrow {
+    margin-left: 8px;
+    vertical-align: middle;
+}
+
+/* conteneur du graphique (positionnement du loader) */
+.chart-wrapper {
+    position: relative;
+}
+
+/* icone de l'etat vide (avant selection) */
+.empty-icon {
+    margin-bottom: 1rem;
+}
+
+/* en-tete resultats en flex (titre + bouton pdf) */
+.results-header--flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+/* paragraphe statut promo */
+.statut-promo {
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+/* sous-titre de la modale etudiants */
+.modal-subtitle {
+    color: #666;
+    margin-bottom: 1rem;
+}
+
+/* bouton d'export pdf */
+.btn-pdf-export {
+    background-color: #2980b9;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: background 0.2s;
+}
+
+/* utilitaire : masquer un element (etat initial pilote par le JS) */
+.is-hidden {
+    display: none;
 }

@@ -128,3 +128,98 @@ body.dark-mode .student-item[style*="background:#f0f0f0"] {
     background: var(--gris-sombre) !important;
     color: var(--texte-clair);
 }
+
+/* ===== classes issues de la suppression des styles inline (page admin) ===== */
+
+/* alerte avec bouton de fermeture positionne */
+.admin-alert--relative {
+    position: relative;
+}
+
+.alert-message {
+    flex: 1;
+}
+
+/* en-tete de resultats (titre + bouton pdf) cote admin */
+.results-header--admin {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.btn-pdf-admin {
+    padding: 0.5rem 1rem;
+    margin-left: auto;
+}
+
+/* total des etudiants version admin (aligne a gauche) */
+.total-section--admin {
+    justify-content: flex-start;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.total-label--bold {
+    font-weight: 600;
+}
+
+.total-number--inherit {
+    font-weight: bold;
+    font-size: inherit;
+}
+
+/* section configuration avancee */
+.config-section {
+    margin-top: 3rem;
+}
+
+/* titre et description d'une carte de config */
+.config-card-title {
+    color: var(--heading-color, #1a3a5c);
+    margin-bottom: 1rem;
+}
+
+.config-card-desc {
+    color: var(--text-muted, #666);
+    margin-bottom: 1.5rem;
+}
+
+/* formulaire de config en grille */
+.config-form {
+    display: grid;
+    gap: 1rem;
+}
+
+.config-form--2col {
+    grid-template-columns: 1fr 1fr auto;
+}
+
+.config-form--3col {
+    grid-template-columns: 1fr 1fr 1fr auto;
+}
+
+/* libelle d'un champ de config */
+.config-label {
+    font-weight: 600;
+    color: var(--text-color, #333);
+}
+
+/* bouton d'ajout aligne en bas de la grille */
+.config-submit {
+    align-self: end;
+}
+
+/* liste sous un formulaire de config */
+.config-list {
+    margin-top: 1.5rem;
+}
+
+/* cellule de tableau centree */
+.cell-center {
+    text-align: center;
+}
+
+/* formulaire inline (bouton supprimer dans un tableau) */
+.form-inline {
+    display: inline;
+}
