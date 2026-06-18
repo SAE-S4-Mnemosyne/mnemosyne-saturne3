@@ -75,6 +75,10 @@ function runAllImports($pdo, $jsonFolder) {
             $results['success'] = false;
         }
 
+        // Fusion des formations BUT en double (variantes de formations.json -> libelle canonique)
+        $result = fusionnerFormationsDoublons($pdo);
+        $results['steps'][] = "Formations fusionnées: " . $result['count'];
+
         $pdo->commit(); // Validation des changements uniquement si tout est OK
 
     } catch (Exception $e) {
@@ -201,6 +205,43 @@ function detectModalite($raw) {
         return 'FA';
     }
     return 'FI';
+}
+
+/**
+ * Fusionne les formations BUT en double (variantes brutes de formations.json) vers
+ * leur libelle canonique : repointe les semestres puis supprime les doublons.
+ * Ne touche pas aux DUT ni aux Licences.
+ */
+function fusionnerFormationsDoublons($pdo) {
+    $rows = $pdo->query("SELECT id_formation, titre FROM Formation")->fetchAll(PDO::FETCH_ASSOC);
+
+    $groupes = [];
+    foreach ($rows as $r) {
+        $titre = $r['titre'] ?? '';
+        if (!preg_match('/\bBUT\b|Bachelor\s+Universitaire/i', $titre)) continue; // pas un BUT -> on laisse
+        $canon = canonFormation($titre);
+        if ($canon === null) continue;
+        $groupes[$canon][] = (int) $r['id_formation'];
+    }
+
+    $stmtRepoint = $pdo->prepare("UPDATE Semestre_Instance SET id_formation = ? WHERE id_formation = ?");
+    $stmtRename  = $pdo->prepare("UPDATE Formation SET titre = ? WHERE id_formation = ?");
+    $stmtDelete  = $pdo->prepare("DELETE FROM Formation WHERE id_formation = ?");
+
+    $count = 0;
+    foreach ($groupes as $canon => $ids) {
+        sort($ids);
+        $survivant = $ids[0];
+        $stmtRename->execute([$canon, $survivant]); // libelle du survivant = canonique
+
+        foreach (array_slice($ids, 1) as $dup) {
+            $stmtRepoint->execute([$survivant, $dup]); // les semestres pointent vers le survivant
+            $stmtDelete->execute([$dup]);              // suppression du doublon
+            $count++;
+        }
+    }
+
+    return ['count' => $count];
 }
 
 /**
