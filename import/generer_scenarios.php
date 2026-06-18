@@ -1,12 +1,12 @@
 /* 
-Génération automatique des scénarios de correspondance entre formations.
+Génération automatique des scénarios de correspondance entreFormations.
 
 Cette table permet d'identifier les différents types de flux possibles
 (passage, redoublement, réorientation) observés dans les parcours étudiants.
 
 Elle a été conservée pour préparer d'éventuelles visualisations de flux,
 même si les indicateurs du bilan sont aujourd'hui calculés directement à
-partir des tables inscription et semestre_instance.
+partir des tables Inscription et semestre_Instance.
 */
 
 INSERT IGNORE INTO scenario_correspondance
@@ -20,12 +20,12 @@ SELECT DISTINCT
         WHEN s2.numero_semestre > s1.numero_semestre THEN 'passage'
         ELSE 'autre'
     END AS type_flux
-FROM inscription i1
-JOIN inscription i2
+FROM Inscription i1
+JOIN Inscription i2
     ON i1.code_nip = i2.code_nip
-JOIN semestre_instance s1
+JOIN semestre_Instance s1
     ON i1.id_formsemestre = s1.id_formsemestre
-JOIN semestre_instance s2
+JOIN semestre_Instance s2
     ON i2.id_formsemestre = s2.id_formsemestre
 WHERE s1.id_formsemestre <> s2.id_formsemestre
   AND s1.annee_scolaire < s2.annee_scolaire
