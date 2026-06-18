@@ -263,7 +263,17 @@ class AdminController {
         }
 
         try {
-            $stmt = $this->pdo->query("SELECT id_formation, titre FROM Formation ORDER BY titre");
+            $stmt = $this->pdo->query("
+                SELECT f.id_formation, f.titre
+                FROM Formation f
+                WHERE EXISTS (
+                    SELECT 1
+                    FROM Semestre_Instance si
+                    JOIN Inscription i ON i.id_formsemestre = si.id_formsemestre
+                    WHERE si.id_formation = f.id_formation
+                )
+                ORDER BY f.titre
+            ");
             $formations = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (Exception $e) {
             // Table n'existe pas encore
