@@ -140,7 +140,47 @@ try {
     } elseif ($anneeBUT3 >= $anneeActuelle) {
         $niveauActuel = 3;
     }
-    
+
+    // Niveau de dette par etudiant et par annee (pour preciser les passages dans le Sankey)
+    $dette = [];
+    try {
+        $stmtDette = $pdo->prepare("
+            SELECT annee, code_nip, (COUNT(*) - SUM(acquise)) AS nb_dette
+            FROM (
+                SELECT LEFT(si.annee_scolaire, 4) AS annee, i.code_nip, rc.numero_competence,
+                       MAX(CASE WHEN rc.code_decision IN ('ADM','ADSUP','CMP','ADJ') THEN 1 ELSE 0 END) AS acquise
+                FROM Inscription i
+                JOIN Resultat_Competence rc ON rc.id_inscription = i.id_inscription
+                JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
+                WHERE LEFT(si.annee_scolaire, 4) IN (?, ?, ?)
+                GROUP BY LEFT(si.annee_scolaire, 4), i.code_nip, rc.numero_competence
+            ) c
+            GROUP BY annee, code_nip
+        ");
+        $stmtDette->execute([$anneeBUT1, $anneeBUT2, $anneeBUT3]);
+        while ($r = $stmtDette->fetch(PDO::FETCH_ASSOC)) {
+            $dette[(int) $r['annee']][$r['code_nip']] = (int) $r['nb_dette'];
+        }
+    } catch (Exception $e) {
+        // pas de competences disponibles -> pas de decoupage
+    }
+
+    $labelDette = function($d) {
+        if ($d <= 0) return 'Sans dette';
+        if ($d == 1) return '1 en dette';
+        if ($d == 2) return '2 en dette';
+        return '3+ en dette';
+    };
+    // Route un passage (source -> cible) a travers un noeud intermediaire selon la dette
+    $ajouterPassage = function($source, $target, $nipList, $detteAnnee) use (&$flows, $labelDette) {
+        foreach ($nipList as $nip) {
+            $d = isset($detteAnnee[$nip]) ? (int) $detteAnnee[$nip] : 0;
+            $noeud = $labelDette($d) . ' (' . $source . ')';
+            $flows[$source . '||' . $noeud][] = $nip;
+            $flows[$noeud . '||' . $target][] = $nip;
+        }
+    };
+
     /**
      * ÉTAPE 1 : Récupérer tous les étudiants BUT1 de l'année sélectionnée
      */
@@ -273,7 +313,7 @@ try {
     }
     
     // Flux BUT1 vers destinations
-    if (count($listPassageBUT2) > 0) $flows["BUT1||BUT2"] = $listPassageBUT2;
+    if (count($listPassageBUT2) > 0) $ajouterPassage('BUT1', 'BUT2', $listPassageBUT2, $dette[$anneeBUT1] ?? []);
     if (count($listRedoublementBUT1) > 0) $flows["BUT1||Redoublement BUT1"] = $listRedoublementBUT1;
     if (count($listAbandonBUT1) > 0) $flows["BUT1||Abandon BUT1"] = $listAbandonBUT1;
     
@@ -390,7 +430,7 @@ try {
     }
     
     // Flux BUT2 vers destinations (seulement si promo niveau > 2)
-    if (count($listPassageBUT3) > 0 && $niveauActuel > 2) $flows["BUT2||BUT3"] = $listPassageBUT3;
+    if (count($listPassageBUT3) > 0 && $niveauActuel > 2) $ajouterPassage('BUT2', 'BUT3', $listPassageBUT3, $dette[$anneeBUT2] ?? []);
     if (count($listRedoublementBUT2) > 0) $flows["BUT2||Redoublement BUT2"] = $listRedoublementBUT2;
     if (count($listAbandonBUT2) > 0) $flows["BUT2||Abandon BUT2"] = $listAbandonBUT2;
     
@@ -491,7 +531,7 @@ try {
     }
     
     // Flux BUT3 vers destinations
-    if (count($listDiplome) > 0) $flows["BUT3||Diplômé"] = $listDiplome;
+    if (count($listDiplome) > 0) $ajouterPassage('BUT3', 'Diplômé', $listDiplome, $dette[$anneeBUT3] ?? []);
     if (count($listRedoublementBUT3) > 0) $flows["BUT3||Redoublement BUT3"] = $listRedoublementBUT3;
     if (count($listAbandonBUT3) > 0) $flows["BUT3||Abandon BUT3"] = $listAbandonBUT3;
     if (count($listEnCoursBUT3) > 0) $flows["BUT3||En cours BUT3"] = $listEnCoursBUT3;
@@ -541,10 +581,39 @@ try {
     
     // --- FILTRAGE FINAL (Basé sur la Trajectoire) ---
     // On ne garde que les étudiants qui satisfont le critère *au moins une fois* dans leur parcours.
-    
+
+    // Filtre avancé : admis ayant un nombre précis de compétences en dette (DEBT_1, DEBT_2, DEBT_3PLUS)
+    $detteNips = null;
+    if (preg_match('/^DEBT_(\d+)(PLUS)?$/', $filterStatus, $mDette)) {
+        $niv = (int) $mDette[1];
+        $op  = isset($mDette[2]) ? '>=' : '=';
+        $sqlDette = "
+            SELECT DISTINCT t.code_nip FROM (
+                SELECT i.code_nip,
+                       (COUNT(*) - SUM(CASE WHEN rc.code_decision IN ('ADM','ADSUP','CMP','ADJ') THEN 1 ELSE 0 END)) AS nb_dette
+                FROM Inscription i
+                JOIN Resultat_Competence rc ON rc.id_inscription = i.id_inscription
+                JOIN Semestre_Instance si ON i.id_formsemestre = si.id_formsemestre
+                JOIN Decision_Annuelle da ON da.code_nip = i.code_nip
+                                          AND LEFT(da.annee_scolaire, 4) = LEFT(si.annee_scolaire, 4)
+                                          AND da.decision IN ('ADM','ADSUP','PASD','PAS1NCI','ADJ')
+                GROUP BY i.id_inscription, i.code_nip
+            ) t
+            WHERE t.nb_dette $op ?
+        ";
+        $stmtDette = $pdo->prepare($sqlDette);
+        $stmtDette->execute([$niv]);
+        $detteNips = array_flip($stmtDette->fetchAll(PDO::FETCH_COLUMN));
+    }
+
     $keptNips = [];
     foreach ($globalHistory as $nip => $hist) {
         $keep = true;
+
+        // Filtre compétences en dette (si actif)
+        if ($detteNips !== null && !isset($detteNips[$nip])) {
+            $keep = false;
+        }
         
         // Filtre Régime
         if ($filterRegime === 'FA') {

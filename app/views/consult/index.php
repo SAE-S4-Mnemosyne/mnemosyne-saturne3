@@ -114,6 +114,9 @@
                                     <option value="ALL">Tout afficher</option>
                                     <option value="PASS_OK">Validation (Sans dette)</option>
                                     <option value="PASS_DEBT">Validation (Avec dette/jury)</option>
+                                    <option value="DEBT_1">&nbsp;&nbsp;&nbsp;dont 1 competence en dette</option>
+                                    <option value="DEBT_2">&nbsp;&nbsp;&nbsp;dont 2 competences en dette</option>
+                                    <option value="DEBT_3PLUS">&nbsp;&nbsp;&nbsp;dont 3+ competences en dette</option>
                                     <option value="FAIL">Echecs / Redoublements</option>
                                 </select>
                             </div>

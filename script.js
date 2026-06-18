@@ -246,6 +246,9 @@ async function fetchAndDraw() {
         chartContainer.style.display = 'block';
         drawSankey(data);
 
+        // Bilan : decoupage des competences des admis (avec/sans dette)
+        loadBilanCompetences(formation, annee);
+
     } catch (error) {
         console.error("Erreur récupération flux:", error);
         chartContainer.innerHTML = `<div class="empty-state"><p class="error">Erreur technique lors de la récupération des données.</p></div>`;
@@ -284,6 +287,44 @@ function updateStatsUI(stats) {
         statutEl.style.display = 'block';
     } else if (statutEl) {
         statutEl.style.display = 'none';
+    }
+}
+
+// Bilan : decoupage des competences validees des admis (precise le "passe avec dette")
+async function loadBilanCompetences(formation, annee) {
+    try {
+        const url = `app/api/recuperer_bilan_competences.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}&_t=${new Date().getTime()}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const section = document.getElementById('results-section') || document.body;
+        let box = document.getElementById('bilan-competences');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'bilan-competences';
+            box.className = 'info-section';
+            box.style.marginTop = '2rem';
+            section.appendChild(box);
+        }
+
+        if (data.error || !data.repartition || data.repartition.length === 0) {
+            box.innerHTML = '<h4 class="info-title">Détail des compétences (admis)</h4><p class="info-text">Aucune donnée de compétences pour cette sélection.</p>';
+            return;
+        }
+
+        let html = '<h4 class="info-title">Détail des compétences validées (admis)</h4>';
+        html += `<p class="info-text">Sans dette : <strong>${data.sans_dette}</strong> &nbsp;|&nbsp; Avec dette : <strong>${data.avec_dette}</strong></p>`;
+        html += '<table class="config-table"><thead><tr><th>Compétences validées</th><th>Étudiants</th><th>%</th></tr></thead><tbody>';
+        data.repartition.forEach(r => {
+            const libelle = (parseInt(r.nb_dette, 10) === 0)
+                ? `${r.ratio} (sans dette)`
+                : `${r.ratio} (${r.nb_dette} en dette)`;
+            html += `<tr><td>${libelle}</td><td>${r.nb_etudiants}</td><td>${r.pct}%</td></tr>`;
+        });
+        html += '</tbody></table>';
+        box.innerHTML = html;
+    } catch (e) {
+        console.error('Erreur bilan competences:', e);
     }
 }
 
