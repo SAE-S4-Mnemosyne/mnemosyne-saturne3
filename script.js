@@ -613,7 +613,6 @@ function construireLayoutPDF(imgSankey, logoImg) {
     // On positionne le Sankey à la coordonnée y=52
     doc.addImage(imgSankey, 'JPEG', 15, 52, 180, 90);
 
-    // --- 4. TABLEAU DES EFFECTIFS (jsPDF-AutoTable) ---
     const colonnesTableau = ["Semestre", "Effectif Initial", "Admis", "Redoublants", "Réorientations / Abandons"];
     const donneesTableau = [
         ["Semestre 1", "120", "85", "25", "10"],
@@ -640,5 +639,5 @@ function construireLayoutPDF(imgSankey, logoImg) {
     doc.text("Page 1 sur 1", 175, 287);
 
     // Téléchargement du fichier
-    doc.save("Rapport_Mnemosyne.pdf");
+    doc.save("Rapport_Mnemosyne.pdf"); //fichier mis a jour par Amel le 19 juin 2026
 }
