@@ -75,6 +75,10 @@ function runAllImports($pdo, $jsonFolder) {
             $results['success'] = false;
         }
 
+        // Fusion des formations BUT en double (variantes de formations.json -> libelle canonique)
+        $result = fusionnerFormationsDoublons($pdo);
+        $results['steps'][] = "Formations fusionnées: " . $result['count'];
+
         $pdo->commit(); // Validation des changements uniquement si tout est OK
 
     } catch (Exception $e) {
@@ -170,6 +174,77 @@ function normaliserFormation($formationTitre) {
 }
 
 /**
+ * Libelle canonique du diplome (sans le regime FI/FA), par detection de mot-cle.
+ * Toutes les variantes d'un meme diplome tombent sur le meme libelle.
+ */
+function canonFormation($raw) {
+    if ($raw === null) return null;
+    $s = html_entity_decode($raw, ENT_QUOTES, 'UTF-8');
+    $s = strtolower(preg_replace('/\\s+/', ' ', strtr($s, ['_' => ' '])));
+
+    // Exclure les autres IUT
+    if (preg_match('/iut (de )?paris|sceaux/', $s)) return null;
+
+    // Ordre important : du plus specifique au plus general (GEII avant Informatique)
+    if (preg_match('/geii|[eé]lectrique|industrielle/', $s))                return 'BUT GEII';
+    if (preg_match('/\\br ?& ?t\\b|r[eé]seaux|t[eé]l[eé]communication/', $s)) return 'BUT R&T';
+    if (preg_match('/\\bgea\\b|gestion des entreprises/', $s))                return 'BUT GEA';
+    if (preg_match('/\\bcj\\b|carri[eè]res juridiques|juridique/', $s))       return 'BUT CJ';
+    if (preg_match('/\\bsd\\b|stid|sciences? des donn[eé]es/', $s))           return 'BUT SD';
+    if (preg_match('/informatique|\\binfo\\b/', $s))                          return 'BUT Informatique';
+
+    return 'BUT (indéterminé)';
+}
+
+/**
+ * Detecte le regime FI/FA depuis le texte brut (titre ou nom de fichier).
+ */
+function detectModalite($raw) {
+    $s = strtolower((string) $raw);
+    if (preg_match('/alternance|altenance|apprentissage|contrat pro|professionnalisation|\\bfa\\b|\\balt\\b|\\bapp\\b/', $s)) {
+        return 'FA';
+    }
+    return 'FI';
+}
+
+/**
+ * Fusionne les formations BUT en double (variantes brutes de formations.json) vers
+ * leur libelle canonique : repointe les semestres puis supprime les doublons.
+ * Ne touche pas aux DUT ni aux Licences.
+ */
+function fusionnerFormationsDoublons($pdo) {
+    $rows = $pdo->query("SELECT id_formation, titre FROM Formation")->fetchAll(PDO::FETCH_ASSOC);
+
+    $groupes = [];
+    foreach ($rows as $r) {
+        $titre = $r['titre'] ?? '';
+        if (!preg_match('/\\bBUT\\b|Bachelor\\s+Universitaire/i', $titre)) continue;
+        $canon = canonFormation($titre);
+        if ($canon === null) continue;
+        $groupes[$canon][] = (int) $r['id_formation'];
+    }
+
+    $stmtRepoint = $pdo->prepare("UPDATE Semestre_Instance SET id_formation = ? WHERE id_formation = ?");
+    $stmtRename  = $pdo->prepare("UPDATE Formation SET titre = ? WHERE id_formation = ?");
+    $stmtDelete  = $pdo->prepare("DELETE FROM Formation WHERE id_formation = ?");
+
+    $count = 0;
+    foreach ($groupes as $canon => $ids) {
+        sort($ids);
+        $survivant = $ids[0];
+        $stmtRename->execute([$canon, $survivant]);
+
+        foreach (array_slice($ids, 1) as $dup) {
+            $stmtRepoint->execute([$survivant, $dup]);
+            $stmtDelete->execute([$dup]);
+            $count++;
+        }
+    }
+
+    return ['count' => $count];
+}
+
+/**
  * Import des formations et semestres depuis les fichiers decisions_jury
  */
 function importFormationsFromDecisions($pdo, $files) {
@@ -184,7 +259,7 @@ function importFormationsFromDecisions($pdo, $files) {
 
     $sqlInsertSemestre = "INSERT INTO Semestre_Instance (id_formsemestre, id_formation, annee_scolaire, numero_semestre, modalite)
                           VALUES (:idfs, :idf, :annee, :num, :modalite)
-                          ON DUPLICATE KEY UPDATE id_formation = VALUES(id_formation), annee_scolaire = VALUES(annee_scolaire), numero_semestre = VALUES(numero_semestre)";
+                          ON DUPLICATE KEY UPDATE id_formation = VALUES(id_formation), annee_scolaire = VALUES(annee_scolaire), numero_semestre = VALUES(numero_semestre), modalite = VALUES(modalite)";
     $stmtInsertSemestre = $pdo->prepare($sqlInsertSemestre);
 
     foreach ($files as $file) {
@@ -211,9 +286,12 @@ function importFormationsFromDecisions($pdo, $files) {
             $formationTitre = "Formation Inconnue";
         }
 
-        // Normaliser le titre
-        $formationTitre = normaliserFormation($formationTitre);
-        if ($formationTitre === null) continue; // Formation exclue
+        // Detecter le regime FI/FA AVANT normalisation (le nom de fichier le contient)
+        $modalite = detectModalite(basename($file) . ' ' . $formationTitre);
+
+        // Libelle canonique du diplome (sans FI/FA)
+        $formationTitre = canonFormation($formationTitre);
+        if ($formationTitre === null) continue; // Formation exclue (autre IUT)
 
         // Vérifier/Créer la formation
         $id_formation_bdd = null;
@@ -261,7 +339,7 @@ function importFormationsFromDecisions($pdo, $files) {
             ":idf" => $id_formation_bdd,
             ":annee" => $anneeScolaire,
             ":num" => $numSemestre,
-            ":modalite" => null
+            ":modalite" => $modalite
         ]);
         $semestresCount++;
     }

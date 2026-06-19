@@ -246,6 +246,9 @@ async function fetchAndDraw() {
         chartContainer.style.display = 'block';
         drawSankey(data);
 
+        // Bilan : decoupage des competences des admis (avec/sans dette)
+        loadBilanCompetences(formation, annee);
+
     } catch (error) {
         console.error("Erreur récupération flux:", error);
         chartContainer.innerHTML = `<div class="empty-state"><p class="error">Erreur technique lors de la récupération des données.</p></div>`;
@@ -285,6 +288,74 @@ function updateStatsUI(stats) {
     } else if (statutEl) {
         statutEl.style.display = 'none';
     }
+}
+
+// Bilan : decoupage des competences validees des admis (precise le "passe avec dette")
+async function loadBilanCompetences(formation, annee) {
+    try {
+        const url = `app/api/recuperer_bilan_competences.php?formation=${encodeURIComponent(formation)}&annee=${encodeURIComponent(annee)}&_t=${new Date().getTime()}`;
+        const response = await fetch(url);
+        const data = await response.json();
+
+        const section = document.getElementById('results-section') || document.body;
+        let box = document.getElementById('bilan-competences');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = 'bilan-competences';
+            box.className = 'info-section';
+            box.style.marginTop = '2rem';
+            section.appendChild(box);
+        }
+
+        if (data.error || !data.repartition || data.repartition.length === 0) {
+            box.innerHTML = '<h4 class="info-title">D\u00e9tail des comp\u00e9tences (admis)</h4><p class="info-text">Aucune donn\u00e9e de comp\u00e9tences pour cette s\u00e9lection.</p>';
+            return;
+        }
+
+        let html = '<h4 class="info-title">D\u00e9tail des comp\u00e9tences valid\u00e9es (admis)</h4>';
+        html += `<p class="info-text">Sans dette : <strong>${data.sans_dette}</strong> &nbsp;|&nbsp; Avec dette : <strong>${data.avec_dette}</strong></p>`;
+        html += '<table class="config-table"><thead><tr><th>Comp\u00e9tences valid\u00e9es</th><th>\u00c9tudiants</th><th>%</th></tr></thead><tbody>';
+        data.repartition.forEach(r => {
+            const libelle = (parseInt(r.nb_dette, 10) === 0)
+                ? `${r.ratio} (sans dette)`
+                : `${r.ratio} (${r.nb_dette} en dette)`;
+            html += `<tr><td>${libelle}</td><td>${r.nb_etudiants}</td><td>${r.pct}%</td></tr>`;
+        });
+        html += '</tbody></table>';
+        box.innerHTML = html;
+    } catch (e) {
+        console.error('Erreur bilan competences:', e);
+    }
+}
+
+// Export JSON des statistiques (Amel)
+function exportJSON() {
+    const formation = document.getElementById('formation').value;
+    const annee = document.getElementById('annee').value;
+    if (!formation || !annee) { alert("Veuillez d'abord visualiser un diagramme."); return; }
+
+    const getVal = (id) => document.getElementById(id) ? document.getElementById(id).textContent : '0';
+    
+    const dataExport = {
+        projet: "MNEMOSYNE",
+        extraction_date: new Date().toISOString(),
+        criteres: { formation: formation, annee: annee },
+        statistiques: {
+            diplome_admis: { quantite: parseInt(getVal('count-valide')), pourcentage: getVal('percent-valide') },
+            en_cours: { quantite: parseInt(getVal('count-partiel')), pourcentage: getVal('percent-partiel') },
+            redoublement: { quantite: parseInt(getVal('count-red')), pourcentage: getVal('percent-red') },
+            abandon_reorientation: { quantite: parseInt(getVal('count-abd')), pourcentage: getVal('percent-abd') },
+            total_etudiants: parseInt(getVal('total-students'))
+        }
+    };
+
+    const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataExport, null, 4));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", jsonString);
+    downloadAnchor.setAttribute("download", `Export_${formation.replace(/[^a-zA-Z0-9]/g, '_')}_${annee}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
 }
 
 // Nouvelle fonction : Affiche la section Jury sans toucher aux chiffres
@@ -551,7 +622,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- FONCTION DE CONSTRUCTION DU PDF (Conformité) ---(amel)
 function générerPDF() {
-    const elementSankey = document.querySelector("#sankey_chart");
+    const elementSankey = document.querySelector("#sankey-charts");
 
     // 1. On capture le diagramme Sankey avec une haute résolution (Scale 2)
     html2canvas(elementSankey, {
