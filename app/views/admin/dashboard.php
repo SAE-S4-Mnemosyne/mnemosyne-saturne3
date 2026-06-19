@@ -500,6 +500,38 @@
         btn.textContent = originalText;
         btn.disabled = false;
     }
+    // ... fin de ma fonction exportPDF() ...
+  
+
+// J'insère ma fonction exportJSON() juste ici # code mis à jour par amel le 19 /06/2026
+function exportJSON() {
+    const formation = document.getElementById('formation').value;
+    const annee = document.getElementById('annee').value;
+    if (!formation || !annee) { alert("Veuillez d'abord visualiser un diagramme."); return; }
+
+    const getVal = (id) => document.getElementById(id) ? document.getElementById(id).textContent : '0';
+    
+    const dataExport = {
+        projet: "MNEMOSYNE",
+        extraction_date: new Date().toISOString(),
+        criteres: { formation: formation, annee: annee },
+        statistiques: {
+            diplome_admis: { quantite: parseInt(getVal('count-valide')), pourcentage: getVal('percent-valide') },
+            en_cours: { quantite: parseInt(getVal('count-partiel')), pourcentage: getVal('percent-partiel') },
+            redoublement: { quantite: parseInt(getVal('count-red')), pourcentage: getVal('percent-red') },
+            abandon_reorientation: { quantite: parseInt(getVal('count-abd')), pourcentage: getVal('percent-abd') },
+            total_etudiants: parseInt(getVal('total-students'))
+        }
+    };
+
+    const jsonString = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dataExport, null, 4));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", jsonString);
+    downloadAnchor.setAttribute("download", `Export_${formation.replace(/[^a-zA-Z0-9]/g, '_')}_${annee}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
     </script>
     <!-- Script pour capturer l'écran (Sankey) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
