@@ -443,9 +443,11 @@
     <script src="loader.js?v=2"></script>
     <script src="script.js?v=2"></script>
 
+    <script>
+        //script pour le fichier pdf
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <script>
     function exportPDF() {
         const formation = document.getElementById('formation').value;
         const annee = document.getElementById('annee').value;
@@ -533,13 +535,5 @@ function exportJSON() {
     downloadAnchor.remove();
 }
     </script>
-    <!-- Script pour capturer l'écran (Sankey) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
-<!-- Script pour générer le PDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<!-- Script pour dessiner le tableau proprement -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-</body>
+    </body>
 </html>
