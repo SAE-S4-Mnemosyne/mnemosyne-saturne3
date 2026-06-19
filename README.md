@@ -4,18 +4,18 @@ Application web de visualisation des parcours étudiants de l'IUT de Villetaneus
 
 ## Fonctionnalités
 
-- **Diagramme Sankey** : Visualisation des flux étudiants BUT1 → BUT2 → BUT3 → Diplômé
-- **Filtres** : Par formation (6 BUT + Tout l'IUT) et par année de promotion
-- **Export PDF** : Génération d'un rapport PDF incluant une synthèse chiffrée et le contexte (formation, année). <!-- Fonctionnalité ajoutée -->
-- **Interactivité** : Clic sur un flux pour voir la liste des étudiants
-- **Administration** : Synchronisation, mapping des codes, scénarios de flux
+- **Diagramme Sankey** : Visualisation des flux étudiants BUT1 → BUT2 → BUT3 → Diplômé. Prise en compte du niveau de dette pour une granularité précise des passages.
+- **Filtres Avancés** : Par formation (les 6 BUT + Tout l'IUT), année de promotion, et statut de diplomation.
+- **Bilan de Compétences** : Analyse détaillée du ratio de compétences validées (ex: 5/6, 6/6) avec séparation des étudiants "Sans dette" et "Avec dette".
+- **Exports Multiples** : Génération de rapports PDF complets avec charte graphique, et export des données brutes au format JSON pour l'administration.
+- **Administration Sécurisée** : Importation et normalisation intelligente des fichiers ScoDoc (correction automatique des variantes de noms de formations et détection FI/FA).
 
 ## Installation
 
 ### Prérequis
 - PHP 7.4+ avec extensions PDO, JSON, ZIP
 - MySQL/MariaDB 5.7+
-- Serveur web Apache/Nginx
+- Serveur web Apache/Nginx ou Docker
 
 ### Étapes
 
@@ -27,14 +27,14 @@ cd mnemosyne
 
 2. **Configurer la base de données**
 ```bash
-# Créer le fichier config.php depuis le sample
-cp config.sample.php config.php
-# Éditer config.php avec vos identifiants BDD
+# Créer le fichier env.php depuis l'exemple
+cp env.example.php env.php
+# Éditer env.php avec vos identifiants BDD
 ```
 
 3. **Importer le schéma SQL**
 ```sql
-mysql -u <user> -p <database> < full_schema.sql
+mysql -u <user> -p <database> < mnemosyne-projet_bdd.sql
 ```
 
 4. **Créer un administrateur**
@@ -47,51 +47,36 @@ VALUES ('admin', '$2y$10$...');  -- Hash bcrypt du mot de passe
    - Placer les fichiers JSON ScoDoc dans `uploads/SAE_json/`
    - Connexion admin → Bouton "Synchroniser"
 
-## ⚙️ Configuration
-
-Fichier `config.php` requis :
-```php
-<?php
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'mnemosyne');
-define('DB_USER', 'user');
-define('DB_PASS', 'password');
-```
-
 ## Structure du Projet
 
-L'application utilise une architecture MVC (Modèle-Vue-Contrôleur) pour faciliter la maintenance :
+L'application utilise une architecture MVC modulaire et sécurisée :
 
 ```
-├── api/                            # APIs JSON (Données pour le diagramme Sankey)
-├── controllers/                    # Contrôleurs MVC
-│   ├── AdminController.php         # Logique du tableau de bord
-│   └── ConsultController.php       # Logique de consultation
-├── core/                           # Cœur de l'application
-│   └── Database.php                # Classe Singleton PDO
-├── import/                         # Scripts d'importation ScoDoc
-├── models/                         # Modèles de données (Accès BDD)
-├── views/                          # Vues HTML
-│   ├── admin/                      # Vues administration
-│   └── consult/                    # Vues consultation publique
-├── SAE_json/                       # Stockage des fichiers JSON ScoDoc
-├── admin.php                       # Routeur administration
-├── auth.php                        # Gestion session/authentification
-├── config.php                      # Fichier de configuration (Constantes)
-├── index.php                       # Routeur page d'accueil (Consultation)
-├── login.php                       # Point d'entree de connexion
-├── mnemosyne-projet_bdd.sql        # Schéma Base de Données
-├── script.js                       # Logique JS principale (Graphiques)
-├── styles.css                      # Styles globaux
-└── loader.js / loader.css          # Animation de chargement
+├── app/
+│   ├── api/                # APIs JSON (Sankey, Bilan compétences)
+│   ├── controllers/        # Contrôleurs métier (Admin, Auth)
+│   ├── core/               # Cœur (Database Singleton, CSRF, Routeur)
+│   ├── models/             # Accès BDD (AdminModel, FormationModel)
+│   └── views/              # Vues PHP (admin, auth)
+├── css/                    # CSS Modulaire (components.css, styles.css)
+├── import/                 # Scripts d'import et normalisation ScoDoc
+├── uploads/SAE_json/       # Fichiers bruts d'import
+├── index.php               # Point d'entrée principal (Consultation)
+├── admin.php               # Point d'entrée d'administration
+├── login.php               # Point d'entrée authentification
+├── env.example.php         # Variables d'environnement (Git-ignored)
+├── script.js               # Logique JavaScript (Sankey, Exports)
+└── mnemosyne-projet_bdd.sql# Schéma Base de Données
 ```
 
 ## Sécurité
 
-- Authentification par session PHP
+- Modèle MVC isolant la logique de la présentation
+- Identifiants BDD protégés hors du dépôt (`env.php` ignoré via `.gitignore`)
+- Authentification stricte par session PHP (Regeneration d'ID)
+- Protection CSRF (Jetons uniques) sur les formulaires
 - Mots de passe hashés (bcrypt)
-- Requêtes préparées contre injections SQL
-- Fichier `config.php` exclu de Git
+- Requêtes PDO préparées contre les injections SQL
 
 ## Auteurs
 
