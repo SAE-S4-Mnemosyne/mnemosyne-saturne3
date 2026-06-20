@@ -702,15 +702,22 @@ function générerPDF() {
 
     // Fix html2canvas missing SVG paths issue for Google Charts Sankey
     const svgElements = elementSankey.querySelectorAll('svg');
+    const replacements = [];
+    
     svgElements.forEach(svg => {
-        const paths = svg.querySelectorAll('path, rect, text');
-        paths.forEach(path => {
-            if (path.hasAttribute('fill')) path.style.fill = path.getAttribute('fill');
-            if (path.hasAttribute('fill-opacity')) path.style.fillOpacity = path.getAttribute('fill-opacity');
-            if (path.hasAttribute('stroke')) path.style.stroke = path.getAttribute('stroke');
-            if (path.hasAttribute('stroke-width')) path.style.strokeWidth = path.getAttribute('stroke-width');
-            if (path.hasAttribute('stroke-opacity')) path.style.strokeOpacity = path.getAttribute('stroke-opacity');
-        });
+        if (!svg.getAttribute('xmlns')) {
+            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        }
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const img = document.createElement('img');
+        // Gérer l'encodage UTF-8 correctement
+        img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+        img.style.width = svg.clientWidth + 'px';
+        img.style.height = svg.clientHeight + 'px';
+        img.style.display = 'block';
+        
+        replacements.push({ original: svg, replacement: img, parent: svg.parentNode });
+        svg.parentNode.replaceChild(img, svg);
     });
 
     // 1. On capture le diagramme Sankey avec une haute résolution (Scale 2)
@@ -720,6 +727,9 @@ function générerPDF() {
         logging: false,
         backgroundColor: '#1a2035' // Optionnel: forcer un fond sombre si besoin, ou retirer pour transparent
     }).then(canvas => {
+        // Restaurer les SVG originaux
+        replacements.forEach(rep => rep.parent.replaceChild(rep.original, rep.replacement));
+
         const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
         
         // 2. On charge le logo Mnémosyne en mémoire
