@@ -702,61 +702,58 @@ function générerPDF() {
 
     // Fix html2canvas missing SVG paths issue for Google Charts Sankey
     const svgElements = elementSankey.querySelectorAll('svg');
+    if (svgElements.length === 0) {
+        alert("Aucun diagramme à exporter.");
+        return;
+    }
+
+    const svg = svgElements[0];
+    if (!svg.getAttribute('xmlns')) {
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    }
     
-    const svgPromises = Array.from(svgElements).map(svg => {
-        return new Promise((resolve) => {
-            const parent = svg.parentNode; // Sauvegarder la référence AVANT de retirer le svg
-            if (!svg.getAttribute('xmlns')) {
-                svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-            }
-            const svgData = new XMLSerializer().serializeToString(svg);
-            const img = new Image();
-            img.onload = () => {
-                resolve({ original: svg, replacement: img, parent: parent });
-            };
-            img.onerror = () => {
-                // S'il y a une erreur on resolve quand meme pour ne pas bloquer
-                resolve({ original: svg, replacement: img, parent: parent });
-            };
-            // Utiliser directement charset=utf-8 pour éviter les erreurs de btoa/unescape
-            img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
-            img.style.width = svg.clientWidth + 'px';
-            img.style.height = svg.clientHeight + 'px';
-            img.style.display = 'block';
-            parent.replaceChild(img, svg);
-        });
-    });
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    
+    img.onload = () => {
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = svg.clientWidth * 2;
+            canvas.height = svg.clientHeight * 2;
+            const ctx = canvas.getContext('2d');
+            
+            // Fond sombre specifique a la charte
+            ctx.fillStyle = '#1a2035';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
 
-    Promise.all(svgPromises).then(replacements => {
-        // 1. On capture le diagramme Sankey avec une haute résolution (Scale 2)
-        html2canvas(elementSankey, {
-            scale: 2,
-            useCORS: true,
-            logging: false,
-            backgroundColor: '#1a2035' // Optionnel: forcer un fond sombre si besoin, ou retirer pour transparent
-        }).then(canvas => {
-            // Restaurer les SVG originaux
-            replacements.forEach(rep => rep.parent.replaceChild(rep.original, rep.replacement));
+            // 2. On charge le logo Mnémosyne en mémoire
+            const logo = new Image();
+            logo.src = 'assets/logo.png';
+            
+            logo.onload = function() {
+                // Le logo est chargé, on peut construire le PDF
+                construireLayoutPDF(imgSankey, logo);
+            };
+            
+            logo.onerror = function() {
+                console.warn("Impossible de charger le logo depuis assets/logo.png, génération sans logo.");
+                construireLayoutPDF(imgSankey, null);
+            };
+        } catch(e) {
+            console.error("Erreur capture", e);
+            alert("Erreur lors de la construction du PDF.");
+        }
+    };
+    
+    img.onerror = (e) => {
+        console.error("Erreur SVG load", e);
+        alert("Erreur lors de la capture du SVG.");
+    };
 
-        const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
-        
-        // 2. On charge le logo Mnémosyne en mémoire
-        const logo = new Image();
-        logo.src = 'assets/logo.png';
-        
-        logo.onload = function() {
-            // Le logo est chargé, on peut construire le PDF
-            construireLayoutPDF(imgSankey, logo);
-        };
-        
-        logo.onerror = function() {
-            console.warn("Impossible de charger le logo depuis assets/logo.png, génération sans logo.");
-            construireLayoutPDF(imgSankey, null);
-        };
-    }).catch(err => {
-        console.error("Erreur html2canvas:", err);
-    });
-    });
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
 }
 
 function construireLayoutPDF(imgSankey, logoImg) {

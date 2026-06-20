@@ -509,33 +509,36 @@
 
         // Fix html2canvas missing SVG paths issue for Google Charts Sankey
         const sankeyEl = document.getElementById('sankey_chart');
-        
-        // Convertir les SVG en images base64 pour que html2canvas les capture parfaitement
         const svgElements = sankeyEl.querySelectorAll('svg');
-        const svgPromises = Array.from(svgElements).map(svg => {
-            return new Promise((resolve) => {
-                const parent = svg.parentNode; // Sauvegarder la référence AVANT de retirer le svg
-                if (!svg.getAttribute('xmlns')) {
-                    svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-                }
-                const svgData = new XMLSerializer().serializeToString(svg);
-                const img = new Image();
-                img.onload = () => resolve({ original: svg, replacement: img, parent: parent });
-                img.onerror = () => resolve({ original: svg, replacement: img, parent: parent });
-                // Utiliser directement charset=utf-8 pour éviter les erreurs de btoa/unescape
-                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
-                img.style.width = svg.clientWidth + 'px';
-                img.style.height = svg.clientHeight + 'px';
-                img.style.display = 'block';
-                parent.replaceChild(img, svg);
-            });
-        });
+        
+        if (svgElements.length === 0) {
+            alert("Aucun diagramme a exporter.");
+            btn.textContent = originalText;
+            btn.disabled = false;
+            return;
+        }
 
-        Promise.all(svgPromises).then(replacements => {
-            html2canvas(sankeyEl, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' }).then(canvas => {
-                // Restaurer les SVG originaux
-                replacements.forEach(rep => rep.parent.replaceChild(rep.original, rep.replacement));
-
+        const svg = svgElements[0];
+        if (!svg.getAttribute('xmlns')) {
+            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        }
+        
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const img = new Image();
+        
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                // Scale x2 pour une meilleure qualite
+                canvas.width = svg.clientWidth * 2;
+                canvas.height = svg.clientHeight * 2;
+                const ctx = canvas.getContext('2d');
+                
+                // Fond sombre specifique a la charte
+                ctx.fillStyle = '#1a2035';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
 
                 const { jsPDF } = window.jspdf;
@@ -569,12 +572,10 @@
                 doc.setFontSize(16); doc.setTextColor(45, 90, 140);
                 doc.text('2. Visualisation des Flux', 20, finalY);
 
-                // Inserer la capture du diagramme Sankey dans le PDF
                 const imgWidth = 170;
                 const imgHeight = (canvas.height / canvas.width) * imgWidth;
                 const sankeyY = finalY + 5;
 
-                // Si le diagramme deborde de la page, on ajoute une nouvelle page
                 if (sankeyY + imgHeight > 275) {
                     doc.addPage();
                     doc.addImage(imgSankey, 'JPEG', 20, 20, imgWidth, imgHeight);
@@ -585,15 +586,23 @@
                 doc.setFontSize(10); doc.setTextColor(150, 150, 150);
                 doc.text(`Généré le ${new Date().toLocaleDateString()} via Mnemosyne`, 105, 285, { align: 'center' });
                 doc.save(`Rapport_${formation.replace(/[^a-zA-Z0-9]/g, '_')}_${annee}.pdf`);
+            } catch(e) {
+                console.error("Erreur native canvas:", e);
+                alert("Erreur lors de la construction du PDF.");
+            } finally {
                 btn.textContent = originalText;
                 btn.disabled = false;
-            }).catch((err) => {
-                console.error("Html2Canvas Error:", err);
-                alert("Erreur lors de la capture du diagramme: " + err);
-                btn.textContent = originalText;
-                btn.disabled = false;
-            });
-        });
+            }
+        };
+        
+        img.onerror = (e) => {
+            console.error("Erreur load SVG img", e);
+            alert("Impossible de capturer le diagramme.");
+            btn.textContent = originalText;
+            btn.disabled = false;
+        };
+
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
     }
     </script>
     <!-- Script pour capturer l'écran (Sankey) -->
