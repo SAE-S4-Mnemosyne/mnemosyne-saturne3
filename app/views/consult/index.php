@@ -233,7 +233,7 @@
     </footer>
     <script src="loader.js?v=2"></script>
     <script src="script.js?v=2"></script>
-    <!-- Librairies pour l'export PDF (Amel) -->
+    <!-- Librairies pour l'export PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
