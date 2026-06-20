@@ -2,7 +2,7 @@
 
 /* header */
 .header {
-    background: var(--bleu-fonce);
+    background: var(--fond-header);
     border-top: 10px solid var(--beige);
     color: white;
     padding: 0.9rem 0;
@@ -132,6 +132,21 @@
     height: 3px;
     background-color: white;
     border-radius: 3px;
+    transition: transform 0.3s ease, opacity 0.2s ease;
+    transform-origin: center;
+}
+
+/* animation burger -> croix quand le menu est ouvert */
+.menu-toggle.is-active .bar:nth-child(1) {
+    transform: translateY(10.5px) rotate(45deg);
+}
+
+.menu-toggle.is-active .bar:nth-child(2) {
+    opacity: 0;
+}
+
+.menu-toggle.is-active .bar:nth-child(3) {
+    transform: translateY(-10.5px) rotate(-45deg);
 }
 
 .header-center {
