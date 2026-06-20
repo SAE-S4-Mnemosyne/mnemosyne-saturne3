@@ -175,12 +175,12 @@ body.dark-mode .student-item[style*="background:#f0f0f0"] {
 
 /* titre et description d'une carte de config */
 .config-card-title {
-    color: var(--heading-color, #1a3a5c);
+    color: var(--texte);
     margin-bottom: 1rem;
 }
 
 .config-card-desc {
-    color: var(--text-muted, #666);
+    color: var(--texte-secondaire);
     margin-bottom: 1.5rem;
 }
 
@@ -201,7 +201,7 @@ body.dark-mode .student-item[style*="background:#f0f0f0"] {
 /* libelle d'un champ de config */
 .config-label {
     font-weight: 600;
-    color: var(--text-color, #333);
+    color: var(--texte);
 }
 
 /* bouton d'ajout aligne en bas de la grille */
