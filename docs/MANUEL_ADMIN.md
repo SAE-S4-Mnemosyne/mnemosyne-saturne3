@@ -1,39 +1,36 @@
-# Manuel Administrateur - Mnémosyne
+# Manuel Administrateur - Mnémosyne (S4)
 
 Guide d'utilisation de l'interface d'administration.
 
 ## Connexion
 
-1. Accéder à `/login.html`
-2. Entrer identifiant et mot de passe
-3. Vous êtes redirigé vers `/admin.php`
+1. Accéder à `/login.php`
+2. Entrer identifiant et mot de passe sécurisé
+3. Vous êtes redirigé vers le tableau de bord `/admin.php`
 
-## Synchronisation des Données
+## Synchronisation des Données (Bulk Insert)
 
 ### Prérequis
-Placer les fichiers JSON ScoDoc dans le dossier `uploads/SAE_json/`
+Placer les fichiers d'archives JSON ScoDoc bruts dans le dossier `uploads/SAE_json/` à la racine de l'application.
 
 ### Procédure
-1. Cliquer sur le bouton **"Synchroniser"** dans l'en-tête
-2. Attendre le message de confirmation
-3. Les données sont importées dans la base
+1. Cliquer sur le bouton **"Synchroniser"** dans l'en-tête de la page Admin.
+2. Le système va parser, normaliser automatiquement les noms de formations et insérer les cohortes dans la base de données.
+3. Attendre le message de confirmation (bannière verte).
 
-> Les données existantes ne sont pas dupliquées (insertion intelligente).
+> Les données existantes ne sont pas dupliquées. Les données sont fusionnées via une transaction SQL sécurisée.
 
 ---
 
 ## Mapping des Codes
 
-Le mapping permet de renommer les libellés affichés dans le Sankey.
+Le mapping permet de renommer ou regrouper les libellés affichés dans le Sankey (ex: Fusionner deux codes ScoDoc sous un même nom visuel).
 
 ### Ajouter un mapping
 1. Section **"Mapping des Codes ScoDoc"**
 2. Entrer le **Code ScoDoc** (ex: `B1-INFO-FI`)
 3. Entrer le **Libellé Affiché** (ex: `BUT1 Informatique`)
 4. Cliquer **"+ Ajouter"**
-
-### Effet
-Le libellé personnalisé apparaîtra dans le diagramme Sankey à la place du code technique.
 
 ### Supprimer un mapping
 Cliquer sur le bouton **✕** rouge dans la liste des mappings existants.
@@ -42,51 +39,39 @@ Cliquer sur le bouton **✕** rouge dans la liste des mappings existants.
 
 ## 🔀 Règles de Scénarios
  
- Les scénarios permettent de **documenter** les règles de gestion appliquées aux flux étudiants.
- Le logiciel détecte **automatiquement** la plupart des flux (redoublements, passerelles), mais vous pouvez enregistrer ici vos décisions de gestion pour garder une trace.
+ Le logiciel détecte **automatiquement** les passages classiques, les redoublements et les dettes grâce à la nouvelle structure de base de données. Cependant, vous pouvez enregistrer ici vos décisions de gestion pour gérer les parcours très particuliers (comme les passerelles inter-départements).
  
- ### Ajouter une règle (Documentation)
+ ### Ajouter une règle
  1. Section **"Règles de Scénarios"**
  2. Sélectionner la **Formation Source** (ex: `BUT SD`)
  3. Sélectionner la **Formation Cible** (ex: `BUT Informatique`)
- 4. Choisir le **Type de Flux** correspondant à la réalité :
-    - `passage`
-    - `redoublement`
+ 4. Choisir le **Type de Flux** correspondant :
     - `passerelle`
     - `reorientation`
     - `abandon`
  5. Cliquer **"+ Ajouter"**
- 
- ### Fonctionnement
- Le calcul des flux est **automatique** dans le diagramme Sankey. Cette interface sert de référence pour l'administrateur afin de valider que les transitions complexes (ex: Passerelles) sont bien prises en compte conformément aux décisions de l'équipe pédagogique.
- 
- > **Note :** Pour modifier le *nom* affiché d'une formation sur le graphique, utilisez la section "Mapping des Codes".
-
-### Supprimer un scénario
-Cliquer sur le bouton **✕** rouge dans la liste des scénarios existants.
 
 ---
 
-## Consultation du Sankey
+## Exportation des Données Brut (JSON)
 
-La page admin permet aussi de consulter le Sankey :
-1. Sélectionner une **Formation** et une **Année**
-2. Cliquer **"Voir les parcours"**
-3. Le diagramme affiche les flux étudiants
-4. Cliquer sur un flux pour voir la liste des étudiants
+Nouveauté : Il est désormais possible d'exporter l'intégralité des mappings et scénarios de la base de données pour un import futur ou une sauvegarde.
+1. Se rendre en bas de la page d'administration.
+2. Cliquer sur le bouton **"Exporter les données (JSON)"**.
+3. Un fichier `mnemosyne_data.json` sera téléchargé.
 
 ---
 
-## Résolution de Problèmes
+## Consultation du Sankey & Bilan de Compétences
 
-| Problème | Solution |
-|----------|----------|
-| Synchronisation échoue | Vérifier les fichiers JSON dans `uploads/SAE_json/` |
-| Mapping n'apparaît pas | Vérifier que le code correspond exactement |
-| Données incorrectes | Relancer une synchronisation |
+La page publique `/index.php` permet de consulter le Sankey et d'exporter des rapports :
+1. Sélectionner une **Formation** et une **Année**.
+2. Vous pouvez utiliser les **Filtres Avancés** (Alternance/Initiale) ou le filtre de réussite (Passage sans dette, avec dette, redoublement).
+3. Cliquer **"Voir les parcours"**.
+4. Vous pouvez générer un rapport PDF de la cohorte en cliquant sur **"Exporter en PDF"**.
 
 ---
 
 ## Déconnexion
 
-Cliquer sur **"Déconnexion"** dans l'en-tête pour terminer la session.
+Pour des raisons de sécurité, cliquez sur **"Déconnexion"** dans l'en-tête pour détruire votre session PHP.
