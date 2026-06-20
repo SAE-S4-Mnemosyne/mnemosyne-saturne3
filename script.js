@@ -490,12 +490,12 @@ function drawSankey(data) {
                     fontSize: 12,
                     color: textColor
                 },
+                colors: isDarkMode ? ['#7cb342', '#fb8c00', '#039be5', '#e53935'] : undefined,
                 nodePadding: 25,
-                width: 12,
-                colors: isDarkMode ? ['#7cb342', '#fb8c00', '#039be5', '#e53935'] : undefined
+                width: 12
             },
             link: {
-                colorMode: 'gradient'
+                colorMode: 'source' // CHANGED: 'source' instead of 'gradient' because gradients completely break SVG image exports in browsers
             }
         },
         backgroundColor: { fill: 'transparent' }
