@@ -705,24 +705,25 @@ function générerPDF() {
     
     const svgPromises = Array.from(svgElements).map(svg => {
         return new Promise((resolve) => {
+            const parent = svg.parentNode; // Sauvegarder la référence AVANT de retirer le svg
             if (!svg.getAttribute('xmlns')) {
                 svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
             }
             const svgData = new XMLSerializer().serializeToString(svg);
             const img = new Image();
             img.onload = () => {
-                resolve({ original: svg, replacement: img, parent: svg.parentNode });
+                resolve({ original: svg, replacement: img, parent: parent });
             };
             img.onerror = () => {
                 // S'il y a une erreur on resolve quand meme pour ne pas bloquer
-                resolve({ original: svg, replacement: img, parent: svg.parentNode });
+                resolve({ original: svg, replacement: img, parent: parent });
             };
-            // Gérer l'encodage UTF-8 correctement
-            img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+            // Utiliser directement charset=utf-8 pour éviter les erreurs de btoa/unescape
+            img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
             img.style.width = svg.clientWidth + 'px';
             img.style.height = svg.clientHeight + 'px';
             img.style.display = 'block';
-            svg.parentNode.replaceChild(img, svg);
+            parent.replaceChild(img, svg);
         });
     });
 
