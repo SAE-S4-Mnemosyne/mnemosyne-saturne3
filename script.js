@@ -154,13 +154,18 @@ function initTheme() {
 
 function toggleTheme() {
     const body = document.body;
-    // const btn = document.getElementById('theme-toggle');
     body.classList.toggle('dark-mode');
 
     if (body.classList.contains('dark-mode')) {
         localStorage.setItem('theme', 'dark');
     } else {
         localStorage.setItem('theme', 'light');
+    }
+
+    // le diagramme garde ses couleurs "cuites" dans le svg : on le redessine
+    // pour que le texte et les fleches suivent le nouveau theme
+    if (window.currentSankeyData) {
+        drawSankey(window.currentSankeyData);
     }
 }
 

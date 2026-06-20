@@ -2,7 +2,7 @@
 
 /* header */
 .header {
-    background: var(--bleu-fonce);
+    background: var(--fond-header);
     border-top: 10px solid var(--beige);
     color: white;
     padding: 0.9rem 0;
