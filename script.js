@@ -1,5 +1,7 @@
-// Charger la librairie Google Charts
-google.charts.load('current', { 'packages': ['sankey'] });
+// Charger la librairie Google Charts (protege : si indisponible, le reste du script continue)
+if (typeof google !== 'undefined' && google.charts) {
+    google.charts.load('current', { 'packages': ['sankey'] });
+}
 
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Initialiser le thème (Dark Mode)
@@ -22,6 +24,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (themeBtn) {
         themeBtn.addEventListener('click', toggleTheme);
     }
+
+    // 4 bis. Menu mobile (panneau glissant + overlay + clavier)
+    initMobileMenu();
 
     // 5. Injection des styles dynamiques (Centrage Modale + Couleurs)
     injectGlobalStyles();
@@ -62,10 +67,76 @@ function injectGlobalStyles() {
     }
 }
 
-// Gestion du Menu Hamburger
+// Gestion du menu mobile (panneau lateral glissant)
+function openMobileMenu() {
+    const nav = document.getElementById('nav-menu');
+    const toggle = document.querySelector('.menu-toggle');
+    const overlay = document.getElementById('menu-overlay');
+    if (!nav) return;
+    nav.classList.add('active');
+    document.body.classList.add('menu-open');
+    if (overlay) overlay.classList.add('active');
+    if (toggle) {
+        toggle.classList.add('is-active');
+        toggle.setAttribute('aria-expanded', 'true');
+        toggle.setAttribute('aria-label', 'Fermer le menu');
+    }
+    // focus sur le premier element du panneau (accessibilite)
+    const firstItem = nav.querySelector('a, button');
+    if (firstItem) firstItem.focus();
+}
+
+function closeMobileMenu() {
+    const nav = document.getElementById('nav-menu');
+    const toggle = document.querySelector('.menu-toggle');
+    const overlay = document.getElementById('menu-overlay');
+    if (!nav) return;
+    nav.classList.remove('active');
+    document.body.classList.remove('menu-open');
+    if (overlay) overlay.classList.remove('active');
+    if (toggle) {
+        toggle.classList.remove('is-active');
+        toggle.setAttribute('aria-expanded', 'false');
+        toggle.setAttribute('aria-label', 'Ouvrir le menu');
+    }
+}
+
 function toggleMenu() {
     const nav = document.getElementById('nav-menu');
-    nav.classList.toggle('active');
+    if (!nav) return;
+    if (nav.classList.contains('active')) {
+        closeMobileMenu();
+    } else {
+        openMobileMenu();
+    }
+}
+
+// Branchements du menu mobile (croix, overlay, touche Echap, burger admin)
+function initMobileMenu() {
+    const overlay = document.getElementById('menu-overlay');
+    if (overlay) overlay.addEventListener('click', closeMobileMenu);
+
+    // bouton croix de fermeture (ajoute dans le panneau)
+    const closeBtn = document.getElementById('menu-close');
+    if (closeBtn) closeBtn.addEventListener('click', closeMobileMenu);
+
+    // fermeture au clavier (Echap) + retour du focus sur le burger
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') {
+            const nav = document.getElementById('nav-menu');
+            if (nav && nav.classList.contains('active')) {
+                closeMobileMenu();
+                const toggle = document.querySelector('.menu-toggle');
+                if (toggle) toggle.focus();
+            }
+        }
+    });
+
+    // l'admin n'a pas de bouton burger avec onclick : on le branche si besoin
+    const toggle = document.querySelector('.menu-toggle');
+    if (toggle && !toggle.getAttribute('onclick')) {
+        toggle.addEventListener('click', toggleMenu);
+    }
 }
 
 // Gestion du Thème (Dark/Light)
