@@ -557,7 +557,7 @@
             }
 
             doc.setFontSize(10); doc.setTextColor(150, 150, 150);
-            doc.text(`Genere le ${new Date().toLocaleDateString()} via Mnemosyne`, 105, 285, { align: 'center' });
+            doc.text(`Généré le ${new Date().toLocaleDateString()} via Mnemosyne`, 105, 285, { align: 'center' });
             doc.save(`Rapport_${formation.replace(/[^a-zA-Z0-9]/g, '_')}_${annee}.pdf`);
             btn.textContent = originalText;
             btn.disabled = false;
