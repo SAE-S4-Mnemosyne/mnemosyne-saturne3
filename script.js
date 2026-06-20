@@ -700,11 +700,25 @@ document.addEventListener('DOMContentLoaded', () => {
 function générerPDF() {
     const elementSankey = document.querySelector("#sankey-charts");
 
+    // Fix html2canvas missing SVG paths issue for Google Charts Sankey
+    const svgElements = elementSankey.querySelectorAll('svg');
+    svgElements.forEach(svg => {
+        const paths = svg.querySelectorAll('path, rect, text');
+        paths.forEach(path => {
+            if (path.hasAttribute('fill')) path.style.fill = path.getAttribute('fill');
+            if (path.hasAttribute('fill-opacity')) path.style.fillOpacity = path.getAttribute('fill-opacity');
+            if (path.hasAttribute('stroke')) path.style.stroke = path.getAttribute('stroke');
+            if (path.hasAttribute('stroke-width')) path.style.strokeWidth = path.getAttribute('stroke-width');
+            if (path.hasAttribute('stroke-opacity')) path.style.strokeOpacity = path.getAttribute('stroke-opacity');
+        });
+    });
+
     // 1. On capture le diagramme Sankey avec une haute résolution (Scale 2)
     html2canvas(elementSankey, {
         scale: 2,
         useCORS: true,
-        logging: false
+        logging: false,
+        backgroundColor: '#1a2035' // Optionnel: forcer un fond sombre si besoin, ou retirer pour transparent
     }).then(canvas => {
         const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
         

@@ -507,8 +507,22 @@
             total: getVal('total-students')
         };
 
-        // Capturer le diagramme Sankey avec html2canvas puis construire le PDF
+        // Fix html2canvas missing SVG paths issue for Google Charts Sankey
         const sankeyEl = document.getElementById('sankey_chart');
+        
+        // Appliquer les attributs SVG comme styles CSS inline pour html2canvas
+        const svgElements = sankeyEl.querySelectorAll('svg');
+        svgElements.forEach(svg => {
+            const paths = svg.querySelectorAll('path, rect, text');
+            paths.forEach(path => {
+                if (path.hasAttribute('fill')) path.style.fill = path.getAttribute('fill');
+                if (path.hasAttribute('fill-opacity')) path.style.fillOpacity = path.getAttribute('fill-opacity');
+                if (path.hasAttribute('stroke')) path.style.stroke = path.getAttribute('stroke');
+                if (path.hasAttribute('stroke-width')) path.style.strokeWidth = path.getAttribute('stroke-width');
+                if (path.hasAttribute('stroke-opacity')) path.style.strokeOpacity = path.getAttribute('stroke-opacity');
+            });
+        });
+
         html2canvas(sankeyEl, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' }).then(canvas => {
             const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
 
