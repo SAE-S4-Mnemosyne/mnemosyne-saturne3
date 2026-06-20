@@ -507,65 +507,102 @@
             total: getVal('total-students')
         };
 
-        // Capturer le diagramme Sankey avec html2canvas puis construire le PDF
+        // Fix html2canvas missing SVG paths issue for Google Charts Sankey
         const sankeyEl = document.getElementById('sankey_chart');
-        html2canvas(sankeyEl, { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' }).then(canvas => {
-            const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
+        const svgElements = sankeyEl.querySelectorAll('svg');
+        
+        if (svgElements.length === 0) {
+            alert("Aucun diagramme a exporter.");
+            btn.textContent = originalText;
+            btn.disabled = false;
+            return;
+        }
 
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('p', 'mm', 'a4');
-            doc.setFontSize(22); doc.setTextColor(30, 58, 95);
-            doc.text('Bilan de Cohorte', 105, 25, { align: 'center' });
-            doc.setDrawColor(45, 90, 140); doc.setLineWidth(0.5); doc.line(20, 30, 190, 30);
-            doc.setFontSize(14); doc.setTextColor(85, 85, 85);
-            doc.text(`Formation : ${formation}`, 105, 40, { align: 'center' });
-            doc.text(`Annee : ${annee}`, 105, 48, { align: 'center' });
-            doc.setFontSize(16); doc.setTextColor(45, 90, 140);
-            doc.text('1. Synthese des Resultats', 20, 65);
-            doc.autoTable({
-                startY: 70,
-                head: [['Categorie', 'Nombre', 'Pourcentage']],
-                body: [
-                    ['Diplome / Admis', stats.valide, stats.validePct],
-                    ['En cours', stats.partiel, stats.partielPct],
-                    ['Redoublement', stats.red, stats.redPct],
-                    ['Abandon / Reorientation', stats.abd, stats.abdPct],
-                    ['TOTAL', stats.total, '100%']
-                ],
-                headStyles: { fillColor: [240, 244, 248], textColor: [30, 58, 95], fontStyle: 'bold' },
-                bodyStyles: { textColor: [51, 51, 51] },
-                alternateRowStyles: { fillColor: [249, 249, 249] },
-                styles: { halign: 'center', cellPadding: 4 },
-                columnStyles: { 0: { halign: 'left' } },
-                margin: { left: 20, right: 20 }
-            });
-            const finalY = doc.lastAutoTable.finalY + 15;
-            doc.setFontSize(16); doc.setTextColor(45, 90, 140);
-            doc.text('2. Visualisation des Flux', 20, finalY);
+        const svg = svgElements[0];
+        if (!svg.getAttribute('xmlns')) {
+            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+        }
+        
+        const svgData = new XMLSerializer().serializeToString(svg);
+        const img = new Image();
+        
+        img.onload = () => {
+            try {
+                const canvas = document.createElement('canvas');
+                // Scale x2 pour une meilleure qualite
+                canvas.width = svg.clientWidth * 2;
+                canvas.height = svg.clientHeight * 2;
+                const ctx = canvas.getContext('2d');
+                
+                // Fond sombre specifique a la charte
+                ctx.fillStyle = '#1a2035';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
 
-            // Inserer la capture du diagramme Sankey dans le PDF
-            const imgWidth = 170;
-            const imgHeight = (canvas.height / canvas.width) * imgWidth;
-            const sankeyY = finalY + 5;
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF('p', 'mm', 'a4');
+                doc.setFontSize(22); doc.setTextColor(30, 58, 95);
+                doc.text('Bilan de Cohorte', 105, 25, { align: 'center' });
+                doc.setDrawColor(45, 90, 140); doc.setLineWidth(0.5); doc.line(20, 30, 190, 30);
+                doc.setFontSize(14); doc.setTextColor(85, 85, 85);
+                doc.text(`Formation : ${formation}`, 105, 40, { align: 'center' });
+                doc.text(`Annee : ${annee}`, 105, 48, { align: 'center' });
+                doc.setFontSize(16); doc.setTextColor(45, 90, 140);
+                doc.text('1. Synthese des Resultats', 20, 65);
+                doc.autoTable({
+                    startY: 70,
+                    head: [['Categorie', 'Nombre', 'Pourcentage']],
+                    body: [
+                        ['Diplome / Admis', stats.valide, stats.validePct],
+                        ['En cours', stats.partiel, stats.partielPct],
+                        ['Redoublement', stats.red, stats.redPct],
+                        ['Abandon / Reorientation', stats.abd, stats.abdPct],
+                        ['TOTAL', stats.total, '100%']
+                    ],
+                    headStyles: { fillColor: [240, 244, 248], textColor: [30, 58, 95], fontStyle: 'bold' },
+                    bodyStyles: { textColor: [51, 51, 51] },
+                    alternateRowStyles: { fillColor: [249, 249, 249] },
+                    styles: { halign: 'center', cellPadding: 4 },
+                    columnStyles: { 0: { halign: 'left' } },
+                    margin: { left: 20, right: 20 }
+                });
+                const finalY = doc.lastAutoTable.finalY + 15;
+                doc.setFontSize(16); doc.setTextColor(45, 90, 140);
+                doc.text('2. Visualisation des Flux', 20, finalY);
 
-            // Si le diagramme deborde de la page, on ajoute une nouvelle page
-            if (sankeyY + imgHeight > 275) {
-                doc.addPage();
-                doc.addImage(imgSankey, 'JPEG', 20, 20, imgWidth, imgHeight);
-            } else {
-                doc.addImage(imgSankey, 'JPEG', 20, sankeyY, imgWidth, imgHeight);
+                const imgWidth = 170;
+                const imgHeight = (canvas.height / canvas.width) * imgWidth;
+                const sankeyY = finalY + 5;
+
+                if (sankeyY + imgHeight > 275) {
+                    doc.addPage();
+                    doc.addImage(imgSankey, 'JPEG', 20, 20, imgWidth, imgHeight);
+                } else {
+                    doc.addImage(imgSankey, 'JPEG', 20, sankeyY, imgWidth, imgHeight);
+                }
+
+                doc.setFontSize(10); doc.setTextColor(150, 150, 150);
+                doc.text(`Généré le ${new Date().toLocaleDateString()} via Mnemosyne`, 105, 285, { align: 'center' });
+                doc.save(`Rapport_${formation.replace(/[^a-zA-Z0-9]/g, '_')}_${annee}.pdf`);
+            } catch(e) {
+                console.error("Erreur native canvas:", e);
+                alert("Erreur lors de la construction du PDF.");
+            } finally {
+                btn.textContent = originalText;
+                btn.disabled = false;
             }
+        };
+        
+        img.onerror = (e) => {
+            console.error("Erreur load SVG img", e);
+            alert("Impossible de capturer le diagramme.");
+            btn.textContent = originalText;
+            btn.disabled = false;
+        };
 
-            doc.setFontSize(10); doc.setTextColor(150, 150, 150);
-            doc.text(`Genere le ${new Date().toLocaleDateString()} via Mnemosyne`, 105, 285, { align: 'center' });
-            doc.save(`Rapport_${formation.replace(/[^a-zA-Z0-9]/g, '_')}_${annee}.pdf`);
-            btn.textContent = originalText;
-            btn.disabled = false;
-        }).catch(() => {
-            alert("Erreur lors de la capture du diagramme. Veuillez reessayer.");
-            btn.textContent = originalText;
-            btn.disabled = false;
-        });
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
     }
     </script>
     <!-- Script pour capturer l'écran (Sankey) -->

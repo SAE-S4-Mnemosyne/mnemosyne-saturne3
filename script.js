@@ -490,12 +490,12 @@ function drawSankey(data) {
                     fontSize: 12,
                     color: textColor
                 },
+                colors: isDarkMode ? ['#7cb342', '#fb8c00', '#039be5', '#e53935'] : undefined,
                 nodePadding: 25,
-                width: 12,
-                colors: isDarkMode ? ['#7cb342', '#fb8c00', '#039be5', '#e53935'] : undefined
+                width: 12
             },
             link: {
-                colorMode: 'gradient'
+                colorMode: 'source' // CHANGED: 'source' instead of 'gradient' because gradients completely break SVG image exports in browsers
             }
         },
         backgroundColor: { fill: 'transparent' }
@@ -700,28 +700,60 @@ document.addEventListener('DOMContentLoaded', () => {
 function générerPDF() {
     const elementSankey = document.querySelector("#sankey-charts");
 
-    // 1. On capture le diagramme Sankey avec une haute résolution (Scale 2)
-    html2canvas(elementSankey, {
-        scale: 2,
-        useCORS: true,
-        logging: false
-    }).then(canvas => {
-        const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
-        
-        // 2. On charge le logo Mnémosyne en mémoire
-        const logo = new Image();
-        logo.src = 'assets/logo.png';
-        
-        logo.onload = function() {
-            // Le logo est chargé, on peut construire le PDF
-            construireLayoutPDF(imgSankey, logo);
-        };
-        
-        logo.onerror = function() {
-            console.warn("Impossible de charger le logo depuis assets/logo.png, génération sans logo.");
-            construireLayoutPDF(imgSankey, null);
-        };
-    });
+    // Fix html2canvas missing SVG paths issue for Google Charts Sankey
+    const svgElements = elementSankey.querySelectorAll('svg');
+    if (svgElements.length === 0) {
+        alert("Aucun diagramme à exporter.");
+        return;
+    }
+
+    const svg = svgElements[0];
+    if (!svg.getAttribute('xmlns')) {
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+    }
+    
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+    
+    img.onload = () => {
+        try {
+            const canvas = document.createElement('canvas');
+            canvas.width = svg.clientWidth * 2;
+            canvas.height = svg.clientHeight * 2;
+            const ctx = canvas.getContext('2d');
+            
+            // Fond sombre specifique a la charte
+            ctx.fillStyle = '#1a2035';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
+
+            // 2. On charge le logo Mnémosyne en mémoire
+            const logo = new Image();
+            logo.src = 'assets/logo.png';
+            
+            logo.onload = function() {
+                // Le logo est chargé, on peut construire le PDF
+                construireLayoutPDF(imgSankey, logo);
+            };
+            
+            logo.onerror = function() {
+                console.warn("Impossible de charger le logo depuis assets/logo.png, génération sans logo.");
+                construireLayoutPDF(imgSankey, null);
+            };
+        } catch(e) {
+            console.error("Erreur capture", e);
+            alert("Erreur lors de la construction du PDF.");
+        }
+    };
+    
+    img.onerror = (e) => {
+        console.error("Erreur SVG load", e);
+        alert("Erreur lors de la capture du SVG.");
+    };
+
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
 }
 
 function construireLayoutPDF(imgSankey, logoImg) {
