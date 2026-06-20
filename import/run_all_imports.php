@@ -187,7 +187,7 @@ function canonFormation($raw) {
 
     // Ordre important : du plus specifique au plus general (GEII avant Informatique)
     if (preg_match('/geii|[eé]lectrique|industrielle/', $s))                return 'BUT GEII';
-    if (preg_match('/\\br ?(?:&|t)\\b|\\br t\\b|r[eé]seaux|t[eé]l[eé]communication/', $s)) return 'BUT R&T';
+    if (preg_match('/\\br ?& ?t\\b|r[eé]seaux|t[eé]l[eé]communication/', $s)) return 'BUT R&T';
     if (preg_match('/\\bgea\\b|gestion des entreprises/', $s))                return 'BUT GEA';
     if (preg_match('/\\bcj\\b|carri[eè]res juridiques|juridique/', $s))       return 'BUT CJ';
     if (preg_match('/\\bsd\\b|stid|sciences? des donn[eé]es/', $s))           return 'BUT SD';
