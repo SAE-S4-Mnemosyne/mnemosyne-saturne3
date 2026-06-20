@@ -69,7 +69,7 @@
     border: 1px solid var(--bordure);
     border-radius: 6px;
     font-size: 1rem;
-    background: var(--fond-sombre-2);
+    background: var(--fond-champ);
     color: var(--texte);
     cursor: pointer;
     transition: all 0.3s ease;
@@ -678,8 +678,8 @@
 
 .info-note {
     font-size: 0.9rem;
-    color: var(--bleu-moyen);
-    background: rgba(45, 90, 140, 0.05);
+    color: var(--texte-secondaire);
+    background: rgba(255, 255, 255, 0.06);
     padding: 0.75rem;
     border-radius: 6px;
     margin-top: 1rem;
@@ -903,68 +903,30 @@ body.menu-open {
 }
 
 /* dark mode */
-body.dark-mode {
-    background-color: #131a33;
-    color: var(--texte-clair);
-}
+/* le gros du theme bascule via les variables (voir base.css).
+   ici on garde juste les cas particuliers qui ne suivent pas les variables. */
 
-body.dark-mode .header {
-    background: #161d38;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-}
-
-body.dark-mode .form-container,
-body.dark-mode .feature-card {
-    background-color: var(--fond-sombre);
-    border-color: var(--gris-sombre);
-    color: var(--texte-clair);
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-}
-
-body.dark-mode #sankey_chart {
-    background-color: var(--fond-sombre) !important;
-    border: 1px solid var(--gris-sombre);
-}
-
+/* textes a forcer en blanc pur sur fond sombre */
 body.dark-mode .form-title,
 body.dark-mode .feature-title,
-body.dark-mode .hero-title {
+body.dark-mode .hero-title,
+body.dark-mode .results-title,
+body.dark-mode .status-label,
+body.dark-mode .status-number,
+body.dark-mode .total-label,
+body.dark-mode .total-number,
+body.dark-mode .info-title,
+body.dark-mode .info-text strong {
     color: #ffffff;
 }
 
-body.dark-mode .feature-text,
-body.dark-mode .form-group label,
-body.dark-mode .hero-subtitle {
-    color: var(--texte-clair-2);
+/* le diagramme garde un fond carte lisible */
+body.dark-mode #sankey_chart {
+    background-color: var(--fond-carte) !important;
+    border: 1px solid var(--bordure);
 }
 
-body.dark-mode .form-select {
-    background-color: var(--fond-sombre-2);
-    border-color: var(--gris-sombre-2);
-    color: white;
-}
-
-body.dark-mode .form-select:focus {
-    border-color: var(--gris-sombre-2);
-    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
-}
-
-body.dark-mode .btn-theme-toggle {
-    background: rgba(255, 255, 255, 0.1);
-    border-color: rgba(255, 255, 255, 0.2);
-}
-
-body.dark-mode .footer {
-    background-color: #161d38;
-    border-top: 1px solid var(--gris-sombre);
-    color: var(--texte-clair);
-}
-
-body.dark-mode .footer-links a {
-    color: var(--texte-clair);
-}
-
-/* ajustements dark mode */
+/* les pastilles d'acces rapide restent beiges et lisibles */
 body.dark-mode .chip {
     background: var(--beige);
     border-color: var(--beige);
@@ -974,109 +936,33 @@ body.dark-mode .chip {
 body.dark-mode .chip:hover {
     background: var(--beige-clair);
     border-color: var(--beige-clair);
-    color: var(--bleu-fonce);
-}
-
-body.dark-mode .chart-box {
-    background: var(--fond-sombre);
-}
-
-body.dark-mode .empty-state svg {
-    stroke: var(--gris-sombre-2);
-}
-
-body.dark-mode .chart-loader {
-    background: rgba(26, 29, 41, 0.9);
-    color: var(--texte-clair);
-}
-
-body.dark-mode .spinner {
-    border-color: var(--gris-sombre-2);
-    border-top-color: var(--beige);
-}
-
-/* dark mode du select jury */
-body.dark-mode .results-section {
-    background-color: var(--fond-sombre);
-    border-color: var(--gris-sombre);
-    color: var(--texte-clair);
-}
-
-body.dark-mode .results-title {
-    color: #ffffff;
-}
-
-body.dark-mode .results-subtitle {
-    color: var(--texte-clair-2);
-}
-
-/* dégradés des cartes en sombre */
-body.dark-mode .status-validé .status-content {
-    background: linear-gradient(to right, rgba(76, 175, 80, 0.1), var(--fond-sombre) 15%);
-}
-
-body.dark-mode .status-partiel .status-content {
-    background: linear-gradient(to right, rgba(255, 152, 0, 0.1), var(--fond-sombre) 15%);
-}
-
-body.dark-mode .status-redoublement .status-content {
-    background: linear-gradient(to right, rgba(244, 67, 54, 0.1), var(--fond-sombre) 15%);
-}
-
-body.dark-mode .status-abandon .status-content {
-    background: linear-gradient(to right, rgba(117, 117, 117, 0.1), var(--fond-sombre) 15%);
-}
-
-/* textes des cartes */
-body.dark-mode .status-label {
-    color: #ffffff;
-}
-
-body.dark-mode .status-description {
-    color: var(--texte-clair-2);
-}
-
-body.dark-mode .status-number {
-    color: #ffffff;
 }
 
 body.dark-mode .status-link {
     color: var(--beige);
 }
 
-/* bleu plus clair */
-
-/* sections total et info en bas */
-body.dark-mode .total-section {
-    background-color: var(--fond-sombre-2);
-    border-color: var(--gris-sombre);
+/* degrades des cartes de statut, version sombre */
+body.dark-mode .status-validé .status-content {
+    background: linear-gradient(to right, rgba(76, 175, 80, 0.12), var(--fond-carte) 15%);
 }
 
-body.dark-mode .total-label,
-body.dark-mode .total-number {
-    color: #ffffff;
+body.dark-mode .status-partiel .status-content {
+    background: linear-gradient(to right, rgba(255, 152, 0, 0.12), var(--fond-carte) 15%);
 }
 
-body.dark-mode .info-section {
-    background-color: var(--fond-sombre-2);
-    border-color: var(--bleu-moyen);
+body.dark-mode .status-redoublement .status-content {
+    background: linear-gradient(to right, rgba(244, 67, 54, 0.12), var(--fond-carte) 15%);
 }
 
-body.dark-mode .info-title {
-    color: #ffffff;
+body.dark-mode .status-abandon .status-content {
+    background: linear-gradient(to right, rgba(117, 117, 117, 0.12), var(--fond-carte) 15%);
 }
 
-body.dark-mode .info-text {
-    color: var(--texte-clair-2);
-}
-
-body.dark-mode .info-text strong {
-    color: #ffffff;
-}
-
+/* note d'info en bas */
 body.dark-mode .info-note {
-    background-color: rgba(45, 90, 140, 0.2);
-    color: #90caf9;
+    background-color: rgba(70, 83, 138, 0.25);
+    color: var(--beige-clair);
 }
 
 /* fix page connexion */
