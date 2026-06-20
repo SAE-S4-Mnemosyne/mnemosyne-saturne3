@@ -69,7 +69,7 @@
     border: 1px solid var(--bordure);
     border-radius: 6px;
     font-size: 1rem;
-    background: var(--fond-champ);
+    background: var(--fond-sombre-2);
     color: var(--texte);
     cursor: pointer;
     transition: all 0.3s ease;
@@ -153,7 +153,7 @@
 
 .chart-box {
     width: 100%;
-    min-height: 500px;
+    min-height: 400px;
     margin-top: 20px;
     background: var(--fond-carte);
     padding: 20px;
@@ -162,7 +162,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    overflow: hidden;
 }
 
 .empty-state {
@@ -679,181 +678,42 @@
 
 .info-note {
     font-size: 0.9rem;
-    color: var(--texte-secondaire);
-    background: rgba(255, 255, 255, 0.06);
+    color: var(--bleu-moyen);
+    background: rgba(45, 90, 140, 0.05);
     padding: 0.75rem;
     border-radius: 6px;
     margin-top: 1rem;
 }
 
-/* ===================== MENU MOBILE (panneau glissant) ===================== */
-
-/* fond assombri derriere le panneau */
-.menu-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 20, 40, 0.5);
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 1500;
-}
-
-.menu-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-/* empeche le defilement de la page quand le menu est ouvert */
-body.menu-open {
-    overflow: hidden;
-}
-
-/* bouton croix de fermeture du panneau (cache en desktop) */
-.menu-close {
-    display: none;
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    border-radius: 50%;
-    color: white;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s ease;
-    z-index: 1;
-}
-
-.menu-close:hover {
-    background: rgba(255, 255, 255, 0.22);
-}
-
-/* ===================== RESPONSIVE ===================== */
-
-/* --- Tablette et mobile : <= 768px --- */
+/* responsive */
 @media (max-width: 768px) {
     .menu-toggle {
         display: flex;
     }
 
-    /* le header ne doit pas pieger le panneau dans son contexte d'empilement :
-       en statique, le panneau (fixed, z-index eleve) passe bien au-dessus de l'overlay */
-    .header {
-        position: static;
-    }
-
-    /* la croix de fermeture apparait dans le panneau */
-    .menu-close {
-        display: flex;
-    }
-
-    /* le panneau glisse depuis la droite */
     .nav-buttons {
-        position: fixed;
-        top: 0;
+        position: absolute;
+        top: 100%;
         right: 0;
-        height: 100vh;
-        width: min(78vw, 300px);
         background: var(--bleu-fonce);
-        border-left: 3px solid var(--beige);
         flex-direction: column;
-        align-items: stretch;
-        justify-content: flex-start;
-        gap: 0.6rem;
-        padding: 5rem 1.4rem 2rem;
-        box-shadow: -10px 0 30px rgba(0, 0, 0, 0.35);
-        transform: translateX(100%);
-        transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-        z-index: 1600;
-        overflow-y: auto;
-        backdrop-filter: none;
-    }
-
-    /* les boutons du panneau sont nets (pas de flou herite) */
-    .nav-buttons .btn-theme-toggle {
-        backdrop-filter: none;
-        background: rgba(255, 255, 255, 0.12);
+        align-items: flex-end;
+        gap: 0.5rem;
+        padding: 1rem;
+        display: none;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        border-radius: 0 0 8px 8px;
     }
 
     .nav-buttons.active {
-        transform: translateX(0);
+        display: flex;
     }
 
-    /* boutons pleine largeur a l'interieur du panneau, bien lisibles */
+    /* les boutons gardent leur taille naturelle (pas etires) */
     .nav-buttons .btn-nav,
-    .nav-buttons .btn-primary,
-    .nav-buttons .btn-logout {
-        width: 100%;
-        justify-content: center;
-        padding: 0.8rem 1rem;
-        font-size: 1rem;
-        white-space: nowrap;
-    }
-
     .nav-buttons .btn-theme-toggle {
-        width: 44px;
-        height: 44px;
-        align-self: flex-start;
-        margin-bottom: 0.4rem;
-    }
-
-    /* sur mobile, le bouton Synchroniser reste visible et centre sous le header */
-    .header-content {
-        flex-wrap: wrap;
-    }
-
-    .header-center {
-        position: static;
-        transform: none;
-        order: 3;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        margin-top: 0.8rem;
-    }
-
-    .header-center .btn-sync-header {
-        padding: 0.5rem 1.1rem;
-        font-size: 0.88rem;
-    }
-
-    /* grille des deux selects : une colonne, bien collee */
-    .form-row {
-        flex: 1 1 100%;
-        grid-template-columns: 1fr;
-        gap: 0.8rem;
-    }
-
-    /* filtres avances : tout s'empile proprement */
-    .filters-row {
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .radio-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .form-select-sm {
-        width: 100%;
-    }
-
-    /* le bouton principal prend toute la largeur */
-    .btn-submit {
-        width: 100%;
-        justify-content: center;
-    }
-
-    /* cartes de statut : une seule colonne (le minmax 400px debordait) */
-    .status-cards {
-        grid-template-columns: 1fr;
-        gap: 1rem;
+        width: auto;
+        white-space: nowrap;
     }
 
     .status-content {
@@ -870,64 +730,71 @@ body.menu-open {
         padding-top: 1rem;
         border-top: 1px solid var(--bordure);
     }
-
-    /* le diagramme defile au lieu de deborder */
-    .chart-box {
-        overflow-x: auto;
-    }
-}
-
-/* --- Mobile : <= 480px --- */
-@media (max-width: 480px) {
-    .nav-buttons {
-        width: min(86vw, 280px);
-    }
-
-    .logo-title {
-        font-size: 1rem;
-    }
-
-    .logo-subtitle {
-        font-size: 0.6rem;
-    }
-
-    .quick-filters {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0.5rem;
-    }
-
-    .quick-filters .chip {
-        width: 100%;
-        text-align: center;
-    }
 }
 
 /* dark mode */
-/* le gros du theme bascule via les variables (voir base.css).
-   ici on garde juste les cas particuliers qui ne suivent pas les variables. */
+body.dark-mode {
+    background-color: #131a33;
+    color: var(--texte-clair);
+}
 
-/* textes a forcer en blanc pur sur fond sombre */
+body.dark-mode .header {
+    background: #161d38;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+body.dark-mode .form-container,
+body.dark-mode .feature-card {
+    background-color: var(--fond-sombre);
+    border-color: var(--gris-sombre);
+    color: var(--texte-clair);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+body.dark-mode #sankey_chart {
+    background-color: var(--fond-sombre) !important;
+    border: 1px solid var(--gris-sombre);
+}
+
 body.dark-mode .form-title,
 body.dark-mode .feature-title,
-body.dark-mode .hero-title,
-body.dark-mode .results-title,
-body.dark-mode .status-label,
-body.dark-mode .status-number,
-body.dark-mode .total-label,
-body.dark-mode .total-number,
-body.dark-mode .info-title,
-body.dark-mode .info-text strong {
+body.dark-mode .hero-title {
     color: #ffffff;
 }
 
-/* le diagramme garde un fond carte lisible */
-body.dark-mode #sankey_chart {
-    background-color: var(--fond-carte) !important;
-    border: 1px solid var(--bordure);
+body.dark-mode .feature-text,
+body.dark-mode .form-group label,
+body.dark-mode .hero-subtitle {
+    color: var(--texte-clair-2);
 }
 
-/* les pastilles d'acces rapide restent beiges et lisibles */
+body.dark-mode .form-select {
+    background-color: var(--fond-sombre-2);
+    border-color: var(--gris-sombre-2);
+    color: white;
+}
+
+body.dark-mode .form-select:focus {
+    border-color: var(--gris-sombre-2);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.1);
+}
+
+body.dark-mode .btn-theme-toggle {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+body.dark-mode .footer {
+    background-color: #161d38;
+    border-top: 1px solid var(--gris-sombre);
+    color: var(--texte-clair);
+}
+
+body.dark-mode .footer-links a {
+    color: var(--texte-clair);
+}
+
+/* ajustements dark mode */
 body.dark-mode .chip {
     background: var(--beige);
     border-color: var(--beige);
@@ -937,33 +804,109 @@ body.dark-mode .chip {
 body.dark-mode .chip:hover {
     background: var(--beige-clair);
     border-color: var(--beige-clair);
+    color: var(--bleu-fonce);
+}
+
+body.dark-mode .chart-box {
+    background: var(--fond-sombre);
+}
+
+body.dark-mode .empty-state svg {
+    stroke: var(--gris-sombre-2);
+}
+
+body.dark-mode .chart-loader {
+    background: rgba(26, 29, 41, 0.9);
+    color: var(--texte-clair);
+}
+
+body.dark-mode .spinner {
+    border-color: var(--gris-sombre-2);
+    border-top-color: var(--beige);
+}
+
+/* dark mode du select jury */
+body.dark-mode .results-section {
+    background-color: var(--fond-sombre);
+    border-color: var(--gris-sombre);
+    color: var(--texte-clair);
+}
+
+body.dark-mode .results-title {
+    color: #ffffff;
+}
+
+body.dark-mode .results-subtitle {
+    color: var(--texte-clair-2);
+}
+
+/* dégradés des cartes en sombre */
+body.dark-mode .status-validé .status-content {
+    background: linear-gradient(to right, rgba(76, 175, 80, 0.1), var(--fond-sombre) 15%);
+}
+
+body.dark-mode .status-partiel .status-content {
+    background: linear-gradient(to right, rgba(255, 152, 0, 0.1), var(--fond-sombre) 15%);
+}
+
+body.dark-mode .status-redoublement .status-content {
+    background: linear-gradient(to right, rgba(244, 67, 54, 0.1), var(--fond-sombre) 15%);
+}
+
+body.dark-mode .status-abandon .status-content {
+    background: linear-gradient(to right, rgba(117, 117, 117, 0.1), var(--fond-sombre) 15%);
+}
+
+/* textes des cartes */
+body.dark-mode .status-label {
+    color: #ffffff;
+}
+
+body.dark-mode .status-description {
+    color: var(--texte-clair-2);
+}
+
+body.dark-mode .status-number {
+    color: #ffffff;
 }
 
 body.dark-mode .status-link {
     color: var(--beige);
 }
 
-/* degrades des cartes de statut, version sombre */
-body.dark-mode .status-validé .status-content {
-    background: linear-gradient(to right, rgba(76, 175, 80, 0.12), var(--fond-carte) 15%);
+/* bleu plus clair */
+
+/* sections total et info en bas */
+body.dark-mode .total-section {
+    background-color: var(--fond-sombre-2);
+    border-color: var(--gris-sombre);
 }
 
-body.dark-mode .status-partiel .status-content {
-    background: linear-gradient(to right, rgba(255, 152, 0, 0.12), var(--fond-carte) 15%);
+body.dark-mode .total-label,
+body.dark-mode .total-number {
+    color: #ffffff;
 }
 
-body.dark-mode .status-redoublement .status-content {
-    background: linear-gradient(to right, rgba(244, 67, 54, 0.12), var(--fond-carte) 15%);
+body.dark-mode .info-section {
+    background-color: var(--fond-sombre-2);
+    border-color: var(--bleu-moyen);
 }
 
-body.dark-mode .status-abandon .status-content {
-    background: linear-gradient(to right, rgba(117, 117, 117, 0.12), var(--fond-carte) 15%);
+body.dark-mode .info-title {
+    color: #ffffff;
 }
 
-/* note d'info en bas */
+body.dark-mode .info-text {
+    color: var(--texte-clair-2);
+}
+
+body.dark-mode .info-text strong {
+    color: #ffffff;
+}
+
 body.dark-mode .info-note {
-    background-color: rgba(70, 83, 138, 0.25);
-    color: var(--beige-clair);
+    background-color: rgba(45, 90, 140, 0.2);
+    color: #90caf9;
 }
 
 /* fix page connexion */

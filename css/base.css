@@ -15,16 +15,11 @@
     --beige-clair: #cdbd9c;
     /* textes */
     --texte: #edeae2;
-    --texte-secondaire: #c2bdae;
-    /* fonds et bordures (ambiance marine de l'ent, mode clair = marine lumineux) */
-    --fond-page: #46568c;
-    --fond-carte: #313d66;
-    --bordure: #5a6aa0;
-    /* couleur du header et du texte sur fond fonce */
-    --fond-header: #1e2a4a;
-    --texte-sur-fonce: #ffffff;
-    /* fond des champs de saisie (plus fonce que les cartes pour ressortir) */
-    --fond-champ: #232d52;
+    --texte-secondaire: #b9b29f;
+    /* fonds et bordures (ambiance marine de l'ent) */
+    --fond-page: #39456f;
+    --fond-carte: #2a3357;
+    --bordure: #46538a;
     /* mode sombre */
     --fond-sombre: #1d2547;
     --fond-sombre-2: #1a2244;
@@ -32,18 +27,6 @@
     --gris-sombre-2: #46538a;
     --texte-clair: #edeae2;
     --texte-clair-2: #b9b29f;
-}
-
-/* mode sombre : marine profond, bien plus fonce que le mode clair */
-body.dark-mode {
-    --fond-page: #0d1228;
-    --fond-carte: #1a2342;
-    --bordure: #2e3a66;
-    --fond-header: #11172e;
-    --fond-champ: #0a0e1f;
-    --texte: #edeae2;
-    --texte-secondaire: #a8b0c4;
-    --bleu-moyen: #46538a;
 }
 
 body {

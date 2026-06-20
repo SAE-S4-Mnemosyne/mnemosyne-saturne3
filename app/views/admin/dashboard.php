@@ -79,12 +79,6 @@
                     </div>
                 </div>
 
-                <button class="menu-toggle" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="nav-menu">
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                    <span class="bar"></span>
-                </button>
-
                 <div class="header-center">
                     <form method="POST" class="sync-form-header" id="sync-form">
                         <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($csrfToken); ?>">
@@ -97,13 +91,7 @@
                     </form>
                 </div>
 
-                <nav class="nav-buttons" id="nav-menu">
-                    <button type="button" class="menu-close" id="menu-close" aria-label="Fermer le menu">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                    </button>
+                <nav class="nav-buttons">
                     <button class="btn-theme-toggle" id="theme-toggle" aria-label="Basculer theme sombre">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="currentColor"/>
@@ -119,9 +107,6 @@
             </div>
         </div>
     </header>
-
-    <!-- Fond assombri du menu mobile -->
-    <div id="menu-overlay" class="menu-overlay" aria-hidden="true"></div>
 
     <main class="main-section">
         <div class="container">
@@ -506,103 +491,43 @@
             abd: getVal('count-abd'), abdPct: getVal('percent-abd'),
             total: getVal('total-students')
         };
-
-        // Fix html2canvas missing SVG paths issue for Google Charts Sankey
-        const sankeyEl = document.getElementById('sankey_chart');
-        const svgElements = sankeyEl.querySelectorAll('svg');
-        
-        if (svgElements.length === 0) {
-            alert("Aucun diagramme a exporter.");
-            btn.textContent = originalText;
-            btn.disabled = false;
-            return;
-        }
-
-        const svg = svgElements[0];
-        if (!svg.getAttribute('xmlns')) {
-            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-        }
-        
-        const svgData = new XMLSerializer().serializeToString(svg);
-        const img = new Image();
-        
-        img.onload = () => {
-            try {
-                const canvas = document.createElement('canvas');
-                // Scale x2 pour une meilleure qualite
-                canvas.width = svg.clientWidth * 2;
-                canvas.height = svg.clientHeight * 2;
-                const ctx = canvas.getContext('2d');
-                
-                // Fond sombre specifique a la charte
-                ctx.fillStyle = '#1a2035';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                const imgSankey = canvas.toDataURL('image/jpeg', 1.0);
-
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('p', 'mm', 'a4');
-                doc.setFontSize(22); doc.setTextColor(30, 58, 95);
-                doc.text('Bilan de Cohorte', 105, 25, { align: 'center' });
-                doc.setDrawColor(45, 90, 140); doc.setLineWidth(0.5); doc.line(20, 30, 190, 30);
-                doc.setFontSize(14); doc.setTextColor(85, 85, 85);
-                doc.text(`Formation : ${formation}`, 105, 40, { align: 'center' });
-                doc.text(`Annee : ${annee}`, 105, 48, { align: 'center' });
-                doc.setFontSize(16); doc.setTextColor(45, 90, 140);
-                doc.text('1. Synthese des Resultats', 20, 65);
-                doc.autoTable({
-                    startY: 70,
-                    head: [['Categorie', 'Nombre', 'Pourcentage']],
-                    body: [
-                        ['Diplome / Admis', stats.valide, stats.validePct],
-                        ['En cours', stats.partiel, stats.partielPct],
-                        ['Redoublement', stats.red, stats.redPct],
-                        ['Abandon / Reorientation', stats.abd, stats.abdPct],
-                        ['TOTAL', stats.total, '100%']
-                    ],
-                    headStyles: { fillColor: [240, 244, 248], textColor: [30, 58, 95], fontStyle: 'bold' },
-                    bodyStyles: { textColor: [51, 51, 51] },
-                    alternateRowStyles: { fillColor: [249, 249, 249] },
-                    styles: { halign: 'center', cellPadding: 4 },
-                    columnStyles: { 0: { halign: 'left' } },
-                    margin: { left: 20, right: 20 }
-                });
-                const finalY = doc.lastAutoTable.finalY + 15;
-                doc.setFontSize(16); doc.setTextColor(45, 90, 140);
-                doc.text('2. Visualisation des Flux', 20, finalY);
-
-                const imgWidth = 170;
-                const imgHeight = (canvas.height / canvas.width) * imgWidth;
-                const sankeyY = finalY + 5;
-
-                if (sankeyY + imgHeight > 275) {
-                    doc.addPage();
-                    doc.addImage(imgSankey, 'JPEG', 20, 20, imgWidth, imgHeight);
-                } else {
-                    doc.addImage(imgSankey, 'JPEG', 20, sankeyY, imgWidth, imgHeight);
-                }
-
-                doc.setFontSize(10); doc.setTextColor(150, 150, 150);
-                doc.text(`Généré le ${new Date().toLocaleDateString()} via Mnemosyne`, 105, 285, { align: 'center' });
-                doc.save(`Rapport_${formation.replace(/[^a-zA-Z0-9]/g, '_')}_${annee}.pdf`);
-            } catch(e) {
-                console.error("Erreur native canvas:", e);
-                alert("Erreur lors de la construction du PDF.");
-            } finally {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            }
-        };
-        
-        img.onerror = (e) => {
-            console.error("Erreur load SVG img", e);
-            alert("Impossible de capturer le diagramme.");
-            btn.textContent = originalText;
-            btn.disabled = false;
-        };
-
-        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('p', 'mm', 'a4');
+        doc.setFontSize(22); doc.setTextColor(30, 58, 95);
+        doc.text('Bilan de Cohorte', 105, 25, { align: 'center' });
+        doc.setDrawColor(45, 90, 140); doc.setLineWidth(0.5); doc.line(20, 30, 190, 30);
+        doc.setFontSize(14); doc.setTextColor(85, 85, 85);
+        doc.text(`Formation : ${formation}`, 105, 40, { align: 'center' });
+        doc.text(`Annee : ${annee}`, 105, 48, { align: 'center' });
+        doc.setFontSize(16); doc.setTextColor(45, 90, 140);
+        doc.text('1. Synthese des Resultats', 20, 65);
+        doc.autoTable({
+            startY: 70,
+            head: [['Categorie', 'Nombre', 'Pourcentage']],
+            body: [
+                ['Diplome / Admis', stats.valide, stats.validePct],
+                ['En cours', stats.partiel, stats.partielPct],
+                ['Redoublement', stats.red, stats.redPct],
+                ['Abandon / Reorientation', stats.abd, stats.abdPct],
+                ['TOTAL', stats.total, '100%']
+            ],
+            headStyles: { fillColor: [240, 244, 248], textColor: [30, 58, 95], fontStyle: 'bold' },
+            bodyStyles: { textColor: [51, 51, 51] },
+            alternateRowStyles: { fillColor: [249, 249, 249] },
+            styles: { halign: 'center', cellPadding: 4 },
+            columnStyles: { 0: { halign: 'left' } },
+            margin: { left: 20, right: 20 }
+        });
+        const finalY = doc.lastAutoTable.finalY + 15;
+        doc.setFontSize(16); doc.setTextColor(45, 90, 140);
+        doc.text('2. Visualisation des Flux', 20, finalY);
+        doc.setFontSize(11); doc.setTextColor(100, 100, 100);
+        doc.text('Le diagramme Sankey est disponible dans l\'interface web.', 20, finalY + 10);
+        doc.setFontSize(10); doc.setTextColor(150, 150, 150);
+        doc.text(`Genere le ${new Date().toLocaleDateString()} via Mnemosyne`, 105, 285, { align: 'center' });
+        doc.save(`Rapport_${formation.replace(/[^a-zA-Z0-9]/g, '_')}_${annee}.pdf`);
+        btn.textContent = originalText;
+        btn.disabled = false;
     }
     </script>
     <!-- Script pour capturer l'écran (Sankey) -->
